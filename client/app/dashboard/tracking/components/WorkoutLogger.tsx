@@ -52,7 +52,6 @@ export default function WorkoutLogger({ plans, onSave, onCancel }: Props) {
     return <CustomWorkoutLogger onSave={onSave} onCancel={onCancel} />
   }
 
-  // Choose mode — pick between plan or custom
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-gray-400">Välj hur du vill logga träningen</p>

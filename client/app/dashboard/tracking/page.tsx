@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
 import WorkoutLogger from "./components/WorkoutLogger"
 import type { Exercise, WorkoutPlan, WorkoutLog } from "./components/types"
+import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog } from "@/lib/api"
 
 export default function TrackingPage() {
   const [plans, setPlans] = useState<WorkoutPlan[]>([])
@@ -12,10 +13,12 @@ export default function TrackingPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [planName, setPlanName] = useState("")
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
-
   const [loggerVisible, setLoggerVisible] = useState(false)
 
-  // --- Plan management ---
+  // Load plans from the backend when the page mounts
+  useEffect(() => {
+    getPlans().then(setPlans).catch(console.error)
+  }, [])
 
   function addExercise() {
     setExercises([...exercises, { name: "", sets: 3, reps: 10 }])
@@ -59,16 +62,18 @@ export default function TrackingPage() {
     setFormVisible(true)
   }
 
-  function savePlan() {
+  async function savePlan() {
     if (!planName.trim()) return
 
     if (editingId === null) {
-      setPlans([...plans, { id: Date.now(), name: planName, exercises }])
+      const saved = await createPlan({ name: planName, exercises })
+      setPlans([...plans, saved])
     } else {
+      const saved = await updatePlan(editingId, { name: planName, exercises })
       const updated = [...plans]
       for (let i = 0; i < updated.length; i++) {
         if (updated[i].id === editingId) {
-          updated[i] = { id: editingId, name: planName, exercises }
+          updated[i] = saved
           break
         }
       }
@@ -78,7 +83,8 @@ export default function TrackingPage() {
     closeForm()
   }
 
-  function deletePlan(id: number) {
+  async function handleDeletePlan(id: number) {
+    await apiDeletePlan(id)
     const updated = []
     for (let i = 0; i < plans.length; i++) {
       if (plans[i].id !== id) {
@@ -95,16 +101,15 @@ export default function TrackingPage() {
     setExercises([{ name: "", sets: 3, reps: 10 }])
   }
 
-  // --- Workout logging ---
-
-  function saveLog(log: WorkoutLog) {
-    // Save to localStorage so the statistics page can read it
-    const existing: WorkoutLog[] = JSON.parse(localStorage.getItem("workoutLogs") || "[]")
-    localStorage.setItem("workoutLogs", JSON.stringify([...existing, log]))
+  async function saveLog(log: WorkoutLog) {
+    await createLog({
+      plan_name: log.planName,
+      date: log.date,
+      exercises: log.exercises,
+    })
     setLoggerVisible(false)
   }
 
-  // Build plan cards
   const planCards = []
   for (let i = 0; i < plans.length; i++) {
     planCards.push(
@@ -112,15 +117,13 @@ export default function TrackingPage() {
         key={plans[i].id}
         plan={plans[i]}
         onEdit={openEditForm}
-        onDelete={deletePlan}
+        onDelete={handleDeletePlan}
       />
     )
   }
 
   return (
     <div className="flex flex-col gap-10 max-w-2xl">
-
-      {/* Workout Plans */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">Träningsplaner</h1>
@@ -159,7 +162,6 @@ export default function TrackingPage() {
 
       <hr className="border-gray-800" />
 
-      {/* Workout Logging */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">Logga träning</h2>
@@ -187,7 +189,6 @@ export default function TrackingPage() {
           <p className="text-gray-500">Logga ett pass för att se det i statistiken.</p>
         )}
       </section>
-
     </div>
   )
 }

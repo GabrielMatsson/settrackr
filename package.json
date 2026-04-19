@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "concurrently --names \"client,server\" --prefix-colors \"blue,green\" \"npm run dev --prefix client\" \"cd server && ./venv/Scripts/uvicorn main:app --reload\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

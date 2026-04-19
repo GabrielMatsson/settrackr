@@ -39,7 +39,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
             : "bg-gray-700 text-gray-400 hover:text-white"
         }`}
       >
-        Tuff
+        Tufft
       </button>
     </div>
   )
