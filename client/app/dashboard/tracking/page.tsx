@@ -14,10 +14,13 @@ export default function TrackingPage() {
   const [planName, setPlanName] = useState("")
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
   const [loggerVisible, setLoggerVisible] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Load plans from the backend when the page mounts
   useEffect(() => {
-    getPlans().then(setPlans).catch(console.error)
+    getPlans()
+      .then(setPlans)
+      .catch(() => setError("Kunde inte ansluta till servern"))
   }, [])
 
   function addExercise() {
@@ -64,34 +67,40 @@ export default function TrackingPage() {
 
   async function savePlan() {
     if (!planName.trim()) return
-
-    if (editingId === null) {
-      const saved = await createPlan({ name: planName, exercises })
-      setPlans([...plans, saved])
-    } else {
-      const saved = await updatePlan(editingId, { name: planName, exercises })
-      const updated = [...plans]
-      for (let i = 0; i < updated.length; i++) {
-        if (updated[i].id === editingId) {
-          updated[i] = saved
-          break
+    try {
+      if (editingId === null) {
+        const saved = await createPlan({ name: planName, exercises })
+        setPlans([...plans, saved])
+      } else {
+        const saved = await updatePlan(editingId, { name: planName, exercises })
+        const updated = [...plans]
+        for (let i = 0; i < updated.length; i++) {
+          if (updated[i].id === editingId) {
+            updated[i] = saved
+            break
+          }
         }
+        setPlans(updated)
       }
-      setPlans(updated)
+      closeForm()
+    } catch {
+      setError("Kunde inte spara planen")
     }
-
-    closeForm()
   }
 
   async function handleDeletePlan(id: number) {
-    await apiDeletePlan(id)
-    const updated = []
-    for (let i = 0; i < plans.length; i++) {
-      if (plans[i].id !== id) {
-        updated.push(plans[i])
+    try {
+      await apiDeletePlan(id)
+      const updated = []
+      for (let i = 0; i < plans.length; i++) {
+        if (plans[i].id !== id) {
+          updated.push(plans[i])
+        }
       }
+      setPlans(updated)
+    } catch {
+      setError("Kunde inte ta bort planen")
     }
-    setPlans(updated)
   }
 
   function closeForm() {
@@ -102,12 +111,12 @@ export default function TrackingPage() {
   }
 
   async function saveLog(log: WorkoutLog) {
-    await createLog({
-      plan_name: log.planName,
-      date: log.date,
-      exercises: log.exercises,
-    })
-    setLoggerVisible(false)
+    try {
+      await createLog({ plan_name: log.planName, date: log.date, exercises: log.exercises })
+      setLoggerVisible(false)
+    } catch {
+      setError("Kunde inte spara träningspasset")
+    }
   }
 
   const planCards = []
@@ -124,6 +133,7 @@ export default function TrackingPage() {
 
   return (
     <div className="flex flex-col gap-10 max-w-2xl">
+      {error && <p className="text-red-400 text-sm">{error}</p>}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">Träningsplaner</h1>
