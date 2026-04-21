@@ -46,6 +46,14 @@ export function getLogs() {
   return apiFetch("/logs/")
 }
 
+export function updateLog(id: number, log: { plan_name: string; date: string; exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean }[] }) {
+  return apiFetch(`/logs/${id}`, { method: "PUT", body: JSON.stringify(log) })
+}
+
+export function deleteLog(id: number) {
+  return apiFetch(`/logs/${id}`, { method: "DELETE" })
+}
+
 export function createLog(log: {
   plan_name: string
   date: string

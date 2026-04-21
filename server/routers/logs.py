@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from auth import get_current_user
@@ -51,3 +51,49 @@ def create_log(log: schemas.WorkoutLogCreate, user=Depends(get_current_user), db
 
     db.commit()
     return get_log_with_exercises(db, db_log.id)
+
+
+@router.put("/{log_id}", response_model=schemas.WorkoutLogResponse)
+def update_log(log_id: int, log: schemas.WorkoutLogCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    db_log = db.query(models.WorkoutLog).filter(
+        models.WorkoutLog.id == log_id,
+        models.WorkoutLog.user_id == db_user.id
+    ).first()
+
+    if not db_log:
+        raise HTTPException(status_code=404, detail="Log not found")
+
+    db_log.plan_name = log.plan_name
+    db_log.date = log.date
+    db.query(models.ExerciseLog).filter(models.ExerciseLog.log_id == log_id).delete()
+
+    for ex in log.exercises:
+        db.add(models.ExerciseLog(
+            log_id=db_log.id,
+            name=ex.name,
+            sets=ex.sets,
+            reps=ex.reps,
+            weight=ex.weight,
+            difficulty=ex.difficulty,
+            done=ex.done,
+        ))
+
+    db.commit()
+    return get_log_with_exercises(db, log_id)
+
+
+@router.delete("/{log_id}")
+def delete_log(log_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    db_log = db.query(models.WorkoutLog).filter(
+        models.WorkoutLog.id == log_id,
+        models.WorkoutLog.user_id == db_user.id
+    ).first()
+
+    if not db_log:
+        raise HTTPException(status_code=404, detail="Log not found")
+
+    db.delete(db_log)
+    db.commit()
+    return {"ok": True}

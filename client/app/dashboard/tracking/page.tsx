@@ -132,7 +132,7 @@ export default function TrackingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-10 max-w-2xl">
+    <div className="flex flex-col gap-10 max-w-lg mx-auto w-full">
       {error && <p className="text-red-400 text-sm">{error}</p>}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
