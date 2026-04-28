@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { getLogs } from "@/lib/api"
 import LogCard from "./components/LogCard"
 import WorkoutOverview from "./components/WorkoutOverview"
+import MyGoals from "./components/MyGoals"
 
 type ExerciseLog = {
   name: string
@@ -92,6 +93,7 @@ export default function StatisticsPage() {
         <h1 className="text-2xl font-bold text-white">Statistik</h1>
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <WorkoutOverview logs={logs} />
+        <MyGoals logs={logs} />
       </div>
       <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full">
         <p className="text-gray-400">Historik av dina tidigare träningspass</p>

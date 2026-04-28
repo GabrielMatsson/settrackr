@@ -13,6 +13,7 @@ class User(Base):
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")
+    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
 
 
 class WorkoutPlan(Base):
@@ -38,6 +39,17 @@ class Exercise(Base):
     order = Column(Integer, default=0)
 
     plan = relationship("WorkoutPlan", back_populates="exercises")
+
+
+class Goal(Base):
+    __tablename__ = "goals"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    target_weight = Column(Float, nullable=False)
+
+    user = relationship("User", back_populates="goals")
 
 
 class WorkoutLog(Base):

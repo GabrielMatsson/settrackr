@@ -23,6 +23,16 @@ class WorkoutPlanResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class GoalCreate(BaseModel):
+    name: str
+    target_weight: float
+
+class GoalResponse(GoalCreate):
+    id: int
+
+    model_config = {"from_attributes": True}
+
+
 class ExerciseLogCreate(BaseModel):
     name: str
     sets: int

@@ -25,6 +25,18 @@ async function apiFetch(path: string, options?: RequestInit) {
 }
 
 
+export function getGoals() {
+  return apiFetch("/goals/")
+}
+
+export function createGoal(goal: { name: string; target_weight: number }) {
+  return apiFetch("/goals/", { method: "POST", body: JSON.stringify(goal) })
+}
+
+export function deleteGoal(id: number) {
+  return apiFetch(`/goals/${id}`, { method: "DELETE" })
+}
+
 export function getPlans() {
   return apiFetch("/plans/")
 }
