@@ -1,3 +1,7 @@
-export default function DashboardPage() {
-  return <h1 className="text-2xl font-bold text-white">Välkommen till SetTrackr</h1>
+import { auth } from "@/auth"
+import HomeClient from "./components/HomeClient"
+
+export default async function DashboardPage() {
+  const session = await auth()
+  return <HomeClient name={session?.user?.name ?? "där"} />
 }

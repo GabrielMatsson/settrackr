@@ -22,6 +22,7 @@ type Period = 7 | 30 | 90
 
 type Props = {
   logs: WorkoutLog[]
+  defaultPeriod?: Period
 }
 
 const stats = [
@@ -65,8 +66,8 @@ function computeStats(logs: WorkoutLog[], days: Period) {
   }
 }
 
-export default function WorkoutOverview({ logs }: Props) {
-  const [period, setPeriod] = useState<Period>(30)
+export default function WorkoutOverview({ logs, defaultPeriod = 30 }: Props) {
+  const [period, setPeriod] = useState<Period>(defaultPeriod)
 
   const data = computeStats(logs, period)
 
