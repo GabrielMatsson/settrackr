@@ -33,6 +33,21 @@ class GoalResponse(GoalCreate):
     model_config = {"from_attributes": True}
 
 
+class UserPublicResponse(BaseModel):
+    id: int
+    name: str | None
+    email: str
+
+    model_config = {"from_attributes": True}
+
+class FriendshipResponse(BaseModel):
+    id: int
+    status: str
+    friend: UserPublicResponse
+
+    model_config = {"from_attributes": True}
+
+
 class ExerciseLogCreate(BaseModel):
     name: str
     sets: int

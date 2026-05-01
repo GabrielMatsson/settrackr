@@ -16,6 +16,18 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
 
 
+class Friendship(Base):
+    __tablename__ = "friendships"
+
+    id = Column(Integer, primary_key=True)
+    requester_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, default="pending")
+
+    requester = relationship("User", foreign_keys=[requester_id])
+    receiver = relationship("User", foreign_keys=[receiver_id])
+
+
 class WorkoutPlan(Base):
     __tablename__ = "workout_plans"
 

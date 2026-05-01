@@ -25,6 +25,34 @@ async function apiFetch(path: string, options?: RequestInit) {
 }
 
 
+export function sendFriendRequest(email: string) {
+  return apiFetch("/friends/request", { method: "POST", body: JSON.stringify({ email }) })
+}
+
+export function getFriends() {
+  return apiFetch("/friends/")
+}
+
+export function getFriendRequests() {
+  return apiFetch("/friends/requests")
+}
+
+export function acceptFriendRequest(id: number) {
+  return apiFetch(`/friends/${id}/accept`, { method: "PUT" })
+}
+
+export function deleteFriendship(id: number) {
+  return apiFetch(`/friends/${id}`, { method: "DELETE" })
+}
+
+export function getFriendLogs(friendId: number) {
+  return apiFetch(`/friends/${friendId}/logs`)
+}
+
+export async function getApiToken(): Promise<string> {
+  return getToken()
+}
+
 export function getGoals() {
   return apiFetch("/goals/")
 }

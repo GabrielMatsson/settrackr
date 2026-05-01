@@ -1,3 +1,13 @@
-export default function ProfilePage() {
-  return <h1 className="text-2xl font-bold text-white">Profil</h1>
+import { auth } from "@/auth"
+import ProfileClient from "./components/ProfileClient"
+
+export default async function ProfilePage() {
+  const session = await auth()
+  return (
+    <ProfileClient
+      name={session?.user?.name ?? ""}
+      email={session?.user?.email ?? ""}
+      image={session?.user?.image ?? null}
+    />
+  )
 }
