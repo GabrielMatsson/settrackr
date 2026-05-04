@@ -132,7 +132,7 @@ export default function HomeClient({ name }: Props) {
           <div className="flex items-center gap-3 mt-1">
             <p className="text-gray-500">{todayCapitalized}</p>
             {streak > 0 && (
-              <p className="text-orange-400 text-sm font-medium">🔥 {streak} dag{streak !== 1 ? "ar" : ""} i rad</p>
+              <p className="text-orange-400 text-sm font-medium">{streak} dag{streak !== 1 ? "ar" : ""} streak 🔥</p>
             )}
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function HomeClient({ name }: Props) {
       )}
 
       {logs.length === 0 && (
-        <p className="text-gray-500 text-sm">Inga pass loggade ännu — tryck på Logga ett pass för att komma igång!</p>
+        <p className="text-gray-500 text-sm">Inga pass loggade ännu, tryck på Logga ett pass för att komma igång!</p>
       )}
     </div>
   )

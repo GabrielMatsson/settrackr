@@ -5,6 +5,7 @@ import { getLogs } from "@/lib/api"
 import LogCard from "./components/LogCard"
 import WorkoutOverview from "./components/WorkoutOverview"
 import MyGoals from "./components/MyGoals"
+import ProgressCharts from "./components/ProgressCharts"
 
 type ExerciseLog = {
   name: string
@@ -94,6 +95,7 @@ export default function StatisticsPage() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <WorkoutOverview logs={logs} />
         <MyGoals logs={logs} />
+        <ProgressCharts logs={logs} />
       </div>
       <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full">
         <p className="text-gray-400">Historik av dina tidigare träningspass</p>
