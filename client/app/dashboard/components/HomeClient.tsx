@@ -94,13 +94,17 @@ type Props = {
 
 export default function HomeClient({ name }: Props) {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   const today = new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })
   const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1)
 
   useEffect(() => {
-    getLogs().then(setLogs).catch(() => {})
+    getLogs()
+      .then((data) => { setLogs(data); setLoading(false) })
+      .catch(() => { setError("Kunde inte hämta träningsdata"); setLoading(false) })
   }, [])
 
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -143,6 +147,9 @@ export default function HomeClient({ name }: Props) {
           {name[0]?.toUpperCase() ?? "?"}
         </button>
       </div>
+
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {loading && <p className="text-gray-500 text-sm">Laddar…</p>}
 
       <div className="flex items-center gap-3">
         <div className="flex flex-col gap-3 flex-1">

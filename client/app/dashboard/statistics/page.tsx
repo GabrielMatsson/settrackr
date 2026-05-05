@@ -31,10 +31,12 @@ export default function StatisticsPage() {
   const startX = useRef(0)
   const scrollLeft = useRef(0)
 
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     getLogs()
-      .then(setLogs)
-      .catch(() => setError("Kunde inte hämta träningshistorik"))
+      .then((data) => { setLogs(data); setLoading(false) })
+      .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
   }, [])
 
   function handleMouseDown(e: React.MouseEvent) {
@@ -93,6 +95,7 @@ export default function StatisticsPage() {
       <div className="max-w-lg mx-auto w-full flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-white">Statistik</h1>
         {error && <p className="text-red-400 text-sm">{error}</p>}
+        {loading && <p className="text-gray-500 text-sm">Laddar…</p>}
         <WorkoutOverview logs={logs} />
         <MyGoals logs={logs} />
         <ProgressCharts logs={logs} />

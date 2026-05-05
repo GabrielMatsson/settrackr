@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getApiToken } from "@/lib/api"
+import { getApiToken, getFriendLogs } from "@/lib/api"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
 
 const API_URL = "http://localhost:8000"
@@ -42,6 +42,7 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
 export default function FriendProfile({ friend, onBack }: Props) {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const sliderRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const startX = useRef(0)
@@ -49,6 +50,10 @@ export default function FriendProfile({ friend, onBack }: Props) {
 
   useEffect(() => {
     let es: EventSource
+
+    getFriendLogs(friend.id)
+      .then((data) => { setLogs(data); setLoading(false) })
+      .catch(() => setLoading(false))
 
     getApiToken().then((token) => {
       es = new EventSource(`${API_URL}/friends/${friend.id}/stream?token=${token}`)
@@ -141,9 +146,8 @@ export default function FriendProfile({ friend, onBack }: Props) {
 
       <div className="flex flex-col gap-2">
         <p className="text-gray-400 text-sm">Träningshistorik</p>
-        {logs.length === 0 && !error && (
-          <p className="text-gray-500 text-sm">Inga loggade pass ännu.</p>
-        )}
+        {loading && logs.length === 0 && <p className="text-gray-500 text-sm">Laddar…</p>}
+        {!loading && logs.length === 0 && !error && <p className="text-gray-500 text-sm">Inga loggade pass ännu.</p>}
       </div>
 
       <div

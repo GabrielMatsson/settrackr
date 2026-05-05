@@ -37,6 +37,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   const [exercises, setExercises] = useState<CustomExercise[]>([
     { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium" },
   ])
+  const [error, setError] = useState<string | null>(null)
 
   function addExercise() {
     setExercises([...exercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium" }])
@@ -79,6 +80,13 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   }
 
   function save() {
+    for (let i = 0; i < exercises.length; i++) {
+      if (!exercises[i].name.trim()) {
+        setError("Alla övningar måste ha ett namn")
+        return
+      }
+    }
+    setError(null)
     const logs = []
     for (let i = 0; i < exercises.length; i++) {
       logs.push({ ...exercises[i], done: true })
@@ -153,6 +161,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
       >
         + Lägg till övning
       </button>
+      {error && <p className="text-red-400 text-xs">{error}</p>}
       <div className="flex gap-3 pt-2">
         <button
           onClick={save}

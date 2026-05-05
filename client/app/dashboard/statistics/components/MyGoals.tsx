@@ -85,6 +85,13 @@ export default function MyGoals({ logs }: Props) {
 
   async function handleAdd() {
     if (!newName.trim() || !newTarget) return
+    for (let i = 0; i < goals.length; i++) {
+      if (goals[i].name.toLowerCase() === newName.trim().toLowerCase()) {
+        setError("Du har redan ett mål för den övningen")
+        return
+      }
+    }
+    setError(null)
     try {
       const created = await createGoal({ name: newName.trim(), target_weight: Number(newTarget) })
       setGoals([...goals, created])
