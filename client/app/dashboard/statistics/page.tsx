@@ -1,11 +1,15 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getLogs } from "@/lib/api"
+import { getApiToken, getCurrentUserEmail, getFriends } from "@/lib/api"
 import LogCard from "./components/LogCard"
 import WorkoutOverview from "./components/WorkoutOverview"
 import MyGoals from "./components/MyGoals"
 import ProgressCharts from "./components/ProgressCharts"
+import CompareStats from "./components/CompareStats"
+
+type Friend = { id: number; name: string | null; email: string }
+type FriendEntry = { id: number; status: string; friend: Friend }
 
 type ExerciseLog = {
   name: string
@@ -16,15 +20,26 @@ type ExerciseLog = {
   done: boolean
 }
 
+type Comment = {
+  id: number
+  body: string
+  created_at: string
+  author: { id: number; name: string | null; email: string }
+}
+
 type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   exercises: ExerciseLog[]
+  reaction_count?: number
+  comments?: Comment[]
 }
 
 export default function StatisticsPage() {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
+  const [friends, setFriends] = useState<Friend[]>([])
+  const [currentUserEmail, setCurrentUserEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
@@ -34,9 +49,26 @@ export default function StatisticsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getLogs()
-      .then((data) => { setLogs(data); setLoading(false) })
-      .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
+    let es: EventSource | null = null
+
+    getCurrentUserEmail().then(setCurrentUserEmail).catch(() => {})
+
+    getApiToken().then((token) => {
+      es = new EventSource(`http://localhost:8000/logs/stream?token=${token}`)
+      es.onmessage = (e: MessageEvent) => {
+        try {
+          setLogs(JSON.parse(e.data))
+          setLoading(false)
+        } catch {}
+      }
+      es.onerror = () => { setError("Kunde inte hämta träningshistorik"); setLoading(false) }
+    })
+
+    getFriends()
+      .then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend)))
+      .catch(() => {})
+
+    return () => { es?.close() }
   }, [])
 
   function handleMouseDown(e: React.MouseEvent) {
@@ -86,6 +118,7 @@ export default function StatisticsPage() {
         log={sorted[i]}
         onDelete={handleDelete}
         onUpdate={handleUpdate}
+        currentUserEmail={currentUserEmail}
       />
     )
   }
@@ -99,6 +132,7 @@ export default function StatisticsPage() {
         <WorkoutOverview logs={logs} />
         <MyGoals logs={logs} />
         <ProgressCharts logs={logs} />
+        <CompareStats myLogs={logs} friends={friends} />
       </div>
       <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full">
         <p className="text-gray-400">Historik av dina tidigare träningspass</p>

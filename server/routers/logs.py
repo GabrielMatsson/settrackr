@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
-from database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session, joinedload, selectinload
+from sse_starlette.sse import EventSourceResponse
+from database import get_db, SessionLocal
 from auth import get_current_user
 from crud import get_or_create_user
+from jose import jwt, JWTError
 import models
 import schemas
+import asyncio
+import json
+import os
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -19,15 +24,96 @@ def get_log_with_exercises(db: Session, log_id: int) -> models.WorkoutLog | None
     )
 
 
-@router.get("/", response_model=list[schemas.WorkoutLogResponse])
+@router.get("/", response_model=list[schemas.WorkoutLogWithReactionsResponse])
 def get_logs(user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
-    return (
+    logs = (
         db.query(models.WorkoutLog)
-        .options(joinedload(models.WorkoutLog.exercises))
+        .options(
+            selectinload(models.WorkoutLog.exercises),
+            selectinload(models.WorkoutLog.reactions),
+            selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
+        )
         .filter(models.WorkoutLog.user_id == db_user.id)
         .all()
     )
+    return [
+        schemas.WorkoutLogWithReactionsResponse(
+            id=log.id,
+            plan_name=log.plan_name,
+            date=log.date,
+            exercises=log.exercises,
+            reaction_count=len(log.reactions),
+            liked_by_me=False,
+            comments=[
+                schemas.CommentResponse(
+                    id=c.id,
+                    body=c.body,
+                    created_at=c.created_at,
+                    author=schemas.CommentAuthor(id=c.user.id, name=c.user.name, email=c.user.email),
+                )
+                for c in sorted(log.comments, key=lambda c: c.created_at)
+            ],
+        )
+        for log in logs
+    ]
+
+
+@router.get("/stream")
+async def stream_logs(token: str = Query(...)):
+    SECRET_KEY = os.getenv("AUTH_SECRET")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401)
+    except JWTError:
+        raise HTTPException(status_code=401)
+    user = {"email": email}
+
+    async def generator():
+        last_sig = ""
+        while True:
+            db = SessionLocal()
+            try:
+                db_user = get_or_create_user(db, user)
+                logs = (
+                    db.query(models.WorkoutLog)
+                    .options(
+                        selectinload(models.WorkoutLog.exercises),
+                        selectinload(models.WorkoutLog.reactions),
+                        selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
+                    )
+                    .filter(models.WorkoutLog.user_id == db_user.id)
+                    .all()
+                )
+                sig = "-".join(f"{l.id}:{len(l.reactions)}:{len(l.comments)}" for l in logs)
+                if sig != last_sig:
+                    last_sig = sig
+                    data = [
+                        {
+                            "id": l.id,
+                            "plan_name": l.plan_name,
+                            "date": l.date,
+                            "exercises": [
+                                {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done}
+                                for e in l.exercises
+                            ],
+                            "reaction_count": len(l.reactions),
+                            "liked_by_me": False,
+                            "comments": [
+                                {"id": c.id, "body": c.body, "created_at": c.created_at.isoformat(), "author": {"id": c.user.id, "name": c.user.name, "email": c.user.email}}
+                                for c in sorted(l.comments, key=lambda c: c.created_at)
+                            ],
+                        }
+                        for l in logs
+                    ]
+                    yield {"data": json.dumps(data)}
+            finally:
+                db.close()
+            await asyncio.sleep(5)
+
+    return EventSourceResponse(generator())
 
 
 @router.post("/", response_model=schemas.WorkoutLogResponse)

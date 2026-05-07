@@ -3,25 +3,53 @@
 import { useState, useEffect } from "react"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
+import SharedPlanCard from "./components/SharedPlanCard"
 import WorkoutLogger from "./components/WorkoutLogger"
 import type { Exercise, WorkoutPlan, WorkoutLog } from "./components/types"
-import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog } from "@/lib/api"
+import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan } from "@/lib/api"
+
+type Friend = { id: number; name: string | null; email: string }
+type FriendEntry = { id: number; status: string; friend: Friend }
+type SharedPlan = { id: number; name: string; exercises: { id: number; name: string; sets: number; reps: number }[]; owner: Friend }
 
 export default function TrackingPage() {
   const [plans, setPlans] = useState<WorkoutPlan[]>([])
+  const [sharedPlans, setSharedPlans] = useState<SharedPlan[]>([])
+  const [friends, setFriends] = useState<Friend[]>([])
   const [formVisible, setFormVisible] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [planName, setPlanName] = useState("")
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
   const [loggerVisible, setLoggerVisible] = useState(false)
+  const [loggingPlan, setLoggingPlan] = useState<{ name: string; exercises: Exercise[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Load plans from the backend when the page mounts
   useEffect(() => {
-    getPlans()
-      .then(setPlans)
-      .catch(() => setError("Kunde inte ansluta till servern"))
+    getPlans().then(setPlans).catch(() => setError("Kunde inte ansluta till servern"))
+    getSharedPlans().then(setSharedPlans).catch(() => {})
+    getFriends().then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend))).catch(() => {})
   }, [])
+
+  async function handleSharePlan(planId: number, friendId: number) {
+    await sharePlan(planId, friendId)
+    const updated = await getPlans()
+    setPlans(updated)
+  }
+
+  async function handleUnsharePlan(planId: number, friendId: number) {
+    await unsharePlan(planId, friendId)
+    const updated = await getPlans()
+    setPlans(updated)
+  }
+
+  async function handleLeaveSharedPlan(planId: number) {
+    try {
+      await leaveSharedPlan(planId)
+      setSharedPlans(sharedPlans.filter((p) => p.id !== planId))
+    } catch {
+      setError("Kunde inte ta bort delad plan")
+    }
+  }
 
   function addExercise() {
     setExercises([...exercises, { name: "", sets: 3, reps: 10 }])
@@ -127,9 +155,37 @@ export default function TrackingPage() {
         plan={plans[i]}
         onEdit={openEditForm}
         onDelete={handleDeletePlan}
+        friends={friends}
+        onShare={handleSharePlan}
+        onUnshare={handleUnsharePlan}
       />
     )
   }
+
+  const sharedPlanCards = []
+  for (let i = 0; i < sharedPlans.length; i++) {
+    sharedPlanCards.push(
+      <SharedPlanCard
+        key={sharedPlans[i].id}
+        plan={sharedPlans[i]}
+        onLog={(p) => {
+          setLoggingPlan({ name: p.name, exercises: p.exercises })
+          setLoggerVisible(true)
+        }}
+        onRemove={handleLeaveSharedPlan}
+      />
+    )
+  }
+
+  const allPlans: WorkoutPlan[] = [
+    ...plans,
+    ...sharedPlans.map((p) => ({
+      id: p.id,
+      name: `${p.name} (${p.owner.name ?? p.owner.email.split("@")[0]})`,
+      exercises: p.exercises,
+    })),
+  ]
+  const activePlans = loggingPlan ? [loggingPlan as unknown as WorkoutPlan] : allPlans
 
   return (
     <div className="flex flex-col gap-10 max-w-lg mx-auto w-full">
@@ -170,6 +226,16 @@ export default function TrackingPage() {
         <div className="flex flex-col gap-4">{planCards}</div>
       </section>
 
+      {sharedPlans.length > 0 && (
+        <>
+          <hr className="border-gray-800" />
+          <section className="flex flex-col gap-6">
+            <h2 className="text-2xl font-bold text-white">Delade planer</h2>
+            <div className="flex flex-col gap-4">{sharedPlanCards}</div>
+          </section>
+        </>
+      )}
+
       <hr className="border-gray-800" />
 
       <section className="flex flex-col gap-6">
@@ -177,7 +243,7 @@ export default function TrackingPage() {
           <h2 className="text-2xl font-bold text-white">Logga träning</h2>
           {!loggerVisible && (
             <button
-              onClick={() => setLoggerVisible(true)}
+              onClick={() => { setLoggingPlan(null); setLoggerVisible(true) }}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
             >
               + Logga pass
@@ -188,9 +254,9 @@ export default function TrackingPage() {
         {loggerVisible && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <WorkoutLogger
-              plans={plans}
-              onSave={saveLog}
-              onCancel={() => setLoggerVisible(false)}
+              plans={activePlans}
+              onSave={(log) => { saveLog(log); setLoggingPlan(null) }}
+              onCancel={() => { setLoggerVisible(false); setLoggingPlan(null) }}
             />
           </div>
         )}

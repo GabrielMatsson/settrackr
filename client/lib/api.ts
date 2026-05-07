@@ -33,10 +33,6 @@ export function getFriends() {
   return apiFetch("/friends/")
 }
 
-export function getFriendRequests() {
-  return apiFetch("/friends/requests")
-}
-
 export function acceptFriendRequest(id: number) {
   return apiFetch(`/friends/${id}/accept`, { method: "PUT" })
 }
@@ -51,6 +47,13 @@ export function getFriendLogs(friendId: number) {
 
 export async function getApiToken(): Promise<string> {
   return getToken()
+}
+
+export async function getCurrentUserEmail(): Promise<string> {
+  const token = await getApiToken()
+  const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+  const payload = JSON.parse(atob(b64))
+  return payload.sub as string
 }
 
 export function getGoals() {
@@ -100,4 +103,65 @@ export function createLog(log: {
   exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean }[]
 }) {
   return apiFetch("/logs/", { method: "POST", body: JSON.stringify(log) })
+}
+
+// Friend plans
+export function getFriendPlans(friendId: number) {
+  return apiFetch(`/friends/${friendId}/plans`)
+}
+
+export function copyFriendPlan(friendId: number, planId: number) {
+  return apiFetch(`/friends/${friendId}/plans/${planId}/copy`, { method: "POST" })
+}
+
+// Shared plans
+export function getSharedPlans() {
+  return apiFetch("/plans/shared")
+}
+
+export function leaveSharedPlan(planId: number) {
+  return apiFetch(`/plans/shared/${planId}`, { method: "DELETE" })
+}
+
+export function sharePlan(planId: number, friendId: number) {
+  return apiFetch(`/plans/${planId}/share`, { method: "POST", body: JSON.stringify({ friend_id: friendId }) })
+}
+
+export function unsharePlan(planId: number, friendId: number) {
+  return apiFetch(`/plans/${planId}/share/${friendId}`, { method: "DELETE" })
+}
+
+// Likes & comments
+export function toggleLike(logId: number) {
+  return apiFetch(`/logs/${logId}/like`, { method: "POST" })
+}
+
+export function addComment(logId: number, body: string) {
+  return apiFetch(`/logs/${logId}/comments`, { method: "POST", body: JSON.stringify({ body }) })
+}
+
+export function deleteComment(logId: number, commentId: number) {
+  return apiFetch(`/logs/${logId}/comments/${commentId}`, { method: "DELETE" })
+}
+
+// Shared goals
+export function getSharedGoals() {
+  return apiFetch("/shared-goals/")
+}
+
+export function createSharedGoal(data: { friend_id: number; exercise_name: string; target_weight: number }) {
+  return apiFetch("/shared-goals/", { method: "POST", body: JSON.stringify(data) })
+}
+
+export function deleteSharedGoal(id: number) {
+  return apiFetch(`/shared-goals/${id}`, { method: "DELETE" })
+}
+
+// Plan invitations
+export function acceptPlanInvitation(id: number) {
+  return apiFetch(`/plans/invitations/${id}/accept`, { method: "PUT" })
+}
+
+export function declinePlanInvitation(id: number) {
+  return apiFetch(`/plans/invitations/${id}`, { method: "DELETE" })
 }

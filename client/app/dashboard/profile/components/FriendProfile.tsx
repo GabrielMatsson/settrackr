@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getApiToken, getFriendLogs } from "@/lib/api"
+import { getApiToken, getFriendPlans, copyFriendPlan } from "@/lib/api"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
+import LogReactions from "./LogReactions"
 
 const API_URL = "http://localhost:8000"
 
@@ -15,11 +16,23 @@ type ExerciseLog = {
   done: boolean
 }
 
+type CommentAuthor = { id: number; name: string | null; email: string }
+type Comment = { id: number; body: string; created_at: string; author: CommentAuthor }
+
 type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   exercises: ExerciseLog[]
+  reaction_count: number
+  liked_by_me: boolean
+  comments: Comment[]
+}
+
+type FriendPlan = {
+  id: number
+  name: string
+  exercises: { id: number; name: string; sets: number; reps: number }[]
 }
 
 type Friend = {
@@ -31,6 +44,7 @@ type Friend = {
 type Props = {
   friend: Friend
   onBack: () => void
+  currentUserEmail: string
 }
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
@@ -39,21 +53,34 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
   return <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Tufft</span>
 }
 
-export default function FriendProfile({ friend, onBack }: Props) {
+export default function FriendProfile({ friend, onBack, currentUserEmail }: Props) {
+
   const [logs, setLogs] = useState<WorkoutLog[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [plans, setPlans] = useState<FriendPlan[]>([])
+  const [copiedPlanId, setCopiedPlanId] = useState<number | null>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const startX = useRef(0)
   const scrollLeft = useRef(0)
 
   useEffect(() => {
-    let es: EventSource
+    getFriendPlans(friend.id).then(setPlans).catch(() => {})
+  }, [friend.id])
 
-    getFriendLogs(friend.id)
-      .then((data) => { setLogs(data); setLoading(false) })
-      .catch(() => setLoading(false))
+  async function handleCopyPlan(planId: number) {
+    try {
+      await copyFriendPlan(friend.id, planId)
+      setCopiedPlanId(planId)
+      setTimeout(() => setCopiedPlanId(null), 2500)
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    let es: EventSource
 
     getApiToken().then((token) => {
       es = new EventSource(`${API_URL}/friends/${friend.id}/stream?token=${token}`)
@@ -65,10 +92,11 @@ export default function FriendProfile({ friend, onBack }: Props) {
           es.close()
         } else {
           setLogs(data)
+          setLoading(false)
         }
       }
 
-      es.onerror = () => setError("Anslutningen bröts")
+      es.onerror = () => { setError("Anslutningen bröts"); setLoading(false) }
     })
 
     return () => {
@@ -119,6 +147,13 @@ export default function FriendProfile({ friend, onBack }: Props) {
           <p className="text-gray-500 text-sm">{log.date}</p>
         </div>
         <div className="flex flex-col">{exercises}</div>
+        <LogReactions
+          logId={log.id}
+          initialCount={log.reaction_count ?? 0}
+          initialLiked={log.liked_by_me ?? false}
+          initialComments={log.comments ?? []}
+          currentUserEmail={currentUserEmail}
+        />
       </div>
     )
   }
@@ -160,6 +195,33 @@ export default function FriendProfile({ friend, onBack }: Props) {
       >
         {cards}
       </div>
+
+      {plans.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <p className="text-gray-400 text-sm">Träningsplaner</p>
+          {plans.map((plan) => (
+            <div key={plan.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <p className="text-white font-semibold">{plan.name}</p>
+                <button
+                  onClick={() => handleCopyPlan(plan.id)}
+                  className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  {copiedPlanId === plan.id ? "Kopierad!" : "Kopiera till mina planer"}
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {plan.exercises.map((ex, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm bg-gray-800 rounded-lg px-4 py-2">
+                    <span className="text-white">{ex.name}</span>
+                    <span className="text-gray-400">{ex.sets} set · {ex.reps} reps</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

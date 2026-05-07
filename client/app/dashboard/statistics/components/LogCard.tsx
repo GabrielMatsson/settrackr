@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { updateLog, deleteLog } from "@/lib/api"
+import LogReactions from "../../profile/components/LogReactions"
 
 type ExerciseLog = {
   name: string
@@ -12,17 +13,27 @@ type ExerciseLog = {
   done: boolean
 }
 
+type Comment = {
+  id: number
+  body: string
+  created_at: string
+  author: { id: number; name: string | null; email: string }
+}
+
 type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   exercises: ExerciseLog[]
+  reaction_count?: number
+  comments?: Comment[]
 }
 
 type Props = {
   log: WorkoutLog
   onDelete: (id: number) => void
   onUpdate: (updated: WorkoutLog) => void
+  currentUserEmail?: string
 }
 
 function DifficultyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -63,7 +74,7 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
   return <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Tufft</span>
 }
 
-export default function LogCard({ log, onDelete, onUpdate }: Props) {
+export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = "" }: Props) {
   const [editing, setEditing] = useState(false)
   const [planName, setPlanName] = useState(log.plan_name)
   const [date, setDate] = useState(log.date)
@@ -245,6 +256,13 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
         </div>
       </div>
       <div className="flex flex-col">{exerciseRows}</div>
+      <LogReactions
+        logId={log.id}
+        initialCount={log.reaction_count ?? 0}
+        initialLiked={false}
+        initialComments={log.comments ?? []}
+        currentUserEmail={currentUserEmail}
+      />
     </div>
   )
 }

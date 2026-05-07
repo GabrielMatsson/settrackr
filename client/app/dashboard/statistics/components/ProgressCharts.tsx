@@ -3,7 +3,7 @@
 import { useState } from "react"
 import {
   LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from "recharts"
 
@@ -20,19 +20,23 @@ type WorkoutLog = {
 
 type Props = {
   logs: WorkoutLog[]
+  friendLogs?: WorkoutLog[]
+  friendName?: string
+  hideBarChart?: boolean
 }
 
-function getExerciseNames(logs: WorkoutLog[]): string[] {
+function getExerciseNames(logs: WorkoutLog[], extra?: WorkoutLog[]): string[] {
   const names = new Set<string>()
-  for (let i = 0; i < logs.length; i++) {
-    for (let j = 0; j < logs[i].exercises.length; j++) {
-      names.add(logs[i].exercises[j].name)
+  const all = extra ? [...logs, ...extra] : logs
+  for (let i = 0; i < all.length; i++) {
+    for (let j = 0; j < all[i].exercises.length; j++) {
+      names.add(all[i].exercises[j].name)
     }
   }
   return Array.from(names).sort()
 }
 
-function getWeightProgression(logs: WorkoutLog[], exerciseName: string) {
+function getWeightProgressionByDate(logs: WorkoutLog[], exerciseName: string): Record<string, number> {
   const byDate: Record<string, number> = {}
   for (let i = 0; i < logs.length; i++) {
     const log = logs[i]
@@ -45,15 +49,24 @@ function getWeightProgression(logs: WorkoutLog[], exerciseName: string) {
       }
     }
   }
-  const entries = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b))
-  const result = []
-  for (let i = 0; i < entries.length; i++) {
-    const [date, weight] = entries[i]
+  return byDate
+}
+
+function getWeightProgression(logs: WorkoutLog[], exerciseName: string, friendLogs?: WorkoutLog[]) {
+  const myData = getWeightProgressionByDate(logs, exerciseName)
+  const friendData = friendLogs ? getWeightProgressionByDate(friendLogs, exerciseName) : {}
+
+  const allDates = new Set([...Object.keys(myData), ...Object.keys(friendData)])
+  const entries = Array.from(allDates).sort((a, b) => a.localeCompare(b))
+
+  return entries.map((date) => {
     const d = new Date(date)
     const label = d.toLocaleDateString("sv-SE", { day: "numeric", month: "short" })
-    result.push({ date: label, weight })
-  }
-  return result
+    const point: Record<string, unknown> = { date: label }
+    if (myData[date] !== undefined) point.weight = myData[date]
+    if (friendData[date] !== undefined) point.friendWeight = friendData[date]
+    return point
+  })
 }
 
 function getISOWeekKey(date: Date): string {
@@ -90,12 +103,13 @@ const tooltipStyle = {
   color: "#fff",
 }
 
-export default function ProgressCharts({ logs }: Props) {
-  const exerciseNames = getExerciseNames(logs)
+export default function ProgressCharts({ logs, friendLogs, friendName, hideBarChart }: Props) {
+  const exerciseNames = getExerciseNames(logs, friendLogs)
   const [selectedExercise, setSelectedExercise] = useState(exerciseNames[0] ?? "")
 
-  const lineData = selectedExercise ? getWeightProgression(logs, selectedExercise) : []
+  const lineData = selectedExercise ? getWeightProgression(logs, selectedExercise, friendLogs) : []
   const barData = getWeeklyWorkouts(logs)
+  const hasFriend = !!friendLogs && friendLogs.length > 0
 
   return (
     <div className="flex flex-col gap-4">
@@ -125,39 +139,56 @@ export default function ProgressCharts({ logs }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="date" tick={{ fill: "#9ca3af", fontSize: 11 }} />
               <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} unit=" kg" />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`, "Max vikt"]} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`]} />
+              {hasFriend && <Legend wrapperStyle={{ fontSize: 12, color: "#9ca3af" }} />}
               <Line
                 type="monotone"
                 dataKey="weight"
+                name="Jag"
                 stroke="#6366f1"
                 strokeWidth={2}
                 dot={{ fill: "#6366f1", r: 4 }}
                 activeDot={{ r: 6 }}
+                connectNulls
               />
+              {hasFriend && (
+                <Line
+                  type="monotone"
+                  dataKey="friendWeight"
+                  name={friendName ?? "Vän"}
+                  stroke="#a78bfa"
+                  strokeWidth={2}
+                  dot={{ fill: "#a78bfa", r: 4 }}
+                  activeDot={{ r: 6 }}
+                  connectNulls
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         )}
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
-        <p className="text-white font-semibold">Pass per vecka</p>
+      {!hideBarChart && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+          <p className="text-white font-semibold">Pass per vecka</p>
 
-        {barData.length === 0 ? (
-          <p className="text-gray-500 text-sm py-8 text-center">
-            Logga fler pass för att se din veckostatistik
-          </p>
-        ) : (
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-              <XAxis dataKey="week" tick={{ fill: "#9ca3af", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [v, "Pass"]} />
-              <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+          {barData.length === 0 ? (
+            <p className="text-gray-500 text-sm py-8 text-center">
+              Logga fler pass för att se din veckostatistik
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={barData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                <XAxis dataKey="week" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [v, "Pass"]} />
+                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      )}
     </div>
   )
 }

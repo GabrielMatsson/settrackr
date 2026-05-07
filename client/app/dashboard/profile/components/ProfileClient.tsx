@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getFriends, getFriendRequests, sendFriendRequest, acceptFriendRequest, deleteFriendship } from "@/lib/api"
+import { getFriends, getApiToken, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -17,15 +17,25 @@ type Friendship = {
   friend: Friend
 }
 
+type PlanInvitation = {
+  id: number
+  plan_id: number
+  plan_name: string
+  from_user: { id: number; name: string | null; email: string }
+}
+
 type Props = {
   name: string
   email: string
   image: string | null
 }
 
+const API_URL = "http://localhost:8000"
+
 export default function ProfileClient({ name, email, image }: Props) {
   const [friends, setFriends] = useState<Friendship[]>([])
   const [requests, setRequests] = useState<Friendship[]>([])
+  const [invitations, setInvitations] = useState<PlanInvitation[]>([])
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
   const [addingFriend, setAddingFriend] = useState(false)
   const [friendEmail, setFriendEmail] = useState("")
@@ -34,7 +44,19 @@ export default function ProfileClient({ name, email, image }: Props) {
 
   useEffect(() => {
     getFriends().then(setFriends).catch(() => setError("Kunde inte hämta vänner"))
-    getFriendRequests().then(setRequests).catch(() => {})
+
+    let reqEs: EventSource | null = null
+    let invEs: EventSource | null = null
+
+    getApiToken().then((token) => {
+      reqEs = new EventSource(`${API_URL}/friends/requests/stream?token=${token}`)
+      reqEs.onmessage = (e) => { try { setRequests(JSON.parse(e.data)) } catch {} }
+
+      invEs = new EventSource(`${API_URL}/plans/invitations/stream?token=${token}`)
+      invEs.onmessage = (e) => { try { setInvitations(JSON.parse(e.data)) } catch {} }
+    })
+
+    return () => { reqEs?.close(); invEs?.close() }
   }, [])
 
   async function handleSendRequest() {
@@ -78,10 +100,28 @@ export default function ProfileClient({ name, email, image }: Props) {
     }
   }
 
+  async function handleAcceptInvitation(id: number) {
+    try {
+      await acceptPlanInvitation(id)
+      setInvitations(invitations.filter((i) => i.id !== id))
+    } catch {
+      setError("Kunde inte acceptera planinbjudan")
+    }
+  }
+
+  async function handleDeclineInvitation(id: number) {
+    try {
+      await declinePlanInvitation(id)
+      setInvitations(invitations.filter((i) => i.id !== id))
+    } catch {
+      setError("Kunde inte neka planinbjudan")
+    }
+  }
+
   if (selectedFriend) {
     return (
       <div className="max-w-lg mx-auto w-full">
-        <FriendProfile friend={selectedFriend} onBack={() => setSelectedFriend(null)} />
+        <FriendProfile friend={selectedFriend} onBack={() => setSelectedFriend(null)} currentUserEmail={email} />
       </div>
     )
   }
@@ -179,6 +219,37 @@ export default function ProfileClient({ name, email, image }: Props) {
           <p className="text-gray-400 text-sm font-medium">Vänförfrågningar ({requests.length})</p>
           <div className="bg-gray-900 border border-gray-800 rounded-2xl px-4">
             {requestItems}
+          </div>
+        </div>
+      )}
+
+      {/* Plan invitations */}
+      {invitations.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <p className="text-gray-400 text-sm font-medium">Planinbjudningar ({invitations.length})</p>
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl px-4">
+            {invitations.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+                <div>
+                  <p className="text-white text-sm font-medium">{inv.plan_name}</p>
+                  <p className="text-gray-500 text-xs">från {inv.from_user.name ?? inv.from_user.email}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAcceptInvitation(inv.id)}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Acceptera
+                  </button>
+                  <button
+                    onClick={() => handleDeclineInvitation(inv.id)}
+                    className="text-gray-400 hover:text-white text-xs transition-colors px-2"
+                  >
+                    Neka
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

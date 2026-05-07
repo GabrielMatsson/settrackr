@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sse_starlette.sse import EventSourceResponse
 from database import get_db, SessionLocal
 from auth import get_current_user
@@ -24,19 +24,24 @@ def get_accepted_friendship(db: Session, user_id: int, friend_id: int):
     ).first()
 
 
-def serialize_log(log: models.WorkoutLog) -> dict:
-    exercises = []
-    for ex in log.exercises:
-        exercises.append({
-            "id": ex.id,
-            "name": ex.name,
-            "sets": ex.sets,
-            "reps": ex.reps,
-            "weight": ex.weight,
-            "difficulty": ex.difficulty,
-            "done": ex.done,
-        })
-    return {"id": log.id, "plan_name": log.plan_name, "date": log.date, "exercises": exercises}
+def serialize_log(log: models.WorkoutLog, viewer_user_id: int | None = None) -> dict:
+    exercises = [
+        {"id": ex.id, "name": ex.name, "sets": ex.sets, "reps": ex.reps, "weight": ex.weight, "difficulty": ex.difficulty, "done": ex.done}
+        for ex in log.exercises
+    ]
+    comments = sorted(log.comments, key=lambda c: c.created_at)
+    return {
+        "id": log.id,
+        "plan_name": log.plan_name,
+        "date": log.date,
+        "exercises": exercises,
+        "reaction_count": len(log.reactions),
+        "liked_by_me": any(r.user_id == viewer_user_id for r in log.reactions) if viewer_user_id else False,
+        "comments": [
+            {"id": c.id, "body": c.body, "created_at": c.created_at.isoformat(), "author": {"id": c.user.id, "name": c.user.name, "email": c.user.email}}
+            for c in comments
+        ],
+    }
 
 
 @router.post("/request", response_model=schemas.FriendshipResponse)
@@ -98,6 +103,43 @@ def get_friends(user=Depends(get_current_user), db: Session = Depends(get_db)):
     return result
 
 
+@router.get("/requests/stream")
+async def stream_friend_requests(token: str = Query(...)):
+    SECRET_KEY = os.getenv("AUTH_SECRET")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401)
+    except JWTError:
+        raise HTTPException(status_code=401)
+    user = {"email": email}
+
+    async def generator():
+        last_sig = ""
+        while True:
+            db = SessionLocal()
+            try:
+                db_user = get_or_create_user(db, user)
+                pending = db.query(models.Friendship).filter(
+                    models.Friendship.receiver_id == db_user.id,
+                    models.Friendship.status == "pending"
+                ).all()
+                sig = str(len(pending))
+                if sig != last_sig:
+                    last_sig = sig
+                    data = [
+                        {"id": f.id, "status": f.status, "friend": {"id": f.requester.id, "name": f.requester.name, "email": f.requester.email}}
+                        for f in pending
+                    ]
+                    yield {"data": json.dumps(data)}
+            finally:
+                db.close()
+            await asyncio.sleep(5)
+
+    return EventSourceResponse(generator())
+
+
 @router.put("/{friendship_id}/accept", response_model=schemas.FriendshipResponse)
 def accept_friend_request(friendship_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
@@ -133,19 +175,101 @@ def delete_friendship(friendship_id: int, user=Depends(get_current_user), db: Se
     return {"ok": True}
 
 
-@router.get("/{friend_id}/logs", response_model=list[schemas.WorkoutLogResponse])
+@router.get("/{friend_id}/plans", response_model=list[schemas.WorkoutPlanResponse])
+def get_friend_plans(friend_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+
+    if not get_accepted_friendship(db, db_user.id, friend_id):
+        raise HTTPException(status_code=403, detail="Ni är inte vänner")
+
+    plans = (
+        db.query(models.WorkoutPlan)
+        .options(joinedload(models.WorkoutPlan.exercises))
+        .filter(models.WorkoutPlan.user_id == friend_id)
+        .all()
+    )
+    return [
+        schemas.WorkoutPlanResponse(id=p.id, name=p.name, exercises=p.exercises, shared_with=[])
+        for p in plans
+    ]
+
+
+@router.post("/{friend_id}/plans/{plan_id}/copy", response_model=schemas.WorkoutPlanResponse)
+def copy_friend_plan(friend_id: int, plan_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+
+    if not get_accepted_friendship(db, db_user.id, friend_id):
+        raise HTTPException(status_code=403, detail="Ni är inte vänner")
+
+    original = (
+        db.query(models.WorkoutPlan)
+        .options(joinedload(models.WorkoutPlan.exercises))
+        .filter(models.WorkoutPlan.id == plan_id, models.WorkoutPlan.user_id == friend_id)
+        .first()
+    )
+    if not original:
+        raise HTTPException(status_code=404, detail="Planen hittades inte")
+
+    friend_user = db.query(models.User).filter(models.User.id == friend_id).first()
+    friend_display = (friend_user.name or friend_user.email.split("@")[0]) if friend_user else "okänd"
+    new_plan = models.WorkoutPlan(user_id=db_user.id, name=original.name, copied_from_name=friend_display)
+    db.add(new_plan)
+    db.flush()
+
+    for i, ex in enumerate(original.exercises):
+        db.add(models.Exercise(plan_id=new_plan.id, name=ex.name, sets=ex.sets, reps=ex.reps, order=i))
+
+    db.commit()
+    db.refresh(new_plan)
+    db.expire(new_plan)
+
+    result = (
+        db.query(models.WorkoutPlan)
+        .options(joinedload(models.WorkoutPlan.exercises))
+        .filter(models.WorkoutPlan.id == new_plan.id)
+        .first()
+    )
+    return schemas.WorkoutPlanResponse(id=result.id, name=result.name, exercises=result.exercises, shared_with=[])
+
+
+@router.get("/{friend_id}/logs", response_model=list[schemas.WorkoutLogWithReactionsResponse])
 def get_friend_logs(friend_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
 
     if not get_accepted_friendship(db, db_user.id, friend_id):
         raise HTTPException(status_code=403, detail="Ni är inte vänner")
 
-    return (
+    logs = (
         db.query(models.WorkoutLog)
-        .options(joinedload(models.WorkoutLog.exercises))
+        .options(
+            selectinload(models.WorkoutLog.exercises),
+            selectinload(models.WorkoutLog.reactions),
+            selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
+        )
         .filter(models.WorkoutLog.user_id == friend_id)
         .all()
     )
+    result = []
+    for log in logs:
+        comments = sorted(log.comments, key=lambda c: c.created_at)
+        result.append(schemas.WorkoutLogWithReactionsResponse(
+            id=log.id,
+            plan_name=log.plan_name,
+            date=log.date,
+            exercises=log.exercises,
+            reaction_count=len(log.reactions),
+            liked_by_me=any(r.user_id == db_user.id for r in log.reactions),
+            comments=[
+                schemas.CommentResponse(
+                    id=c.id,
+                    body=c.body,
+                    created_at=c.created_at,
+                    author=schemas.CommentAuthor(id=c.user.id, name=c.user.name, email=c.user.email),
+                )
+                for c in comments
+            ],
+        ))
+    return result
 
 
 @router.get("/{friend_id}/stream")
@@ -162,7 +286,7 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
     user = {"email": email}
 
     async def generator():
-        last_count = -1
+        last_sig = ""
         while True:
             db = SessionLocal()
             try:
@@ -174,14 +298,19 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
 
                 logs = (
                     db.query(models.WorkoutLog)
-                    .options(joinedload(models.WorkoutLog.exercises))
+                    .options(
+                        selectinload(models.WorkoutLog.exercises),
+                        selectinload(models.WorkoutLog.reactions),
+                        selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
+                    )
                     .filter(models.WorkoutLog.user_id == friend_id)
                     .all()
                 )
 
-                if len(logs) != last_count:
-                    last_count = len(logs)
-                    yield {"data": json.dumps([serialize_log(l) for l in logs])}
+                sig = f"{len(logs)}-" + "-".join(f"{l.id}:{len(l.reactions)}:{len(l.comments)}" for l in logs)
+                if sig != last_sig:
+                    last_sig = sig
+                    yield {"data": json.dumps([serialize_log(l, db_user.id) for l in logs])}
             finally:
                 db.close()
             await asyncio.sleep(5)
