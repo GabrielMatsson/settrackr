@@ -55,26 +55,26 @@ export default function PlanForm({
           value={ex.name}
           onChange={(e) => onUpdateName(i, e.target.value)}
           placeholder="Övningens namn"
-          className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         />
         <select
           value={ex.sets}
           onChange={(e) => onUpdateSets(i, Number(e.target.value))}
-          className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         >
           {getSetOptions()}
         </select>
         <select
           value={ex.reps}
           onChange={(e) => onUpdateReps(i, Number(e.target.value))}
-          className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         >
           {getRepOptions()}
         </select>
         {exercises.length > 1 && (
           <button
             onClick={() => onRemoveExercise(i)}
-            className="text-gray-500 hover:text-red-400 transition-colors text-lg"
+            className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors text-lg"
           >
             ✕
           </button>
@@ -84,24 +84,24 @@ export default function PlanForm({
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-5">
-      <h2 className="text-lg font-semibold text-white">
+    <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-5">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
         {isEditing ? "Redigera plan" : "Ny träningsplan"}
       </h2>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm text-gray-400">Planens namn</label>
+        <label className="text-sm text-gray-500 dark:text-gray-400">Planens namn</label>
         <input
           type="text"
           value={planName}
           onChange={(e) => onPlanNameChange(e.target.value)}
           placeholder="T.ex. Bröst & Triceps"
-          className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         />
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-gray-400">Övningar</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Övningar</p>
         {exerciseRows}
         <button
           onClick={onAddExercise}
@@ -120,7 +120,7 @@ export default function PlanForm({
         </button>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-white transition-colors px-5 py-2"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-5 py-2"
         >
           Avbryt
         </button>

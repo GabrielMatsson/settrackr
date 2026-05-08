@@ -42,21 +42,21 @@ function DifficultyPicker({ value, onChange }: { value: string; onChange: (v: st
       <button
         type="button"
         onClick={() => onChange("easy")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "easy" ? "bg-green-600 text-white" : "bg-gray-700 text-gray-400 hover:text-white"}`}
+        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "easy" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
       >
         Lätt
       </button>
       <button
         type="button"
         onClick={() => onChange("medium")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "medium" ? "bg-yellow-500 text-gray-900" : "bg-gray-700 text-gray-400 hover:text-white"}`}
+        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "medium" ? "bg-yellow-500 text-gray-900" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
       >
         Medium
       </button>
       <button
         type="button"
         onClick={() => onChange("hard")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "hard" ? "bg-red-600 text-white" : "bg-gray-700 text-gray-400 hover:text-white"}`}
+        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "hard" ? "bg-red-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
       >
         Tufft
       </button>
@@ -144,38 +144,38 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
     for (let i = 0; i < exercises.length; i++) {
       const ex = exercises[i]
       exerciseRows.push(
-        <div key={i} className="flex flex-col gap-2 py-3 border-b border-gray-800 last:border-0">
+        <div key={i} className="flex flex-col gap-2 py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
           <input
             value={ex.name}
             onChange={(e) => updateExerciseName(i, e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           />
           <div className="flex gap-2">
-            <label className="flex flex-col gap-0.5 text-xs text-gray-400">
+            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
               Set
               <input
                 type="number"
                 value={ex.sets}
                 onChange={(e) => updateExerciseSets(i, Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
+                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
               />
             </label>
-            <label className="flex flex-col gap-0.5 text-xs text-gray-400">
+            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
               Reps
               <input
                 type="number"
                 value={ex.reps}
                 onChange={(e) => updateExerciseReps(i, Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
+                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
               />
             </label>
-            <label className="flex flex-col gap-0.5 text-xs text-gray-400">
+            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
               Vikt (kg)
               <input
                 type="number"
                 value={ex.weight}
                 onChange={(e) => updateExerciseWeight(i, Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 w-20 focus:outline-none focus:border-indigo-500"
+                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-20 focus:outline-none focus:border-indigo-500"
               />
             </label>
           </div>
@@ -185,18 +185,18 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
     }
 
     return (
-      <div className="min-w-80 bg-gray-900 border border-indigo-500 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
+      <div className="min-w-80 bg-gray-50 dark:bg-gray-900 border border-indigo-500 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
         <div className="flex flex-col gap-2">
           <input
             value={planName}
             onChange={(e) => setPlanName(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-white font-semibold text-lg rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white font-semibold text-lg rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500"
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500 self-start"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500 self-start"
           />
         </div>
         <div className="flex flex-col">{exerciseRows}</div>
@@ -210,7 +210,7 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
           </button>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-white text-sm transition-colors px-2"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2"
           >
             Avbryt
           </button>
@@ -223,10 +223,10 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
   for (let i = 0; i < log.exercises.length; i++) {
     const ex = log.exercises[i]
     exerciseRows.push(
-      <div key={i} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+      <div key={i} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800 last:border-0">
         <div className="flex flex-col gap-1">
-          <span className="text-white text-sm font-medium">{ex.name}</span>
-          <span className="text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
+          <span className="text-gray-900 dark:text-white text-sm font-medium">{ex.name}</span>
+          <span className="text-gray-500 dark:text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
         </div>
         <DifficultyBadge difficulty={ex.difficulty} />
       </div>
@@ -234,22 +234,22 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
   }
 
   return (
-    <div className="min-w-80 bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
+    <div className="min-w-80 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-white font-semibold text-lg">{log.plan_name}</p>
-          <p className="text-gray-500 text-sm mt-0.5">{log.date}</p>
+          <p className="text-gray-900 dark:text-white font-semibold text-lg">{log.plan_name}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">{log.date}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setEditing(true)}
-            className="text-gray-400 hover:text-white transition-colors text-sm"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
           >
             Redigera
           </button>
           <button
             onClick={handleDelete}
-            className="text-gray-600 hover:text-red-400 transition-colors text-sm"
+            className="text-gray-400 dark:text-gray-600 hover:text-red-400 transition-colors text-sm"
           >
             Ta bort
           </button>

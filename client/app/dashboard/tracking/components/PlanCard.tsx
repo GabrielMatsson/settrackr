@@ -43,20 +43,20 @@ export default function PlanCard({ plan, onEdit, onDelete, friends = [], onShare
   for (let i = 0; i < plan.exercises.length; i++) {
     const ex = plan.exercises[i]
     exerciseRows.push(
-      <div key={i} className="flex items-center justify-between text-sm bg-gray-800 rounded-lg px-4 py-2">
-        <span className="text-white">{ex.name || "Namnlös övning"}</span>
-        <span className="text-gray-400">{ex.sets} set · {ex.reps} reps</span>
+      <div key={i} className="flex items-center justify-between text-sm bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2">
+        <span className="text-gray-900 dark:text-white">{ex.name || "Namnlös övning"}</span>
+        <span className="text-gray-500 dark:text-gray-400">{ex.sets} set · {ex.reps} reps</span>
       </div>
     )
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+    <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h2 className="text-lg font-semibold text-white">{plan.name}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{plan.name}</h2>
           {plan.copied_from_name && (
-            <p className="text-gray-500 text-xs mt-0.5">Kopia av {plan.copied_from_name}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Kopia av {plan.copied_from_name}</p>
           )}
         </div>
         <div className="flex gap-4 items-center">
@@ -64,7 +64,7 @@ export default function PlanCard({ plan, onEdit, onDelete, friends = [], onShare
           {friends.length > 0 && (
             <button
               onClick={() => setSharingOpen(!sharingOpen)}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Dela
             </button>
@@ -89,9 +89,9 @@ export default function PlanCard({ plan, onEdit, onDelete, friends = [], onShare
           {sharedWith.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {sharedWith.map((s) => (
-                <span key={s.id} className="flex items-center gap-1 bg-indigo-900/40 text-indigo-300 text-xs px-2 py-1 rounded-full">
+                <span key={s.id} className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded-full">
                   {s.friend.name ?? s.friend.email.split("@")[0]}
-                  {s.status === "pending" && <span className="text-gray-500"> (väntar)</span>}
+                  {s.status === "pending" && <span className="text-gray-400 dark:text-gray-500"> (väntar)</span>}
                   {onUnshare && (
                     <button onClick={() => onUnshare(plan.id, s.friend.id)} className="hover:text-red-400 transition-colors ml-1">×</button>
                   )}
@@ -104,7 +104,7 @@ export default function PlanCard({ plan, onEdit, onDelete, friends = [], onShare
               <select
                 value={selectedFriend}
                 onChange={(e) => setSelectedFriend(e.target.value ? Number(e.target.value) : "")}
-                className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
               >
                 <option value="">Välj vän att dela med…</option>
                 {sharable.map((f) => (
@@ -120,7 +120,7 @@ export default function PlanCard({ plan, onEdit, onDelete, friends = [], onShare
               </button>
             </div>
           ) : (
-            <p className="text-gray-500 text-xs">Planen är redan delad med alla dina vänner.</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">Planen är redan delad med alla dina vänner.</p>
           )}
         </div>
       )}

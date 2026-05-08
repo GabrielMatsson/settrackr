@@ -14,7 +14,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
           value === "easy"
             ? "bg-green-600 text-white"
-            : "bg-gray-700 text-gray-400 hover:text-white"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         }`}
       >
         Lätt
@@ -25,7 +25,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
           value === "medium"
             ? "bg-yellow-500 text-gray-900"
-            : "bg-gray-700 text-gray-400 hover:text-white"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         }`}
       >
         Medium
@@ -36,7 +36,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
           value === "hard"
             ? "bg-red-600 text-white"
-            : "bg-gray-700 text-gray-400 hover:text-white"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         }`}
       >
         Tufft

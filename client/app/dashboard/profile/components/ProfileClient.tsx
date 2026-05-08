@@ -130,7 +130,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   for (let i = 0; i < friends.length; i++) {
     const f = friends[i]
     friendItems.push(
-      <div key={f.id} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+      <div key={f.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
         <button
           onClick={() => setSelectedFriend(f.friend)}
           className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
@@ -139,13 +139,13 @@ export default function ProfileClient({ name, email, image }: Props) {
             {(f.friend.name ?? f.friend.email)[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-white text-sm font-medium">{f.friend.name ?? f.friend.email}</p>
-            <p className="text-gray-500 text-xs">{f.friend.email}</p>
+            <p className="text-gray-900 dark:text-white text-sm font-medium">{f.friend.name ?? f.friend.email}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">{f.friend.email}</p>
           </div>
         </button>
         <button
           onClick={() => handleRemoveFriend(f.id)}
-          className="text-gray-600 hover:text-red-400 text-xs transition-colors"
+          className="text-gray-400 dark:text-gray-600 hover:text-red-400 text-xs transition-colors"
         >
           Ta bort
         </button>
@@ -157,14 +157,14 @@ export default function ProfileClient({ name, email, image }: Props) {
   for (let i = 0; i < requests.length; i++) {
     const r = requests[i]
     requestItems.push(
-      <div key={r.id} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+      <div key={r.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white text-sm font-medium shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-white text-sm font-medium shrink-0">
             {(r.friend.name ?? r.friend.email)[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-white text-sm font-medium">{r.friend.name ?? r.friend.email}</p>
-            <p className="text-gray-500 text-xs">{r.friend.email}</p>
+            <p className="text-gray-900 dark:text-white text-sm font-medium">{r.friend.name ?? r.friend.email}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">{r.friend.email}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -176,7 +176,7 @@ export default function ProfileClient({ name, email, image }: Props) {
           </button>
           <button
             onClick={() => handleDecline(r.id)}
-            className="text-gray-400 hover:text-white text-xs transition-colors px-2"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors px-2"
           >
             Neka
           </button>
@@ -188,7 +188,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   return (
     <div className="flex flex-col gap-6 max-w-lg mx-auto w-full">
       {/* Profile card */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex items-center gap-4">
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex items-center gap-4">
         {image ? (
           <img src={image} alt={name} className="w-16 h-16 rounded-full" />
         ) : (
@@ -197,13 +197,13 @@ export default function ProfileClient({ name, email, image }: Props) {
           </div>
         )}
         <div className="flex-1">
-          <p className="text-white font-semibold text-lg">{name}</p>
-          <p className="text-gray-400 text-sm">{email}</p>
+          <p className="text-gray-900 dark:text-white font-semibold text-lg">{name}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{email}</p>
         </div>
         <form action={handleSignOut}>
           <button
             type="submit"
-            className="text-gray-400 hover:text-white text-sm transition-colors"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors"
           >
             Logga ut
           </button>
@@ -216,8 +216,8 @@ export default function ProfileClient({ name, email, image }: Props) {
       {/* Incoming friend requests */}
       {requests.length > 0 && (
         <div className="flex flex-col gap-1">
-          <p className="text-gray-400 text-sm font-medium">Vänförfrågningar ({requests.length})</p>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl px-4">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Vänförfrågningar ({requests.length})</p>
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4">
             {requestItems}
           </div>
         </div>
@@ -226,13 +226,13 @@ export default function ProfileClient({ name, email, image }: Props) {
       {/* Plan invitations */}
       {invitations.length > 0 && (
         <div className="flex flex-col gap-1">
-          <p className="text-gray-400 text-sm font-medium">Planinbjudningar ({invitations.length})</p>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl px-4">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Planinbjudningar ({invitations.length})</p>
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4">
             {invitations.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+              <div key={inv.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
                 <div>
-                  <p className="text-white text-sm font-medium">{inv.plan_name}</p>
-                  <p className="text-gray-500 text-xs">från {inv.from_user.name ?? inv.from_user.email}</p>
+                  <p className="text-gray-900 dark:text-white text-sm font-medium">{inv.plan_name}</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs">från {inv.from_user.name ?? inv.from_user.email}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -243,7 +243,7 @@ export default function ProfileClient({ name, email, image }: Props) {
                   </button>
                   <button
                     onClick={() => handleDeclineInvitation(inv.id)}
-                    className="text-gray-400 hover:text-white text-xs transition-colors px-2"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors px-2"
                   >
                     Neka
                   </button>
@@ -257,23 +257,23 @@ export default function ProfileClient({ name, email, image }: Props) {
       {/* Friends list */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <p className="text-white font-semibold text-lg">Mina vänner</p>
+          <p className="text-gray-900 dark:text-white font-semibold text-lg">Mina vänner</p>
           <button
             onClick={() => { setAddingFriend(!addingFriend); setSuccess(null) }}
-            className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center text-lg leading-none"
+            className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center justify-center text-lg leading-none"
           >
             +
           </button>
         </div>
 
         {addingFriend && (
-          <div className="flex flex-col gap-3 bg-gray-900 border border-gray-800 rounded-xl p-4 mt-1">
+          <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mt-1">
             <input
               placeholder="Vännens e-postadress"
               value={friendEmail}
               onChange={(e) => setFriendEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendRequest()}
-              className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
             />
             <div className="flex gap-2">
               <button
@@ -284,7 +284,7 @@ export default function ProfileClient({ name, email, image }: Props) {
               </button>
               <button
                 onClick={() => setAddingFriend(false)}
-                className="text-gray-400 hover:text-white text-sm transition-colors px-2"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2"
               >
                 Avbryt
               </button>
@@ -293,11 +293,11 @@ export default function ProfileClient({ name, email, image }: Props) {
         )}
 
         {friends.length === 0 && !addingFriend && (
-          <p className="text-gray-500 text-sm mt-1">Inga vänner ännu. Tryck + för att lägga till.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Inga vänner ännu. Tryck + för att lägga till.</p>
         )}
 
         {friends.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl px-4 mt-1">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4 mt-1">
             {friendItems}
           </div>
         )}

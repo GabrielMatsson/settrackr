@@ -69,7 +69,7 @@ function WeeklyRing({ count, target }: { count: number; target: number }) {
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-16 h-16">
         <svg className="w-16 h-16 -rotate-90" viewBox="0 0 70 70">
-          <circle cx="35" cy="35" r={radius} fill="none" stroke="#1f2937" strokeWidth="8" />
+          <circle cx="35" cy="35" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="8" />
           <circle
             cx="35" cy="35" r={radius}
             fill="none" stroke="#6366f1" strokeWidth="8"
@@ -80,10 +80,10 @@ function WeeklyRing({ count, target }: { count: number; target: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-white font-semibold text-xs">{count}/{target}</span>
+          <span className="text-gray-900 dark:text-white font-semibold text-xs">{count}/{target}</span>
         </div>
       </div>
-      <p className="text-gray-400 text-xs">Veckostatus</p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs">Veckostatus</p>
     </div>
   )
 }
@@ -117,10 +117,10 @@ export default function HomeClient({ name }: Props) {
     for (let i = 0; i < lastLog.exercises.length; i++) {
       const ex = lastLog.exercises[i]
       exerciseRows.push(
-        <div key={i} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+        <div key={i} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800 last:border-0">
           <div className="flex flex-col gap-1">
-            <span className="text-white text-sm font-medium">{ex.name}</span>
-            <span className="text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
+            <span className="text-gray-900 dark:text-white text-sm font-medium">{ex.name}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
           </div>
           <DifficultyBadge difficulty={ex.difficulty} />
         </div>
@@ -132,9 +132,9 @@ export default function HomeClient({ name }: Props) {
     <div className="flex flex-col gap-8 max-w-lg mx-auto w-full">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Hej, {name.split(" ")[0]}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Hej, {name.split(" ")[0]}</h1>
           <div className="flex items-center gap-3 mt-1">
-            <p className="text-gray-500">{todayCapitalized}</p>
+            <p className="text-gray-400 dark:text-gray-500">{todayCapitalized}</p>
             {streak > 0 && (
               <p className="text-orange-400 text-sm font-medium">{streak} dag{streak !== 1 ? "ar" : ""} streak 🔥</p>
             )}
@@ -149,7 +149,7 @@ export default function HomeClient({ name }: Props) {
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
-      {loading && <p className="text-gray-500 text-sm">Laddar…</p>}
+      {loading && <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>}
 
       <div className="flex items-center gap-3">
         <div className="flex flex-col gap-3 flex-1">
@@ -162,13 +162,13 @@ export default function HomeClient({ name }: Props) {
           </button>
           <button
             onClick={() => router.push("/dashboard/statistics")}
-            className="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-white font-medium rounded-xl p-4 text-left transition-colors"
+            className="bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white font-medium rounded-xl p-4 text-left transition-colors"
           >
             <p className="text-lg mb-0.5">&nbsp;</p>
             <p className="text-sm">Se statistik</p>
           </button>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-center">
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex items-center justify-center">
           <WeeklyRing count={weekCount} target={WEEKLY_TARGET} />
         </div>
       </div>
@@ -177,11 +177,11 @@ export default function HomeClient({ name }: Props) {
 
       {lastLog && (
         <div className="flex flex-col gap-3">
-          <p className="text-white font-semibold">Senaste passet</p>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
+          <p className="text-gray-900 dark:text-white font-semibold">Senaste passet</p>
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
             <div>
-              <p className="text-white font-medium">{lastLog.plan_name}</p>
-              <p className="text-gray-500 text-sm">{lastLog.date} · {daysAgo(lastLog.date)}</p>
+              <p className="text-gray-900 dark:text-white font-medium">{lastLog.plan_name}</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">{lastLog.date} · {daysAgo(lastLog.date)}</p>
             </div>
             <div className="flex flex-col">{exerciseRows}</div>
           </div>
@@ -189,7 +189,7 @@ export default function HomeClient({ name }: Props) {
       )}
 
       {logs.length === 0 && (
-        <p className="text-gray-500 text-sm">Inga pass loggade ännu, tryck på Logga ett pass för att komma igång!</p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm">Inga pass loggade ännu, tryck på Logga ett pass för att komma igång!</p>
       )}
     </div>
   )

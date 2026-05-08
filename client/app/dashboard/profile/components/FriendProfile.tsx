@@ -131,20 +131,20 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
     for (let j = 0; j < log.exercises.length; j++) {
       const ex = log.exercises[j]
       exercises.push(
-        <div key={j} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+        <div key={j} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800 last:border-0">
           <div className="flex flex-col gap-1">
-            <span className="text-white text-sm font-medium">{ex.name}</span>
-            <span className="text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
+            <span className="text-gray-900 dark:text-white text-sm font-medium">{ex.name}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
           </div>
           <DifficultyBadge difficulty={ex.difficulty} />
         </div>
       )
     }
     cards.push(
-      <div key={log.id} className="min-w-72 bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 shrink-0">
+      <div key={log.id} className="min-w-72 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-3 shrink-0">
         <div>
-          <p className="text-white font-semibold">{log.plan_name}</p>
-          <p className="text-gray-500 text-sm">{log.date}</p>
+          <p className="text-gray-900 dark:text-white font-semibold">{log.plan_name}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">{log.date}</p>
         </div>
         <div className="flex flex-col">{exercises}</div>
         <LogReactions
@@ -161,7 +161,7 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors text-sm">
+        <button onClick={onBack} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm">
           ← Tillbaka
         </button>
         <div className="flex items-center gap-2">
@@ -169,8 +169,8 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
             {(friend.name ?? friend.email)[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-white font-medium">{friend.name ?? friend.email}</p>
-            <p className="text-gray-500 text-xs">{friend.email}</p>
+            <p className="text-gray-900 dark:text-white font-medium">{friend.name ?? friend.email}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">{friend.email}</p>
           </div>
         </div>
       </div>
@@ -180,9 +180,9 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
       <WorkoutOverview logs={logs} />
 
       <div className="flex flex-col gap-2">
-        <p className="text-gray-400 text-sm">Träningshistorik</p>
-        {loading && logs.length === 0 && <p className="text-gray-500 text-sm">Laddar…</p>}
-        {!loading && logs.length === 0 && !error && <p className="text-gray-500 text-sm">Inga loggade pass ännu.</p>}
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Träningshistorik</p>
+        {loading && logs.length === 0 && <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>}
+        {!loading && logs.length === 0 && !error && <p className="text-gray-400 dark:text-gray-500 text-sm">Inga loggade pass ännu.</p>}
       </div>
 
       <div
@@ -198,11 +198,11 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
 
       {plans.length > 0 && (
         <div className="flex flex-col gap-3">
-          <p className="text-gray-400 text-sm">Träningsplaner</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Träningsplaner</p>
           {plans.map((plan) => (
-            <div key={plan.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
+            <div key={plan.id} className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <p className="text-white font-semibold">{plan.name}</p>
+                <p className="text-gray-900 dark:text-white font-semibold">{plan.name}</p>
                 <button
                   onClick={() => handleCopyPlan(plan.id)}
                   className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
@@ -212,9 +212,9 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
               </div>
               <div className="flex flex-col gap-2">
                 {plan.exercises.map((ex, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm bg-gray-800 rounded-lg px-4 py-2">
-                    <span className="text-white">{ex.name}</span>
-                    <span className="text-gray-400">{ex.sets} set · {ex.reps} reps</span>
+                  <div key={i} className="flex items-center justify-between text-sm bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2">
+                    <span className="text-gray-900 dark:text-white">{ex.name}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{ex.sets} set · {ex.reps} reps</span>
                   </div>
                 ))}
               </div>

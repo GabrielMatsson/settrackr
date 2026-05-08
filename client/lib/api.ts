@@ -105,7 +105,6 @@ export function createLog(log: {
   return apiFetch("/logs/", { method: "POST", body: JSON.stringify(log) })
 }
 
-// Friend plans
 export function getFriendPlans(friendId: number) {
   return apiFetch(`/friends/${friendId}/plans`)
 }
@@ -114,7 +113,6 @@ export function copyFriendPlan(friendId: number, planId: number) {
   return apiFetch(`/friends/${friendId}/plans/${planId}/copy`, { method: "POST" })
 }
 
-// Shared plans
 export function getSharedPlans() {
   return apiFetch("/plans/shared")
 }
@@ -131,7 +129,6 @@ export function unsharePlan(planId: number, friendId: number) {
   return apiFetch(`/plans/${planId}/share/${friendId}`, { method: "DELETE" })
 }
 
-// Likes & comments
 export function toggleLike(logId: number) {
   return apiFetch(`/logs/${logId}/like`, { method: "POST" })
 }
@@ -144,7 +141,6 @@ export function deleteComment(logId: number, commentId: number) {
   return apiFetch(`/logs/${logId}/comments/${commentId}`, { method: "DELETE" })
 }
 
-// Shared goals
 export function getSharedGoals() {
   return apiFetch("/shared-goals/")
 }
@@ -157,7 +153,6 @@ export function deleteSharedGoal(id: number) {
   return apiFetch(`/shared-goals/${id}`, { method: "DELETE" })
 }
 
-// Plan invitations
 export function acceptPlanInvitation(id: number) {
   return apiFetch(`/plans/invitations/${id}/accept`, { method: "PUT" })
 }

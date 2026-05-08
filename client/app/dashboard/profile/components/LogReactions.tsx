@@ -88,11 +88,11 @@ export default function LogReactions({ logId, initialCount, initialLiked, initia
   }
 
   return (
-    <div className="flex flex-col gap-2 pt-2 border-t border-gray-800">
+    <div className="flex flex-col gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-4">
         <button
           onClick={handleLike}
-          className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? "text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
+          className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? "text-indigo-400" : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
         >
           <svg className="w-4 h-4" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -102,7 +102,7 @@ export default function LogReactions({ logId, initialCount, initialLiked, initia
 
         <button
           onClick={handleToggleComments}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -114,16 +114,16 @@ export default function LogReactions({ logId, initialCount, initialLiked, initia
       {showComments && (
         <div className="flex flex-col gap-2">
           {comments.map((c) => (
-            <div key={c.id} className="flex items-start justify-between gap-2 bg-gray-800 rounded-lg px-3 py-2">
+            <div key={c.id} className="flex items-start justify-between gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-indigo-400 text-xs font-medium">{c.author.name ?? c.author.email.split("@")[0]}</span>
-                <span className="text-gray-200 text-sm">{c.body}</span>
-                <span className="text-gray-600 text-xs">{formatDate(c.created_at)}</span>
+                <span className="text-indigo-500 dark:text-indigo-400 text-xs font-medium">{c.author.name ?? c.author.email.split("@")[0]}</span>
+                <span className="text-gray-700 dark:text-gray-200 text-sm">{c.body}</span>
+                <span className="text-gray-400 dark:text-gray-600 text-xs">{formatDate(c.created_at)}</span>
               </div>
               {c.author.email === currentUserEmail && (
                 <button
                   onClick={() => handleDelete(c.id)}
-                  className="text-gray-600 hover:text-red-400 text-xs transition-colors shrink-0 mt-0.5"
+                  className="text-gray-400 dark:text-gray-600 hover:text-red-400 text-xs transition-colors shrink-0 mt-0.5"
                 >
                   ×
                 </button>
@@ -137,7 +137,7 @@ export default function LogReactions({ logId, initialCount, initialLiked, initia
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleSend() }}
               placeholder="Skriv en kommentar…"
-              className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
             />
             <button
               onClick={handleSend}

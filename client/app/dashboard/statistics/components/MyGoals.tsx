@@ -43,7 +43,7 @@ function ProgressRing({ percent, color = "#6366f1" }: { percent: number; color?:
 
   return (
     <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r={radius} fill="none" stroke="#1f2937" strokeWidth="10" />
+      <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="10" />
       <circle
         cx="50" cy="50" r={radius} fill="none"
         stroke={color} strokeWidth="10" strokeLinecap="round"
@@ -155,16 +155,16 @@ export default function MyGoals({ logs }: Props) {
         <div className="relative w-24 h-24">
           <ProgressRing percent={percent} />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white font-semibold text-sm">{Math.round(Math.min(percent, 100))}%</span>
+            <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(percent, 100))}%</span>
           </div>
         </div>
         <div className="text-center">
-          <p className="text-white text-sm font-medium">{goal.name}</p>
-          <p className="text-gray-500 text-xs">Mål: {goal.target_weight} kg</p>
+          <p className="text-gray-900 dark:text-white text-sm font-medium">{goal.name}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs">Mål: {goal.target_weight} kg</p>
         </div>
         <button
           onClick={() => handleDeletePersonal(goal.id)}
-          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-800 text-gray-500 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
         >
           ×
         </button>
@@ -182,24 +182,24 @@ export default function MyGoals({ logs }: Props) {
           <div className="relative w-24 h-24">
             <ProgressRing percent={ownerPct} color="#6366f1" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">{Math.round(Math.min(ownerPct, 100))}%</span>
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(ownerPct, 100))}%</span>
             </div>
           </div>
           <div className="relative w-24 h-24">
             <ProgressRing percent={friendPct} color="#a78bfa" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">{Math.round(Math.min(friendPct, 100))}%</span>
+              <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(friendPct, 100))}%</span>
             </div>
           </div>
         </div>
         <div className="text-center">
-          <p className="text-white text-sm font-medium">{g.exercise_name}</p>
-          <p className="text-gray-500 text-xs">Mål: {g.target_weight} kg</p>
+          <p className="text-gray-900 dark:text-white text-sm font-medium">{g.exercise_name}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs">Mål: {g.target_weight} kg</p>
           <p className="text-indigo-400 text-xs">Delat · {shortName(g.owner)} & {shortName(g.friend)}</p>
         </div>
         <button
           onClick={() => handleDeleteShared(g.id)}
-          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-800 text-gray-500 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
         >
           ×
         </button>
@@ -210,10 +210,10 @@ export default function MyGoals({ logs }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold text-lg">Mina mål</h2>
+        <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Mina mål</h2>
         <button
           onClick={() => setAdding(!adding)}
-          className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center text-lg leading-none"
+          className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center justify-center text-lg leading-none"
         >
           +
         </button>
@@ -222,17 +222,17 @@ export default function MyGoals({ logs }: Props) {
       {error && <p className="text-red-400 text-xs">{error}</p>}
 
       {adding && (
-        <div className="flex flex-col gap-3 bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
           <div className="flex gap-2">
             <button
               onClick={() => setGoalType("personal")}
-              className={`flex-1 text-sm py-1.5 rounded-lg transition-colors ${goalType === "personal" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"}`}
+              className={`flex-1 text-sm py-1.5 rounded-lg transition-colors ${goalType === "personal" ? "bg-indigo-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
             >
               Personligt
             </button>
             <button
               onClick={() => setGoalType("shared")}
-              className={`flex-1 text-sm py-1.5 rounded-lg transition-colors ${goalType === "shared" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"}`}
+              className={`flex-1 text-sm py-1.5 rounded-lg transition-colors ${goalType === "shared" ? "bg-indigo-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
             >
               Delat med vän
             </button>
@@ -241,20 +241,20 @@ export default function MyGoals({ logs }: Props) {
             placeholder="Övning (t.ex. Squat)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           />
           <input
             type="number"
             placeholder="Målvikt (kg)"
             value={newTarget}
             onChange={(e) => setNewTarget(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           />
           {goalType === "shared" && (
             <select
               value={newFriendId}
               onChange={(e) => setNewFriendId(e.target.value ? Number(e.target.value) : "")}
-              className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
             >
               <option value="">Välj en vän…</option>
               {friends.map((f) => (
@@ -271,7 +271,7 @@ export default function MyGoals({ logs }: Props) {
             </button>
             <button
               onClick={resetForm}
-              className="text-gray-400 hover:text-white text-sm transition-colors px-2"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2"
             >
               Avbryt
             </button>
@@ -280,7 +280,7 @@ export default function MyGoals({ logs }: Props) {
       )}
 
       {rings.length === 0 && !adding && (
-        <p className="text-gray-500 text-sm">Inga mål satta ännu. Tryck + för att lägga till ett.</p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm">Inga mål satta ännu. Tryck + för att lägga till ett.</p>
       )}
 
       <div className="flex flex-wrap gap-8">

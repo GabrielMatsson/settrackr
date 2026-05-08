@@ -58,11 +58,11 @@ export default function CompareStats({ myLogs, friends }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold text-lg">Jämför statistik</h2>
+        <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Jämför statistik</h2>
         <select
           value={selectedFriendId}
           onChange={(e) => handleSelect(e.target.value ? Number(e.target.value) : "")}
-          className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
         >
           <option value="">Välj en vän…</option>
           {friends.map((f) => (
@@ -73,7 +73,7 @@ export default function CompareStats({ myLogs, friends }: Props) {
         </select>
       </div>
 
-      {loading && <p className="text-gray-500 text-sm">Hämtar data…</p>}
+      {loading && <p className="text-gray-400 dark:text-gray-500 text-sm">Hämtar data…</p>}
 
       {selectedFriendId !== "" && !loading && (
         <ProgressCharts

@@ -1,8 +1,11 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --ring-track: #e5e7eb;
+  --color-grid: #e5e7eb;
 }
 
 @theme inline {
@@ -12,11 +15,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --ring-track: #1f2937;
+  --color-grid: #374151;
 }
 
 body {

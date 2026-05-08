@@ -68,7 +68,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
     rows.push(
       <div
         key={i}
-        className={`flex items-center gap-3 bg-gray-800 rounded-lg px-4 py-3 ${state.done ? "opacity-50" : ""}`}
+        className={`flex items-center gap-3 bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 ${state.done ? "opacity-50" : ""}`}
       >
         <input
           type="checkbox"
@@ -76,7 +76,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
           onChange={(e) => updateDone(i, e.target.checked)}
           className="w-4 h-4 accent-indigo-500 shrink-0"
         />
-        <span className={`flex-1 text-sm ${state.done ? "line-through text-gray-500" : "text-white"}`}>
+        <span className={`flex-1 text-sm ${state.done ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-white"}`}>
           {ex.name} — {ex.sets} set · {ex.reps} reps
         </span>
         <input
@@ -84,7 +84,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
           value={state.weight || ""}
           onChange={(e) => updateWeight(i, Number(e.target.value))}
           placeholder="kg"
-          className="w-16 bg-gray-700 border border-gray-600 text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+          className="w-16 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
         />
         <DifficultyPicker
           value={state.difficulty}
@@ -106,7 +106,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
         </button>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-white transition-colors px-5 py-2"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-5 py-2"
         >
           Avbryt
         </button>

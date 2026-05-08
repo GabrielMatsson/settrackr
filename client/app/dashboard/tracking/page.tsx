@@ -192,7 +192,7 @@ export default function TrackingPage() {
       {error && <p className="text-red-400 text-sm">{error}</p>}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Träningsplaner</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Träningsplaner</h1>
           {!formVisible && (
             <button
               onClick={openCreateForm}
@@ -220,7 +220,7 @@ export default function TrackingPage() {
         )}
 
         {plans.length === 0 && !formVisible && (
-          <p className="text-gray-500">Inga träningsplaner ännu. Skapa din första!</p>
+          <p className="text-gray-400 dark:text-gray-500">Inga träningsplaner ännu. Skapa din första!</p>
         )}
 
         <div className="flex flex-col gap-4">{planCards}</div>
@@ -228,19 +228,19 @@ export default function TrackingPage() {
 
       {sharedPlans.length > 0 && (
         <>
-          <hr className="border-gray-800" />
+          <hr className="border-gray-200 dark:border-gray-800" />
           <section className="flex flex-col gap-6">
-            <h2 className="text-2xl font-bold text-white">Delade planer</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Delade planer</h2>
             <div className="flex flex-col gap-4">{sharedPlanCards}</div>
           </section>
         </>
       )}
 
-      <hr className="border-gray-800" />
+      <hr className="border-gray-200 dark:border-gray-800" />
 
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">Logga träning</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Logga träning</h2>
           {!loggerVisible && (
             <button
               onClick={() => { setLoggingPlan(null); setLoggerVisible(true) }}
@@ -252,7 +252,7 @@ export default function TrackingPage() {
         </div>
 
         {loggerVisible && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
             <WorkoutLogger
               plans={activePlans}
               onSave={(log) => { saveLog(log); setLoggingPlan(null) }}
@@ -262,7 +262,7 @@ export default function TrackingPage() {
         )}
 
         {!loggerVisible && (
-          <p className="text-gray-500">Logga ett pass för att se det i statistiken.</p>
+          <p className="text-gray-400 dark:text-gray-500">Logga ett pass för att se det i statistiken.</p>
         )}
       </section>
     </div>

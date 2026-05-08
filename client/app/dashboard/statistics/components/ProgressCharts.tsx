@@ -113,14 +113,14 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <p className="text-white font-semibold">Viktutveckling</p>
+          <p className="text-gray-900 dark:text-white font-semibold">Viktutveckling</p>
           {exerciseNames.length > 0 ? (
             <select
               value={selectedExercise}
               onChange={(e) => setSelectedExercise(e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+              className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
             >
               {exerciseNames.map((name) => (
                 <option key={name} value={name}>{name}</option>
@@ -130,13 +130,13 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
         </div>
 
         {lineData.length < 2 ? (
-          <p className="text-gray-500 text-sm py-8 text-center">
+          <p className="text-gray-400 dark:text-gray-500 text-sm py-8 text-center">
             Logga samma övning vid minst 2 tillfällen för att se din utvecklingsförlopp
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={lineData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
               <XAxis dataKey="date" tick={{ fill: "#9ca3af", fontSize: 11 }} />
               <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} unit=" kg" />
               <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`]} />
@@ -169,17 +169,17 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
       </div>
 
       {!hideBarChart && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
-          <p className="text-white font-semibold">Pass per vecka</p>
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+          <p className="text-gray-900 dark:text-white font-semibold">Pass per vecka</p>
 
           {barData.length === 0 ? (
-            <p className="text-gray-500 text-sm py-8 text-center">
+            <p className="text-gray-400 dark:text-gray-500 text-sm py-8 text-center">
               Logga fler pass för att se din veckostatistik
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={barData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
                 <XAxis dataKey="week" tick={{ fill: "#9ca3af", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [v, "Pass"]} />

@@ -103,19 +103,19 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   for (let i = 0; i < exercises.length; i++) {
     const ex = exercises[i]
     rows.push(
-      <div key={i} className="flex flex-col gap-2 bg-gray-800 rounded-lg p-3">
+      <div key={i} className="flex flex-col gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
         <div className="flex gap-2 items-center">
           <input
             type="text"
             value={ex.name}
             onChange={(e) => updateName(i, e.target.value)}
             placeholder="Övningens namn"
-            className="flex-1 bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            className="flex-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           />
           {exercises.length > 1 && (
             <button
               onClick={() => removeExercise(i)}
-              className="text-gray-500 hover:text-red-400 transition-colors"
+              className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
             >
               ✕
             </button>
@@ -125,14 +125,14 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
           <select
             value={ex.sets}
             onChange={(e) => updateSets(i, Number(e.target.value))}
-            className="bg-gray-700 border border-gray-600 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           >
             {getSetOptions()}
           </select>
           <select
             value={ex.reps}
             onChange={(e) => updateReps(i, Number(e.target.value))}
-            className="bg-gray-700 border border-gray-600 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           >
             {getRepOptions()}
           </select>
@@ -141,7 +141,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
             value={ex.weight || ""}
             onChange={(e) => updateWeight(i, Number(e.target.value))}
             placeholder="kg"
-            className="w-16 bg-gray-700 border border-gray-600 text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="w-16 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           />
           <DifficultyPicker
             value={ex.difficulty}
@@ -171,7 +171,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
         </button>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-white transition-colors px-5 py-2"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-5 py-2"
         >
           Avbryt
         </button>
