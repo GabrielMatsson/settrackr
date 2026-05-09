@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
+import { CheckCircle, X } from "lucide-react"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
@@ -22,6 +24,7 @@ export default function TrackingPage() {
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
   const [loggerVisible, setLoggerVisible] = useState(false)
   const [loggingPlan, setLoggingPlan] = useState<{ name: string; exercises: Exercise[] } | null>(null)
+  const [logSaved, setLogSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -142,6 +145,7 @@ export default function TrackingPage() {
     try {
       await createLog({ plan_name: log.planName, date: log.date, exercises: log.exercises })
       setLoggerVisible(false)
+      setLogSaved(true)
     } catch {
       setError("Kunde inte spara träningspasset")
     }
@@ -243,7 +247,7 @@ export default function TrackingPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Logga träning</h2>
           {!loggerVisible && (
             <button
-              onClick={() => { setLoggingPlan(null); setLoggerVisible(true) }}
+              onClick={() => { setLoggingPlan(null); setLoggerVisible(true); setLogSaved(false) }}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg transition-colors"
             >
               + Logga pass
@@ -261,7 +265,27 @@ export default function TrackingPage() {
           </div>
         )}
 
-        {!loggerVisible && (
+        {logSaved && (
+          <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-5 py-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={18} className="text-green-500 shrink-0" />
+              <span className="text-green-800 dark:text-green-300 text-sm font-medium">Träningspasset är sparat!</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/statistics/history"
+                className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline"
+              >
+                Visa i historik →
+              </Link>
+              <button onClick={() => setLogSaved(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X size={15} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!loggerVisible && !logSaved && (
           <p className="text-gray-400 dark:text-gray-500">Logga ett pass för att se det i statistiken.</p>
         )}
       </section>
