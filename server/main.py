@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import plans, logs, goals, friends, social, shared_goals
+from routers import plans, logs, goals, friends, social, shared_goals, notifications
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ app.include_router(goals.router)
 app.include_router(friends.router)
 app.include_router(social.router)
 app.include_router(shared_goals.router)
+app.include_router(notifications.router)
 
 
 @app.get("/")

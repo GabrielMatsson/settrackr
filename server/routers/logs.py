@@ -111,7 +111,7 @@ async def stream_logs(token: str = Query(...)):
                     yield {"data": json.dumps(data)}
             finally:
                 db.close()
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
     return EventSourceResponse(generator())
 

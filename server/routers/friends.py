@@ -313,6 +313,6 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
                     yield {"data": json.dumps([serialize_log(l, db_user.id) for l in logs])}
             finally:
                 db.close()
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
     return EventSourceResponse(generator())
