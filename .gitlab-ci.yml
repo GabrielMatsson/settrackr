@@ -1,0 +1,35 @@
+stages:
+  - check
+  - build
+
+variables:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+.node_template:
+  image: node:20-alpine
+  cache:
+    key:
+      files:
+        - client/package-lock.json
+    paths:
+      - client/node_modules/
+  before_script:
+    - cd client && npm ci
+
+client:lint:
+  stage: check
+  extends: .node_template
+  script:
+    - npm run lint
+
+client:typecheck:
+  stage: check
+  extends: .node_template
+  script:
+    - npm run typecheck
+
+server:lint:
+  stage: check
+  image: ghcr.io/astral-sh/ruff:latest
+  script:
+    - ruff check server/
