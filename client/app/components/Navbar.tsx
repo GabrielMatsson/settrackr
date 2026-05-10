@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Sun, Moon, Bell, Heart, MessageCircle, Dumbbell, X } from "lucide-react"
 import { useNotifications } from "./NotificationProvider"
 import type { NotificationType } from "./NotificationProvider"
@@ -31,15 +31,17 @@ export default function Navbar() {
 
   useEffect(() => setMounted(true), [])
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setShowPanel(false)
-      }
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      setShowPanel(false)
     }
-    if (showPanel) document.addEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    if (!showPanel) return
+    document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showPanel])
+  }, [showPanel, handleClickOutside])
 
   function togglePanel() {
     if (!showPanel) clearUnread()

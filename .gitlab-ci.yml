@@ -30,6 +30,8 @@ client:typecheck:
 
 server:lint:
   stage: check
-  image: ghcr.io/astral-sh/ruff:latest
+  image: python:3.11-slim
+  before_script:
+    - pip install ruff --quiet
   script:
     - ruff check server/
