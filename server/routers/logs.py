@@ -87,26 +87,26 @@ async def stream_logs(token: str = Query(...)):
                     .filter(models.WorkoutLog.user_id == db_user.id)
                     .all()
                 )
-                sig = "-".join(f"{l.id}:{len(l.reactions)}:{len(l.comments)}" for l in logs)
+                sig = "-".join(f"{log.id}:{len(log.reactions)}:{len(log.comments)}" for log in logs)
                 if sig != last_sig:
                     last_sig = sig
                     data = [
                         {
-                            "id": l.id,
-                            "plan_name": l.plan_name,
-                            "date": l.date,
+                            "id": log.id,
+                            "plan_name": log.plan_name,
+                            "date": log.date,
                             "exercises": [
                                 {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done}
-                                for e in l.exercises
+                                for e in log.exercises
                             ],
-                            "reaction_count": len(l.reactions),
+                            "reaction_count": len(log.reactions),
                             "liked_by_me": False,
                             "comments": [
                                 {"id": c.id, "body": c.body, "created_at": c.created_at.isoformat(), "author": {"id": c.user.id, "name": c.user.name, "email": c.user.email}}
-                                for c in sorted(l.comments, key=lambda c: c.created_at)
+                                for c in sorted(log.comments, key=lambda c: c.created_at)
                             ],
                         }
-                        for l in logs
+                        for log in logs
                     ]
                     yield {"data": json.dumps(data)}
             finally:

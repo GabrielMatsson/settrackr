@@ -29,6 +29,7 @@ export default function Navbar() {
   const [showPanel, setShowPanel] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
 
   const handleClickOutside = useCallback((e: MouseEvent) => {

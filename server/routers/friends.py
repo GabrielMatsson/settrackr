@@ -307,10 +307,10 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
                     .all()
                 )
 
-                sig = f"{len(logs)}-" + "-".join(f"{l.id}:{len(l.reactions)}:{len(l.comments)}" for l in logs)
+                sig = f"{len(logs)}-" + "-".join(f"{log.id}:{len(log.reactions)}:{len(log.comments)}" for log in logs)
                 if sig != last_sig:
                     last_sig = sig
-                    yield {"data": json.dumps([serialize_log(l, db_user.id) for l in logs])}
+                    yield {"data": json.dumps([serialize_log(log, db_user.id) for log in logs])}
             finally:
                 db.close()
             await asyncio.sleep(2)
