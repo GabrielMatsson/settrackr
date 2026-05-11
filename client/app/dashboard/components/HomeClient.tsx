@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { getLogs } from "@/lib/api"
+import { getLogs, getMe } from "@/lib/api"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 
 type ExerciseLog = {
@@ -58,8 +58,6 @@ function workoutsThisWeek(logs: WorkoutLog[]): number {
   return new Set(logs.filter((l) => l.date >= mondayStr).map((l) => l.date)).size
 }
 
-const WEEKLY_TARGET = 3
-
 function WeeklyRing({ count, target }: { count: number; target: number }) {
   const radius = 28
   const circumference = 2 * Math.PI * radius
@@ -94,6 +92,7 @@ type Props = {
 
 export default function HomeClient({ name }: Props) {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
+  const [weeklyGoal, setWeeklyGoal] = useState(3)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -105,6 +104,7 @@ export default function HomeClient({ name }: Props) {
     getLogs()
       .then((data) => { setLogs(data); setLoading(false) })
       .catch(() => { setError("Kunde inte hämta träningsdata"); setLoading(false) })
+    getMe().then((p) => setWeeklyGoal(p.weekly_goal)).catch(() => {})
   }, [])
 
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -169,7 +169,7 @@ export default function HomeClient({ name }: Props) {
           </button>
         </div>
         <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex items-center justify-center">
-          <WeeklyRing count={weekCount} target={WEEKLY_TARGET} />
+          <WeeklyRing count={weekCount} target={weeklyGoal} />
         </div>
       </div>
 

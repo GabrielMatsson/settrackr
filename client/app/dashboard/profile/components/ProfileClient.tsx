@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getFriends, getApiToken, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest } from "@/lib/api"
+import { getFriends, getApiToken, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -41,9 +41,21 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [friendEmail, setFriendEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [logs, setLogs] = useState<{ date: string }[]>([])
+  const [profile, setProfile] = useState<{ name: string | null; email: string; weekly_goal: number } | null>(null)
+  const [settingsName, setSettingsName] = useState("")
+  const [settingsGoal, setSettingsGoal] = useState(3)
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
 
   useEffect(() => {
     getFriends().then(setFriends).catch(() => setError("Kunde inte hämta vänner"))
+    getLogs().then(setLogs).catch(() => {})
+    getMe().then((p) => {
+      setProfile(p)
+      setSettingsName(p.name ?? "")
+      setSettingsGoal(p.weekly_goal)
+    }).catch(() => {})
 
     let reqEs: EventSource | null = null
     let invEs: EventSource | null = null
@@ -58,6 +70,20 @@ export default function ProfileClient({ name, email, image }: Props) {
 
     return () => { reqEs?.close(); invEs?.close() }
   }, [])
+
+  async function handleSaveSettings() {
+    setSettingsSaving(true)
+    try {
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal })
+      setProfile(updated)
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+    } catch {
+      setError("Kunde inte spara inställningar")
+    } finally {
+      setSettingsSaving(false)
+    }
+  }
 
   async function handleSendRequest() {
     if (!friendEmail.trim()) return
@@ -185,6 +211,13 @@ export default function ProfileClient({ name, email, image }: Props) {
     )
   }
 
+  const totalWorkouts = logs.length
+  const startOfWeek = new Date()
+  startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7))
+  const startStr = startOfWeek.toISOString().slice(0, 10)
+  const thisWeekCount = new Set(logs.filter((l) => l.date >= startStr).map((l) => l.date)).size
+  const weeklyGoal = profile?.weekly_goal ?? 3
+
   return (
     <div className="flex flex-col gap-6 max-w-lg mx-auto w-full">
       {/* Profile card */}
@@ -208,6 +241,56 @@ export default function ProfileClient({ name, email, image }: Props) {
             Logga ut
           </button>
         </form>
+      </div>
+
+      {/* Stats summary */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-center">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalWorkouts}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">träningspass totalt</p>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-center">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {thisWeekCount}<span className="text-gray-400 dark:text-gray-500 text-base font-normal"> / {weeklyGoal}</span>
+          </p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">denna vecka</p>
+        </div>
+      </div>
+
+      {/* Settings */}
+      <div className="flex flex-col gap-3">
+        <p className="text-gray-900 dark:text-white font-semibold text-lg">Inställningar</p>
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 dark:text-gray-400 text-xs font-medium">Visningsnamn</label>
+            <input
+              value={settingsName}
+              onChange={(e) => setSettingsName(e.target.value)}
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-500 dark:text-gray-400 text-xs font-medium">Veckomål (pass per vecka)</label>
+            <input
+              type="number"
+              min={1}
+              max={14}
+              value={settingsGoal}
+              onChange={(e) => setSettingsGoal(Number(e.target.value))}
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-20"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveSettings}
+              disabled={settingsSaving}
+              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              {settingsSaving ? "Sparar..." : "Spara"}
+            </button>
+            {settingsSaved && <span className="text-green-500 text-sm">Sparat!</span>}
+          </div>
+        </div>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}

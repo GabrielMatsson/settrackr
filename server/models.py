@@ -10,6 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String)
+    weekly_goal = Column(Integer, nullable=True)
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")

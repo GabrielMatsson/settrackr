@@ -160,3 +160,11 @@ export function acceptPlanInvitation(id: number) {
 export function declinePlanInvitation(id: number) {
   return apiFetch(`/plans/invitations/${id}`, { method: "DELETE" })
 }
+
+export function getMe() {
+  return apiFetch("/users/me")
+}
+
+export function updateMe(data: { name?: string | null; weekly_goal?: number }) {
+  return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
+}

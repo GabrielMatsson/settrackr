@@ -63,6 +63,17 @@ class UserPublicResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class UserProfileResponse(BaseModel):
+    name: str | None
+    email: str
+    weekly_goal: int = 3
+
+    model_config = {"from_attributes": True}
+
+class UserProfileUpdate(BaseModel):
+    name: str | None = None
+    weekly_goal: int | None = None
+
 class FriendshipResponse(BaseModel):
     id: int
     status: str
