@@ -103,6 +103,22 @@ def get_friends(user=Depends(get_current_user), db: Session = Depends(get_db)):
     return result
 
 
+def _fetch_friend_requests(user: dict) -> list:
+    db = SessionLocal()
+    try:
+        db_user = get_or_create_user(db, user)
+        pending = db.query(models.Friendship).filter(
+            models.Friendship.receiver_id == db_user.id,
+            models.Friendship.status == "pending"
+        ).all()
+        return [
+            {"id": f.id, "status": f.status, "friend": {"id": f.requester.id, "name": f.requester.name, "email": f.requester.email}}
+            for f in pending
+        ]
+    finally:
+        db.close()
+
+
 @router.get("/requests/stream")
 async def stream_friend_requests(token: str = Query(...)):
     SECRET_KEY = os.getenv("AUTH_SECRET")
@@ -118,23 +134,11 @@ async def stream_friend_requests(token: str = Query(...)):
     async def generator():
         last_sig = ""
         while True:
-            db = SessionLocal()
-            try:
-                db_user = get_or_create_user(db, user)
-                pending = db.query(models.Friendship).filter(
-                    models.Friendship.receiver_id == db_user.id,
-                    models.Friendship.status == "pending"
-                ).all()
-                sig = str(len(pending))
-                if sig != last_sig:
-                    last_sig = sig
-                    data = [
-                        {"id": f.id, "status": f.status, "friend": {"id": f.requester.id, "name": f.requester.name, "email": f.requester.email}}
-                        for f in pending
-                    ]
-                    yield {"data": json.dumps(data)}
-            finally:
-                db.close()
+            data = await asyncio.to_thread(_fetch_friend_requests, user)
+            sig = str(len(data))
+            if sig != last_sig:
+                last_sig = sig
+                yield {"data": json.dumps(data)}
             await asyncio.sleep(5)
 
     return EventSourceResponse(generator())
@@ -272,6 +276,28 @@ def get_friend_logs(friend_id: int, user=Depends(get_current_user), db: Session 
     return result
 
 
+def _fetch_friend_log_data(user: dict, friend_id: int) -> tuple:
+    db = SessionLocal()
+    try:
+        db_user = get_or_create_user(db, user)
+        if not get_accepted_friendship(db, db_user.id, friend_id):
+            return None, None
+        logs = (
+            db.query(models.WorkoutLog)
+            .options(
+                selectinload(models.WorkoutLog.exercises),
+                selectinload(models.WorkoutLog.reactions),
+                selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
+            )
+            .filter(models.WorkoutLog.user_id == friend_id)
+            .all()
+        )
+        viewer_id = db_user.id
+        return viewer_id, [serialize_log(log, viewer_id) for log in logs]
+    finally:
+        db.close()
+
+
 @router.get("/{friend_id}/stream")
 async def stream_friend_logs(friend_id: int, token: str = Query(...)):
     SECRET_KEY = os.getenv("AUTH_SECRET")
@@ -288,31 +314,14 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
     async def generator():
         last_sig = ""
         while True:
-            db = SessionLocal()
-            try:
-                db_user = get_or_create_user(db, user)
-                friendship = get_accepted_friendship(db, db_user.id, friend_id)
-                if not friendship:
-                    yield {"data": json.dumps({"error": "not friends"})}
-                    return
-
-                logs = (
-                    db.query(models.WorkoutLog)
-                    .options(
-                        selectinload(models.WorkoutLog.exercises),
-                        selectinload(models.WorkoutLog.reactions),
-                        selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
-                    )
-                    .filter(models.WorkoutLog.user_id == friend_id)
-                    .all()
-                )
-
-                sig = f"{len(logs)}-" + "-".join(f"{log.id}:{len(log.reactions)}:{len(log.comments)}" for log in logs)
-                if sig != last_sig:
-                    last_sig = sig
-                    yield {"data": json.dumps([serialize_log(log, db_user.id) for log in logs])}
-            finally:
-                db.close()
+            viewer_id, data = await asyncio.to_thread(_fetch_friend_log_data, user, friend_id)
+            if viewer_id is None:
+                yield {"data": json.dumps({"error": "not friends"})}
+                return
+            sig = f"{len(data)}-" + "-".join(f"{d['id']}:{d['reaction_count']}:{len(d['comments'])}" for d in data)
+            if sig != last_sig:
+                last_sig = sig
+                yield {"data": json.dumps(data)}
             await asyncio.sleep(2)
 
     return EventSourceResponse(generator())

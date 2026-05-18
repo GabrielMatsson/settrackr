@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getFriends, getApiToken, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe } from "@/lib/api"
+import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -30,7 +30,6 @@ type Props = {
   image: string | null
 }
 
-const API_URL = "http://localhost:8000"
 
 export default function ProfileClient({ name, email, image }: Props) {
   const [friends, setFriends] = useState<Friendship[]>([])
@@ -57,18 +56,15 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsGoal(p.weekly_goal)
     }).catch(() => {})
 
-    let reqEs: EventSource | null = null
-    let invEs: EventSource | null = null
+    getFriendRequests().then(setRequests).catch(() => {})
+    getPlanInvitations().then(setInvitations).catch(() => {})
 
-    getApiToken().then((token) => {
-      reqEs = new EventSource(`${API_URL}/friends/requests/stream?token=${token}`)
-      reqEs.onmessage = (e) => { try { setRequests(JSON.parse(e.data)) } catch {} }
+    const poll = setInterval(() => {
+      getFriendRequests().then(setRequests).catch(() => {})
+      getPlanInvitations().then(setInvitations).catch(() => {})
+    }, 30_000)
 
-      invEs = new EventSource(`${API_URL}/plans/invitations/stream?token=${token}`)
-      invEs.onmessage = (e) => { try { setInvitations(JSON.parse(e.data)) } catch {} }
-    })
-
-    return () => { reqEs?.close(); invEs?.close() }
+    return () => clearInterval(poll)
   }, [])
 
   async function handleSaveSettings() {

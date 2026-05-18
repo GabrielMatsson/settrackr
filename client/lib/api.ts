@@ -10,18 +10,53 @@ async function getToken(): Promise<string> {
   return cachedToken!
 }
 
+const getCache = new Map<string, { data: unknown; ts: number }>()
+const pendingGets = new Map<string, Promise<unknown>>()
+const CACHE_TTL = 10_000
+
 async function apiFetch(path: string, options?: RequestInit) {
-  const token = await getToken()
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options?.headers,
-    },
-  })
-  if (!res.ok) throw new Error(`API error ${res.status}`)
-  return res.json()
+  const method = (options?.method ?? "GET").toUpperCase()
+  const isGet = method === "GET"
+
+  if (isGet) {
+    const cached = getCache.get(path)
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
+
+    const inFlight = pendingGets.get(path)
+    if (inFlight) return inFlight
+  }
+
+  const promise = (async () => {
+    const token = await getToken()
+    const res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...options?.headers,
+      },
+    })
+    if (!res.ok) throw new Error(`API error ${res.status}`)
+    const data = await res.json()
+
+    if (isGet) {
+      getCache.set(path, { data, ts: Date.now() })
+      pendingGets.delete(path)
+    } else {
+      const prefix = "/" + path.split("/").filter(Boolean)[0]
+      for (const key of getCache.keys()) {
+        if (key.startsWith(prefix)) getCache.delete(key)
+      }
+    }
+    return data
+  })()
+
+  if (isGet) {
+    pendingGets.set(path, promise)
+    promise.catch(() => pendingGets.delete(path))
+  }
+
+  return promise
 }
 
 
@@ -159,6 +194,14 @@ export function acceptPlanInvitation(id: number) {
 
 export function declinePlanInvitation(id: number) {
   return apiFetch(`/plans/invitations/${id}`, { method: "DELETE" })
+}
+
+export function getFriendRequests() {
+  return apiFetch("/friends/requests")
+}
+
+export function getPlanInvitations() {
+  return apiFetch("/plans/invitations")
 }
 
 export function getMe() {

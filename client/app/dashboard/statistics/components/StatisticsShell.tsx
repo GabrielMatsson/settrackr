@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { getApiToken, getCurrentUserEmail, getFriends } from "@/lib/api"
+import { getCurrentUserEmail, getFriends, getLogs } from "@/lib/api"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
 
 type FriendEntry = { id: number; status: string; friend: { id: number; name: string | null; email: string } }
-
-const API_URL = "http://localhost:8000"
 
 const tabs = [
   { label: "Översikt", href: "/dashboard/statistics" },
@@ -26,26 +24,13 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let es: EventSource | null = null
-
     getCurrentUserEmail().then(setCurrentUserEmail).catch(() => {})
-
-    getApiToken().then((token) => {
-      es = new EventSource(`${API_URL}/logs/stream?token=${token}`)
-      es.onmessage = (e: MessageEvent) => {
-        try {
-          setLogs(JSON.parse(e.data))
-          setLoading(false)
-        } catch {}
-      }
-      es.onerror = () => { setError("Kunde inte hämta träningshistorik"); setLoading(false) }
-    })
-
+    getLogs()
+      .then((data) => { setLogs(data); setLoading(false) })
+      .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
     getFriends()
       .then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend)))
       .catch(() => {})
-
-    return () => { es?.close() }
   }, [])
 
   function handleDelete(id: number) {

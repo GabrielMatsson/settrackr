@@ -80,6 +80,27 @@ def get_plan_invitations(user=Depends(get_current_user), db: Session = Depends(g
     ]
 
 
+def _fetch_plan_invitations(user: dict) -> list:
+    db = SessionLocal()
+    try:
+        db_user = get_or_create_user(db, user)
+        accesses = (
+            db.query(models.SharedPlanAccess)
+            .options(
+                joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.exercises),
+                joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.user),
+            )
+            .filter(
+                models.SharedPlanAccess.friend_id == db_user.id,
+                models.SharedPlanAccess.status == "pending",
+            )
+            .all()
+        )
+        return [serialize_invitation(a) for a in accesses]
+    finally:
+        db.close()
+
+
 @router.get("/invitations/stream")
 async def stream_plan_invitations(token: str = Query(...)):
     SECRET_KEY = os.getenv("AUTH_SECRET")
@@ -96,27 +117,11 @@ async def stream_plan_invitations(token: str = Query(...)):
     async def generator():
         last_sig = ""
         while True:
-            db = SessionLocal()
-            try:
-                db_user = get_or_create_user(db, user)
-                accesses = (
-                    db.query(models.SharedPlanAccess)
-                    .options(
-                        joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.exercises),
-                        joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.user),
-                    )
-                    .filter(
-                        models.SharedPlanAccess.friend_id == db_user.id,
-                        models.SharedPlanAccess.status == "pending",
-                    )
-                    .all()
-                )
-                sig = str(len(accesses))
-                if sig != last_sig:
-                    last_sig = sig
-                    yield {"data": json.dumps([serialize_invitation(a) for a in accesses])}
-            finally:
-                db.close()
+            data = await asyncio.to_thread(_fetch_plan_invitations, user)
+            sig = str(len(data))
+            if sig != last_sig:
+                last_sig = sig
+                yield {"data": json.dumps(data)}
             await asyncio.sleep(5)
 
     return EventSourceResponse(generator())

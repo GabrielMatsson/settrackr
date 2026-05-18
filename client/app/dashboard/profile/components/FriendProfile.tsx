@@ -80,16 +80,18 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
   }
 
   useEffect(() => {
-    let es: EventSource
+    let mounted = true
+    let es: EventSource | null = null
 
     getApiToken().then((token) => {
+      if (!mounted) return
       es = new EventSource(`${API_URL}/friends/${friend.id}/stream?token=${token}`)
 
       es.onmessage = (e) => {
         const data = JSON.parse(e.data)
         if (data.error) {
           setError("Ni är inte längre vänner")
-          es.close()
+          es?.close()
         } else {
           setLogs(data)
           setLoading(false)
@@ -100,7 +102,8 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
     })
 
     return () => {
-      if (es) es.close()
+      mounted = false
+      es?.close()
     }
   }, [friend.id])
 

@@ -41,9 +41,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
+    let mounted = true
     let es: EventSource | null = null
 
     getApiToken().then((token) => {
+      if (!mounted) return
       es = new EventSource(`${API_URL}/notifications/stream?token=${token}`)
       es.onmessage = (e) => {
         try {
@@ -61,7 +63,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       es.onerror = () => { es?.close() }
     })
 
-    return () => { es?.close() }
+    return () => { mounted = false; es?.close() }
   }, [])
 
   function dismissToast(id: number) {
