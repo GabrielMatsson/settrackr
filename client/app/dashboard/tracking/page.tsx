@@ -8,7 +8,7 @@ import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
 import WorkoutLogger from "./components/WorkoutLogger"
 import type { Exercise, WorkoutPlan, WorkoutLog } from "./components/types"
-import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan } from "@/lib/api"
+import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan, getMe } from "@/lib/api"
 
 type Friend = { id: number; name: string | null; email: string }
 type FriendEntry = { id: number; status: string; friend: Friend }
@@ -26,11 +26,13 @@ export default function TrackingPage() {
   const [loggingPlan, setLoggingPlan] = useState<{ name: string; exercises: Exercise[] } | null>(null)
   const [logSaved, setLogSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showOverloadHints, setShowOverloadHints] = useState(false)
 
   useEffect(() => {
     getPlans().then(setPlans).catch(() => setError("Kunde inte ansluta till servern"))
     getSharedPlans().then(setSharedPlans).catch(() => {})
     getFriends().then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend))).catch(() => {})
+    getMe().then((p: { show_overload_hints: boolean }) => setShowOverloadHints(p.show_overload_hints ?? false)).catch(() => {})
   }, [])
 
   async function handleSharePlan(planId: number, friendId: number) {
@@ -261,6 +263,7 @@ export default function TrackingPage() {
               plans={activePlans}
               onSave={(log) => { saveLog(log); setLoggingPlan(null) }}
               onCancel={() => { setLoggerVisible(false); setLoggingPlan(null) }}
+              showOverloadHints={showOverloadHints}
             />
           </div>
         )}

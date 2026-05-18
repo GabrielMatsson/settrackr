@@ -11,6 +11,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String)
     weekly_goal = Column(Integer, nullable=True)
+    show_overload_hints = Column(Boolean, nullable=False, default=False, server_default="0")
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")

@@ -208,6 +208,11 @@ export function getMe() {
   return apiFetch("/users/me")
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number }) {
+export function getExerciseHistory(names: string[]) {
+  const param = names.slice().sort().join(",")
+  return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
+}
+
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }

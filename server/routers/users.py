@@ -15,6 +15,7 @@ def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
         "name": db_user.name,
         "email": db_user.email,
         "weekly_goal": db_user.weekly_goal or 3,
+        "show_overload_hints": db_user.show_overload_hints or False,
     }
 
 
@@ -27,10 +28,13 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         if not 1 <= update.weekly_goal <= 14:
             raise HTTPException(status_code=400, detail="weekly_goal must be between 1 and 14")
         db_user.weekly_goal = update.weekly_goal
+    if update.show_overload_hints is not None:
+        db_user.show_overload_hints = update.show_overload_hints
     db.commit()
     db.refresh(db_user)
     return {
         "name": db_user.name,
         "email": db_user.email,
         "weekly_goal": db_user.weekly_goal or 3,
+        "show_overload_hints": db_user.show_overload_hints or False,
     }

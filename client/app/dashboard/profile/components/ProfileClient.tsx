@@ -46,6 +46,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsGoal, setSettingsGoal] = useState(3)
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
+  const [settingsOverloadHints, setSettingsOverloadHints] = useState(false)
 
   useEffect(() => {
     getFriends().then(setFriends).catch(() => setError("Kunde inte hämta vänner"))
@@ -54,6 +55,7 @@ export default function ProfileClient({ name, email, image }: Props) {
       setProfile(p)
       setSettingsName(p.name ?? "")
       setSettingsGoal(p.weekly_goal)
+      setSettingsOverloadHints(p.show_overload_hints ?? false)
     }).catch(() => {})
 
     getFriendRequests().then(setRequests).catch(() => {})
@@ -70,7 +72,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal })
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -275,6 +277,18 @@ export default function ProfileClient({ name, email, image }: Props) {
               onChange={(e) => setSettingsGoal(Number(e.target.value))}
               className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-20"
             />
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="overload-hints"
+              checked={settingsOverloadHints}
+              onChange={(e) => setSettingsOverloadHints(e.target.checked)}
+              className="w-4 h-4 accent-indigo-500 shrink-0"
+            />
+            <label htmlFor="overload-hints" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              Visa senaste och maxvikt vid loggning
+            </label>
           </div>
           <div className="flex items-center gap-3">
             <button

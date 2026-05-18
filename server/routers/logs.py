@@ -120,6 +120,35 @@ async def stream_logs(token: str = Query(...)):
     return EventSourceResponse(generator())
 
 
+@router.get("/exercise-history")
+def get_exercise_history(
+    names: str = Query(...),
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db_user = get_or_create_user(db, user)
+    result = {}
+    for name in (n.strip() for n in names.split(",") if n.strip()):
+        logs = (
+            db.query(models.ExerciseLog)
+            .join(models.WorkoutLog)
+            .filter(
+                models.WorkoutLog.user_id == db_user.id,
+                models.ExerciseLog.name == name,
+                models.ExerciseLog.done == True,
+                models.ExerciseLog.weight > 0,
+            )
+            .order_by(models.WorkoutLog.date.desc())
+            .all()
+        )
+        if logs:
+            result[name] = {
+                "last_weight": logs[0].weight,
+                "max_weight": max(log.weight for log in logs),
+            }
+    return result
+
+
 @router.post("/", response_model=schemas.WorkoutLogResponse)
 def create_log(log: schemas.WorkoutLogCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)

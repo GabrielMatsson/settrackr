@@ -1,14 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import DifficultyPicker from "./DifficultyPicker"
+import { getExerciseHistory } from "@/lib/api"
 import type { WorkoutPlan, WorkoutLog, Difficulty } from "./types"
 
 type Props = {
   plan: WorkoutPlan
   onSave: (log: WorkoutLog) => void
   onCancel: () => void
+  showOverloadHints: boolean
 }
+
+type HintMap = Record<string, { last_weight: number; max_weight: number }>
 
 type ExerciseState = {
   done: boolean
@@ -16,12 +20,21 @@ type ExerciseState = {
   difficulty: Difficulty
 }
 
-export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
+export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverloadHints }: Props) {
   const initialState: ExerciseState[] = []
   for (let i = 0; i < plan.exercises.length; i++) {
     initialState.push({ done: false, weight: 0, difficulty: "medium" })
   }
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>(initialState)
+  const [hints, setHints] = useState<HintMap>({})
+
+  useEffect(() => {
+    if (!showOverloadHints) return
+    const names = plan.exercises.map((e) => e.name)
+    getExerciseHistory(names)
+      .then((data) => setHints(data as HintMap))
+      .catch(() => {})
+  }, [showOverloadHints, plan.name])
 
   function updateDone(index: number, done: boolean) {
     const updated = [...exerciseStates]
@@ -68,23 +81,30 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel }: Props) {
     rows.push(
       <div
         key={i}
-        className={`flex items-center gap-3 bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 ${state.done ? "opacity-50" : ""}`}
+        className={`flex items-start gap-3 bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 ${state.done ? "opacity-50" : ""}`}
       >
         <input
           type="checkbox"
           checked={state.done}
           onChange={(e) => updateDone(i, e.target.checked)}
-          className="w-4 h-4 accent-indigo-500 shrink-0"
+          className="w-4 h-4 accent-indigo-500 shrink-0 mt-0.5"
         />
-        <span className={`flex-1 text-sm ${state.done ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-white"}`}>
-          {ex.name} — {ex.sets} set · {ex.reps} reps
-        </span>
+        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+          <span className={`text-sm ${state.done ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-white"}`}>
+            {ex.name} — {ex.sets} set · {ex.reps} reps
+          </span>
+          {showOverloadHints && hints[ex.name] && (
+            <span className="text-xs text-orange-500 dark:text-orange-400 font-medium">
+              Senast: {hints[ex.name].last_weight} kg · Max: {hints[ex.name].max_weight} kg
+            </span>
+          )}
+        </div>
         <input
           type="number"
           value={state.weight || ""}
           onChange={(e) => updateWeight(i, Number(e.target.value))}
           placeholder="kg"
-          className="w-16 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+          className="w-16 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500 shrink-0"
         />
         <DifficultyPicker
           value={state.difficulty}

@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from database import engine, Base
 from routers import plans, logs, goals, friends, social, shared_goals, notifications, users
 
@@ -8,6 +9,12 @@ from routers import plans, logs, goals, friends, social, shared_goals, notificat
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+            "show_overload_hints BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        conn.commit()
     yield
 
 
