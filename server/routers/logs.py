@@ -135,7 +135,7 @@ def get_exercise_history(
             .filter(
                 models.WorkoutLog.user_id == db_user.id,
                 models.ExerciseLog.name == name,
-                models.ExerciseLog.done == True,
+                models.ExerciseLog.done,
                 models.ExerciseLog.weight > 0,
             )
             .order_by(models.WorkoutLog.date.desc())
