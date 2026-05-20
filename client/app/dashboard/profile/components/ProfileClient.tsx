@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { LogOut, Dumbbell, Calendar, Users } from "lucide-react"
 import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
@@ -144,67 +145,8 @@ export default function ProfileClient({ name, email, image }: Props) {
 
   if (selectedFriend) {
     return (
-      <div className="max-w-lg mx-auto w-full">
+      <div className="max-w-4xl mx-auto w-full">
         <FriendProfile friend={selectedFriend} onBack={() => setSelectedFriend(null)} currentUserEmail={email} />
-      </div>
-    )
-  }
-
-  const friendItems = []
-  for (let i = 0; i < friends.length; i++) {
-    const f = friends[i]
-    friendItems.push(
-      <div key={f.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
-        <button
-          onClick={() => setSelectedFriend(f.friend)}
-          className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
-        >
-          <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium shrink-0">
-            {(f.friend.name ?? f.friend.email)[0].toUpperCase()}
-          </div>
-          <div>
-            <p className="text-gray-900 dark:text-white text-sm font-medium">{f.friend.name ?? f.friend.email}</p>
-            <p className="text-gray-400 dark:text-gray-500 text-xs">{f.friend.email}</p>
-          </div>
-        </button>
-        <button
-          onClick={() => handleRemoveFriend(f.id)}
-          className="text-gray-400 dark:text-gray-600 hover:text-red-400 text-xs transition-colors"
-        >
-          Ta bort
-        </button>
-      </div>
-    )
-  }
-
-  const requestItems = []
-  for (let i = 0; i < requests.length; i++) {
-    const r = requests[i]
-    requestItems.push(
-      <div key={r.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-white text-sm font-medium shrink-0">
-            {(r.friend.name ?? r.friend.email)[0].toUpperCase()}
-          </div>
-          <div>
-            <p className="text-gray-900 dark:text-white text-sm font-medium">{r.friend.name ?? r.friend.email}</p>
-            <p className="text-gray-400 dark:text-gray-500 text-xs">{r.friend.email}</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleAccept(r.id)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Acceptera
-          </button>
-          <button
-            onClick={() => handleDecline(r.id)}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors px-2"
-          >
-            Neka
-          </button>
-        </div>
       </div>
     )
   }
@@ -216,185 +158,254 @@ export default function ProfileClient({ name, email, image }: Props) {
   const thisWeekCount = new Set(logs.filter((l) => l.date >= startStr).map((l) => l.date)).size
   const weeklyGoal = profile?.weekly_goal ?? 3
 
+  const weekMotivation =
+    thisWeekCount >= weeklyGoal
+      ? "Veckans mål uppnått! 🎉"
+      : thisWeekCount > 0
+        ? "Du är på god väg! 👍"
+        : "Kör hårt! 💪"
+
   return (
-    <div className="flex flex-col gap-6 max-w-lg mx-auto w-full">
-      {/* Profile card */}
-      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex items-center gap-4">
+    <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
+
+      {/* Profile header */}
+      <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 bg-white dark:bg-gray-950">
         {image ? (
-          <img src={image} alt={name} className="w-16 h-16 rounded-full" />
+          <img src={image} alt={name} className="w-20 h-20 rounded-full shrink-0" />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+          <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-white text-3xl font-bold shrink-0">
             {name[0]?.toUpperCase() ?? "?"}
           </div>
         )}
-        <div className="flex-1">
-          <p className="text-gray-900 dark:text-white font-semibold text-lg">{name}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{email}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-gray-900 dark:text-white font-bold text-2xl">{name}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{email}</p>
         </div>
         <form action={handleSignOut}>
           <button
             type="submit"
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors"
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-500 text-sm px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
+            <LogOut size={15} />
             Logga ut
           </button>
         </form>
       </div>
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalWorkouts}</p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">träningspass totalt</p>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
+          <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-2.5 shrink-0">
+            <Dumbbell size={20} className="text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">{totalWorkouts}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">träningspass totalt</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
+              {totalWorkouts > 0 ? "Bra jobbat! Fortsätt så 🔥" : "Kom igång! 💪"}
+            </p>
+          </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {thisWeekCount}<span className="text-gray-400 dark:text-gray-500 text-base font-normal"> / {weeklyGoal}</span>
-          </p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">denna vecka</p>
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
+          <div className="bg-green-100 dark:bg-green-900/40 rounded-xl p-2.5 shrink-0">
+            <Calendar size={20} className="text-green-600 dark:text-green-400" />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">
+              {thisWeekCount}
+              <span className="text-gray-400 dark:text-gray-500 text-xl font-normal"> / {weeklyGoal}</span>
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">denna vecka</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{weekMotivation}</p>
+          </div>
         </div>
       </div>
 
-      {/* Settings */}
-      <div className="flex flex-col gap-3">
-        <p className="text-gray-900 dark:text-white font-semibold text-lg">Inställningar</p>
-        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+      {/* Two-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+
+        {/* Settings card */}
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-5">
+          <div>
+            <p className="text-gray-900 dark:text-white font-semibold">Inställningar</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Hantera dina uppgifter och inställningar</p>
+          </div>
+
           <div className="flex flex-col gap-1">
-            <label className="text-gray-500 dark:text-gray-400 text-xs font-medium">Visningsnamn</label>
+            <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Visningsnamn</label>
             <input
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-full"
             />
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Detta namn visas för andra användare.</p>
           </div>
+
           <div className="flex flex-col gap-1">
-            <label className="text-gray-500 dark:text-gray-400 text-xs font-medium">Veckomål (pass per vecka)</label>
+            <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Veckomål (pass per vecka)</label>
             <input
               type="number"
               min={1}
               max={14}
               value={settingsGoal}
               onChange={(e) => setSettingsGoal(Number(e.target.value))}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-20"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-24"
             />
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Sätt ett mål för hur många pass du vill genomföra varje vecka.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="overload-hints"
-              checked={settingsOverloadHints}
-              onChange={(e) => setSettingsOverloadHints(e.target.checked)}
-              className="w-4 h-4 accent-indigo-500 shrink-0"
-            />
-            <label htmlFor="overload-hints" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-              Visa senaste och maxvikt vid loggning
-            </label>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="overload-hints"
+                checked={settingsOverloadHints}
+                onChange={(e) => setSettingsOverloadHints(e.target.checked)}
+                className="w-4 h-4 accent-indigo-500 shrink-0"
+              />
+              <label htmlFor="overload-hints" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                Visa senaste och maxvikt vid loggning
+              </label>
+            </div>
+            <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Visar dina senaste och tyngsta lyft när du loggar ett pass.</p>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-3 pt-1">
             <button
               onClick={handleSaveSettings}
               disabled={settingsSaving}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
             >
-              {settingsSaving ? "Sparar..." : "Spara"}
+              {settingsSaving ? "Sparar..." : "Spara ändringar"}
             </button>
             {settingsSaved && <span className="text-green-500 text-sm">Sparat!</span>}
           </div>
+        </div>
+
+        {/* Friends card */}
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-900 dark:text-white font-semibold">Mina vänner</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Följ och motivera dina vänner</p>
+            </div>
+            <button
+              onClick={() => { setAddingFriend(!addingFriend); setSuccess(null) }}
+              className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center justify-center text-lg leading-none shrink-0"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Friend list */}
+          {friends.length > 0 && (
+            <div className="flex flex-col divide-y divide-gray-100 dark:divide-gray-800">
+              {friends.map((f) => (
+                <div key={f.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                  <button
+                    onClick={() => setSelectedFriend(f.friend)}
+                    className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium shrink-0">
+                      {(f.friend.name ?? f.friend.email)[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white text-sm font-medium">{f.friend.name ?? f.friend.email}</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-xs">{f.friend.email}</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleRemoveFriend(f.id)}
+                    className="border border-red-200 dark:border-red-900/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs px-2.5 py-1 rounded-lg transition-colors shrink-0"
+                  >
+                    Ta bort
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Pending friend requests */}
+          {requests.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">Vänförfrågningar ({requests.length})</p>
+              <div className="flex flex-col divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3">
+                {requests.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-200 text-xs font-medium shrink-0">
+                        {(r.friend.name ?? r.friend.email)[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-gray-900 dark:text-white text-xs font-medium">{r.friend.name ?? r.friend.email}</p>
+                        <p className="text-gray-400 text-xs">{r.friend.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => handleAccept(r.id)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-lg transition-colors">Acceptera</button>
+                      <button onClick={() => handleDecline(r.id)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs px-2 transition-colors">Neka</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Plan invitations */}
+          {invitations.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">Planinbjudningar ({invitations.length})</p>
+              <div className="flex flex-col divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3">
+                {invitations.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between py-2.5">
+                    <div>
+                      <p className="text-gray-900 dark:text-white text-xs font-medium">{inv.plan_name}</p>
+                      <p className="text-gray-400 text-xs">från {inv.from_user.name ?? inv.from_user.email}</p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => handleAcceptInvitation(inv.id)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-lg transition-colors">Acceptera</button>
+                      <button onClick={() => handleDeclineInvitation(inv.id)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs px-2 transition-colors">Neka</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add friend form / CTA */}
+          {addingFriend ? (
+            <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+              <input
+                placeholder="Vännens e-postadress"
+                value={friendEmail}
+                onChange={(e) => setFriendEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendRequest()}
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              />
+              <div className="flex gap-2">
+                <button onClick={handleSendRequest} className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                  Skicka förfrågan
+                </button>
+                <button onClick={() => setAddingFriend(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2">
+                  Avbryt
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setAddingFriend(true); setSuccess(null) }}
+              className="w-full bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4 flex flex-col items-center gap-1.5 transition-colors"
+            >
+              <Users size={22} className="text-indigo-500" />
+              <p className="text-indigo-600 dark:text-indigo-400 text-sm font-medium">Lägg till vän</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs">Sök efter vänner och följ deras framsteg.</p>
+            </button>
+          )}
         </div>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
       {success && <p className="text-green-400 text-sm">{success}</p>}
-
-      {/* Incoming friend requests */}
-      {requests.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Vänförfrågningar ({requests.length})</p>
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4">
-            {requestItems}
-          </div>
-        </div>
-      )}
-
-      {/* Plan invitations */}
-      {invitations.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Planinbjudningar ({invitations.length})</p>
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4">
-            {invitations.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
-                <div>
-                  <p className="text-gray-900 dark:text-white text-sm font-medium">{inv.plan_name}</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs">från {inv.from_user.name ?? inv.from_user.email}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleAcceptInvitation(inv.id)}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Acceptera
-                  </button>
-                  <button
-                    onClick={() => handleDeclineInvitation(inv.id)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors px-2"
-                  >
-                    Neka
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Friends list */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <p className="text-gray-900 dark:text-white font-semibold text-lg">Mina vänner</p>
-          <button
-            onClick={() => { setAddingFriend(!addingFriend); setSuccess(null) }}
-            className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center justify-center text-lg leading-none"
-          >
-            +
-          </button>
-        </div>
-
-        {addingFriend && (
-          <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mt-1">
-            <input
-              placeholder="Vännens e-postadress"
-              value={friendEmail}
-              onChange={(e) => setFriendEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendRequest()}
-              className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleSendRequest}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-              >
-                Skicka förfrågan
-              </button>
-              <button
-                onClick={() => setAddingFriend(false)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2"
-              >
-                Avbryt
-              </button>
-            </div>
-          </div>
-        )}
-
-        {friends.length === 0 && !addingFriend && (
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Inga vänner ännu. Tryck + för att lägga till.</p>
-        )}
-
-        {friends.length > 0 && (
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-4 mt-1">
-            {friendItems}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

@@ -35,6 +35,7 @@ type StatisticsContextType = {
   currentUserEmail: string
   loading: boolean
   error: string | null
+  period: 7 | 30 | 90
   handleDelete: (id: number) => void
   handleUpdate: (updated: WorkoutLog) => void
 }
@@ -45,6 +46,7 @@ export const StatisticsContext = createContext<StatisticsContextType>({
   currentUserEmail: "",
   loading: true,
   error: null,
+  period: 30,
   handleDelete: () => {},
   handleUpdate: () => {},
 })

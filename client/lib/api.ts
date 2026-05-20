@@ -119,6 +119,10 @@ export function deletePlan(id: number) {
   return apiFetch(`/plans/${id}`, { method: "DELETE" })
 }
 
+export function reorderPlans(ids: number[]) {
+  return apiFetch("/plans/reorder", { method: "PUT", body: JSON.stringify({ ids }) })
+}
+
 
 export function getLogs() {
   return apiFetch("/logs/")

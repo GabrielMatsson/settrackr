@@ -36,17 +36,23 @@ type Props = {
   logs: WorkoutLog[]
 }
 
-function ProgressRing({ percent, color = "#6366f1" }: { percent: number; color?: string }) {
+function ProgressRing({ percent, gradientId, colorStart = "#6366f1", colorEnd = "#a78bfa" }: { percent: number; gradientId: string; colorStart?: string; colorEnd?: string }) {
   const radius = 40
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - Math.min(percent, 100) / 100)
 
   return (
     <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="10" />
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={colorStart} />
+          <stop offset="100%" stopColor={colorEnd} />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r={radius} fill="none" stroke="currentColor" strokeWidth="10" className="text-gray-100 dark:text-gray-800" />
       <circle
         cx="50" cy="50" r={radius} fill="none"
-        stroke={color} strokeWidth="10" strokeLinecap="round"
+        stroke={`url(#${gradientId})`} strokeWidth="10" strokeLinecap="round"
         strokeDasharray={circumference} strokeDashoffset={offset}
         className="transition-all duration-500"
       />
@@ -153,7 +159,7 @@ export default function MyGoals({ logs }: Props) {
     rings.push(
       <div key={`p-${goal.id}`} className="relative group flex flex-col items-center gap-2">
         <div className="relative w-24 h-24">
-          <ProgressRing percent={percent} />
+          <ProgressRing percent={percent} gradientId={`ring-p-${goal.id}`} />
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(percent, 100))}%</span>
           </div>
@@ -180,13 +186,13 @@ export default function MyGoals({ logs }: Props) {
       <div key={`s-${g.id}`} className="relative group flex flex-col items-center gap-2">
         <div className="flex gap-1">
           <div className="relative w-24 h-24">
-            <ProgressRing percent={ownerPct} color="#6366f1" />
+            <ProgressRing percent={ownerPct} gradientId={`ring-so-${g.id}`} colorStart="#6366f1" colorEnd="#818cf8" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(ownerPct, 100))}%</span>
             </div>
           </div>
           <div className="relative w-24 h-24">
-            <ProgressRing percent={friendPct} color="#a78bfa" />
+            <ProgressRing percent={friendPct} gradientId={`ring-sf-${g.id}`} colorStart="#a78bfa" colorEnd="#c4b5fd" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(friendPct, 100))}%</span>
             </div>
@@ -208,7 +214,7 @@ export default function MyGoals({ logs }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Mina mål</h2>
         <button
@@ -283,7 +289,7 @@ export default function MyGoals({ logs }: Props) {
         <p className="text-gray-400 dark:text-gray-500 text-sm">Inga mål satta ännu. Tryck + för att lägga till ett.</p>
       )}
 
-      <div className="flex flex-wrap gap-8">
+      <div className="flex flex-wrap gap-4">
         {rings}
       </div>
     </div>

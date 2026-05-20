@@ -25,6 +25,7 @@ class WorkoutPlanResponse(BaseModel):
     id: int
     name: str
     copied_from_name: str | None = None
+    position: int = 0
     exercises: list[ExerciseResponse]
     shared_with: list[SharedAccessSummary] = []
 

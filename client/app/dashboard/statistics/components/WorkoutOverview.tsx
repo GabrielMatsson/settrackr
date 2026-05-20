@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { Dumbbell, Layers, RotateCcw, TrendingUp, Flame } from "lucide-react"
+import { useStatistics } from "./StatisticsContext"
 
 type ExerciseLog = {
   name: string
@@ -18,26 +19,11 @@ type WorkoutLog = {
   exercises: ExerciseLog[]
 }
 
-type Period = 7 | 30 | 90
-
 type Props = {
   logs: WorkoutLog[]
-  defaultPeriod?: Period
 }
 
-const stats = [
-  { key: "workouts",     label: "Träningspass",          color: "bg-indigo-500" },
-  { key: "totalSets",    label: "Sets",     color: "bg-violet-500" },
-  { key: "totalReps",    label: "Reps",    color: "bg-cyan-500"   },
-  { key: "totalWeight",  label: "Lyft", color: "bg-emerald-500"},
-  { key: "heaviestLift", label: "Tyngsta lyftet",    color: "bg-rose-500"   },
-]
-
-function computeStats(logs: WorkoutLog[], days: Period) {
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - days)
-  const cutoffStr = cutoff.toISOString().slice(0, 10)
-
+function computeStats(logs: WorkoutLog[], fromStr: string, toStr: string) {
   let workouts = 0
   let totalSets = 0
   let totalReps = 0
@@ -46,7 +32,7 @@ function computeStats(logs: WorkoutLog[], days: Period) {
 
   for (let i = 0; i < logs.length; i++) {
     const log = logs[i]
-    if (log.date < cutoffStr) continue
+    if (log.date < fromStr || log.date >= toStr) continue
     workouts++
     for (let j = 0; j < log.exercises.length; j++) {
       const ex = log.exercises[j]
@@ -66,42 +52,82 @@ function computeStats(logs: WorkoutLog[], days: Period) {
   }
 }
 
-export default function WorkoutOverview({ logs, defaultPeriod = 30 }: Props) {
-  const [period, setPeriod] = useState<Period>(defaultPeriod)
+const statDefs = [
+  {
+    key: "workouts" as const,
+    label: "Träningspass",
+    Icon: Dumbbell,
+    iconBg: "bg-indigo-100 dark:bg-indigo-900/40",
+    iconColor: "text-indigo-600 dark:text-indigo-400",
+    format: (v: number) => String(v),
+  },
+  {
+    key: "totalSets" as const,
+    label: "Sets",
+    Icon: Layers,
+    iconBg: "bg-violet-100 dark:bg-violet-900/40",
+    iconColor: "text-violet-600 dark:text-violet-400",
+    format: (v: number) => String(v),
+  },
+  {
+    key: "totalReps" as const,
+    label: "Reps",
+    Icon: RotateCcw,
+    iconBg: "bg-cyan-100 dark:bg-cyan-900/40",
+    iconColor: "text-cyan-600 dark:text-cyan-400",
+    format: (v: number) => String(v),
+  },
+  {
+    key: "totalWeight" as const,
+    label: "Lyft",
+    Icon: TrendingUp,
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/40",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    format: (v: number) => `${v.toLocaleString("sv-SE")} kg`,
+  },
+  {
+    key: "heaviestLift" as const,
+    label: "Tyngsta lyftet",
+    Icon: Flame,
+    iconBg: "bg-rose-100 dark:bg-rose-900/40",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    format: (v: number) => `${v} kg`,
+  },
+]
 
-  const data = computeStats(logs, period)
+export default function WorkoutOverview({ logs }: Props) {
+  const { period } = useStatistics()
 
-  const bullets = []
-  for (let i = 0; i < stats.length; i++) {
-    const stat = stats[i]
-    const value = data[stat.key as keyof typeof data]
-    bullets.push(
-      <div key={stat.key} className="flex items-center gap-3">
-        <span className={`w-3 h-3 rounded-full shrink-0 ${stat.color}`} />
-        <span className="text-gray-500 dark:text-gray-400 text-sm">{stat.label}</span>
-        <span className="ml-auto text-gray-900 dark:text-white font-semibold text-sm">{value}</span>
-      </div>
-    )
-  }
+  const now = new Date()
+  const toStr = now.toISOString().slice(0, 10)
+
+  const currentFrom = new Date(now)
+  currentFrom.setDate(currentFrom.getDate() - period)
+  const currentFromStr = currentFrom.toISOString().slice(0, 10)
+
+  const current = computeStats(logs, currentFromStr, toStr)
 
   return (
-    <div className="rounded-2xl p-px bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-500">
-      <div className="bg-white dark:bg-gray-950 rounded-2xl p-6 flex flex-col gap-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Översikt</h2>
-          <select
-            value={period}
-            onChange={(e) => setPeriod(Number(e.target.value) as Period)}
-            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
-          >
-            <option value={7}>Senaste 7 dagarna</option>
-            <option value={30}>Senaste 30 dagarna</option>
-            <option value={90}>Senaste 90 dagarna</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-3">
-          {bullets}
-        </div>
+    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-950 overflow-hidden">
+      <div className="px-5 pt-5 pb-2">
+        <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Översikt</h2>
+      </div>
+      <div className="flex flex-col sm:flex-row">
+        {statDefs.map(({ key, label, Icon, iconBg, iconColor, format }) => {
+          const value = current[key]
+
+          return (
+            <div key={key} className="flex items-center gap-3 px-5 py-8 flex-1 min-w-0">
+              <div className={`${iconBg} rounded-xl p-2.5 w-10 h-10 flex items-center justify-center shrink-0`}>
+                <Icon size={18} className={iconColor} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg font-bold text-gray-900 dark:text-white leading-none whitespace-nowrap">{format(value)}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{label}</p>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

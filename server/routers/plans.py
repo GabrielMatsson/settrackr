@@ -223,16 +223,31 @@ def get_plans(user=Depends(get_current_user), db: Session = Depends(get_db)):
             joinedload(models.WorkoutPlan.shared_with).joinedload(models.SharedPlanAccess.friend),
         )
         .filter(models.WorkoutPlan.user_id == db_user.id)
+        .order_by(models.WorkoutPlan.position, models.WorkoutPlan.created_at)
         .all()
     )
     return [serialize_plan(p) for p in plans]
+
+
+@router.put("/reorder")
+def reorder_plans(body: dict, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    ids: list[int] = body.get("ids", [])
+    for i, plan_id in enumerate(ids):
+        db.query(models.WorkoutPlan).filter(
+            models.WorkoutPlan.id == plan_id,
+            models.WorkoutPlan.user_id == db_user.id,
+        ).update({"position": i})
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/", response_model=schemas.WorkoutPlanResponse)
 def create_plan(plan: schemas.WorkoutPlanCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
 
-    db_plan = models.WorkoutPlan(user_id=db_user.id, name=plan.name)
+    count = db.query(models.WorkoutPlan).filter(models.WorkoutPlan.user_id == db_user.id).count()
+    db_plan = models.WorkoutPlan(user_id=db_user.id, name=plan.name, position=count)
     db.add(db_plan)
     db.flush()
 

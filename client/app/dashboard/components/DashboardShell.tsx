@@ -7,9 +7,9 @@ import Navbar from "@/app/components/Navbar"
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-row">
         <Navbar />
-        <main className="flex-grow p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 min-w-0 overflow-y-auto">{children}</main>
       </div>
       <ToastContainer />
     </NotificationProvider>

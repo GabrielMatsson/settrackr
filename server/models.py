@@ -37,10 +37,11 @@ class WorkoutPlan(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
     copied_from_name = Column(String, nullable=True)
+    position = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="plans")
-    exercises = relationship("Exercise", back_populates="plan", cascade="all, delete-orphan")
+    exercises = relationship("Exercise", back_populates="plan", cascade="all, delete-orphan", order_by="Exercise.order")
     shared_with = relationship("SharedPlanAccess", back_populates="plan", cascade="all, delete-orphan")
 
 

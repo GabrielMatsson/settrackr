@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { Dumbbell, Activity, MoreHorizontal, ChevronDown } from "lucide-react"
 import { updateLog, deleteLog } from "@/lib/api"
-import LogReactions from "../../profile/components/LogReactions"
 
 type ExerciseLog = {
   name: string
@@ -36,78 +36,92 @@ type Props = {
   currentUserEmail?: string
 }
 
+const CARDIO_KEYWORDS = ["löpning", "cykling", "kondition", "cardio", "yoga", "stretching"]
+
+function isCardio(planName: string): boolean {
+  const lower = planName.toLowerCase()
+  return CARDIO_KEYWORDS.some((kw) => lower.includes(kw))
+}
+
+function getOverallDifficulty(exercises: ExerciseLog[], cardio: boolean) {
+  if (cardio) return { label: "Kondition", className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400" }
+  const difficulties = exercises.map((e) => e.difficulty)
+  if (difficulties.some((d) => d === "hard")) return { label: "Tufft", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
+  if (difficulties.length > 0 && difficulties.every((d) => d === "easy")) return { label: "Lätt", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
+  return { label: "Medium", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
+}
+
+function getTotalLyft(exercises: ExerciseLog[]): string {
+  const total = exercises.reduce((sum, e) => sum + e.sets * e.reps * e.weight, 0)
+  if (total === 0) return "–"
+  return total.toLocaleString("sv-SE") + " kg"
+}
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + "T12:00:00")
+  const day = d.getDate()
+  const month = d.toLocaleDateString("sv-SE", { month: "short" }).replace(".", "")
+  const year = d.getFullYear()
+  const weekday = d.toLocaleDateString("sv-SE", { weekday: "short" }).replace(".", "")
+  return { day, month, year, weekday }
+}
+
+function estimate1RM(weight: number, reps: number): string {
+  if (weight === 0 || reps === 0) return "–"
+  const rm = weight * (1 + reps / 30)
+  return (Math.round(rm * 2) / 2) + " kg"
+}
+
+function DifficultyBadge({ difficulty }: { difficulty: string }) {
+  if (difficulty === "easy") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 shrink-0">Lätt</span>
+  if (difficulty === "hard") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 shrink-0">Tufft</span>
+  return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 shrink-0">Medium</span>
+}
+
 function DifficultyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const options = [
+    { key: "easy", label: "Lätt", active: "bg-green-600 text-white", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
+    { key: "medium", label: "Medium", active: "bg-yellow-500 text-gray-900", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
+    { key: "hard", label: "Tufft", active: "bg-red-600 text-white", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
+  ]
   return (
     <div className="flex gap-1">
-      <button
-        type="button"
-        onClick={() => onChange("easy")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "easy" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-      >
-        Lätt
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("medium")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "medium" ? "bg-yellow-500 text-gray-900" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-      >
-        Medium
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("hard")}
-        className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === "hard" ? "bg-red-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"}`}
-      >
-        Tufft
-      </button>
+      {options.map(({ key, label, active, inactive }) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onChange(key)}
+          className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${value === key ? active : inactive}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }
 
-function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  if (difficulty === "easy") {
-    return <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Lätt</span>
-  }
-  if (difficulty === "medium") {
-    return <span className="px-2 py-0.5 rounded text-xs font-medium bg-yellow-500 text-gray-900">Medium</span>
-  }
-  return <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Tufft</span>
-}
-
-export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = "" }: Props) {
+export default function LogCard({ log, onDelete, onUpdate }: Props) {
   const [editing, setEditing] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [planName, setPlanName] = useState(log.plan_name)
   const [date, setDate] = useState(log.date)
   const [exercises, setExercises] = useState<ExerciseLog[]>(log.exercises)
   const [error, setError] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
-  function updateExerciseName(index: number, value: string) {
-    const updated = [...exercises]
-    updated[index] = { ...updated[index], name: value }
-    setExercises(updated)
-  }
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [menuOpen])
 
-  function updateExerciseSets(index: number, value: number) {
+  function updateExerciseField(index: number, field: keyof ExerciseLog, value: string | number | boolean) {
     const updated = [...exercises]
-    updated[index] = { ...updated[index], sets: value }
-    setExercises(updated)
-  }
-
-  function updateExerciseReps(index: number, value: number) {
-    const updated = [...exercises]
-    updated[index] = { ...updated[index], reps: value }
-    setExercises(updated)
-  }
-
-  function updateExerciseWeight(index: number, value: number) {
-    const updated = [...exercises]
-    updated[index] = { ...updated[index], weight: value }
-    setExercises(updated)
-  }
-
-  function updateExerciseDifficulty(index: number, value: string) {
-    const updated = [...exercises]
-    updated[index] = { ...updated[index], difficulty: value }
+    updated[index] = { ...updated[index], [field]: value }
     setExercises(updated)
   }
 
@@ -140,57 +154,13 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
   }
 
   if (editing) {
-    const exerciseRows = []
-    for (let i = 0; i < exercises.length; i++) {
-      const ex = exercises[i]
-      exerciseRows.push(
-        <div key={i} className="flex flex-col gap-2 py-3 border-b border-gray-200 dark:border-gray-800 last:border-0">
-          <input
-            value={ex.name}
-            onChange={(e) => updateExerciseName(i, e.target.value)}
-            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
-          />
-          <div className="flex gap-2">
-            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
-              Set
-              <input
-                type="number"
-                value={ex.sets}
-                onChange={(e) => updateExerciseSets(i, Number(e.target.value))}
-                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
-              />
-            </label>
-            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
-              Reps
-              <input
-                type="number"
-                value={ex.reps}
-                onChange={(e) => updateExerciseReps(i, Number(e.target.value))}
-                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
-              />
-            </label>
-            <label className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
-              Vikt (kg)
-              <input
-                type="number"
-                value={ex.weight}
-                onChange={(e) => updateExerciseWeight(i, Number(e.target.value))}
-                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-20 focus:outline-none focus:border-indigo-500"
-              />
-            </label>
-          </div>
-          <DifficultyPicker value={ex.difficulty} onChange={(v) => updateExerciseDifficulty(i, v)} />
-        </div>
-      )
-    }
-
     return (
-      <div className="min-w-80 bg-gray-50 dark:bg-gray-900 border border-indigo-500 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
+      <div className="bg-white dark:bg-gray-950 border border-indigo-500 rounded-2xl overflow-hidden p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <input
             value={planName}
             onChange={(e) => setPlanName(e.target.value)}
-            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white font-semibold text-lg rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white font-semibold text-base rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500 w-full"
           />
           <input
             type="date"
@@ -199,7 +169,31 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
             className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded px-3 py-1.5 focus:outline-none focus:border-indigo-500 self-start"
           />
         </div>
-        <div className="flex flex-col">{exerciseRows}</div>
+        <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+          {exercises.map((ex, i) => (
+            <div key={i} className="flex flex-col gap-2 py-3">
+              <input
+                value={ex.name}
+                onChange={(e) => updateExerciseField(i, "name", e.target.value)}
+                className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+              />
+              <div className="flex gap-2 flex-wrap">
+                {(["sets", "reps", "weight"] as const).map((field) => (
+                  <label key={field} className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    {field === "sets" ? "Set" : field === "reps" ? "Reps" : "Vikt (kg)"}
+                    <input
+                      type="number"
+                      value={ex[field] as number}
+                      onChange={(e) => updateExerciseField(i, field, Number(e.target.value))}
+                      className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-16 focus:outline-none focus:border-indigo-500"
+                    />
+                  </label>
+                ))}
+              </div>
+              <DifficultyPicker value={ex.difficulty} onChange={(v) => updateExerciseField(i, "difficulty", v)} />
+            </div>
+          ))}
+        </div>
         {error && <p className="text-red-400 text-xs">{error}</p>}
         <div className="flex gap-2">
           <button
@@ -219,50 +213,120 @@ export default function LogCard({ log, onDelete, onUpdate, currentUserEmail = ""
     )
   }
 
-  const exerciseRows = []
-  for (let i = 0; i < log.exercises.length; i++) {
-    const ex = log.exercises[i]
-    exerciseRows.push(
-      <div key={i} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800 last:border-0">
-        <div className="flex flex-col gap-1">
-          <span className="text-gray-900 dark:text-white text-sm font-medium">{ex.name}</span>
-          <span className="text-gray-500 dark:text-gray-400 text-xs">{ex.sets} set × {ex.reps} reps · {ex.weight} kg</span>
-        </div>
-        <DifficultyBadge difficulty={ex.difficulty} />
-      </div>
-    )
-  }
+  const cardio = isCardio(log.plan_name)
+  const { day, month, year, weekday } = formatDate(log.date)
+  const difficulty = getOverallDifficulty(log.exercises, cardio)
+  const totalLyft = getTotalLyft(log.exercises)
+  const exerciseNames = log.exercises.map((e) => e.name).join(" · ")
 
   return (
-    <div className="min-w-80 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-4 shrink-0">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-900 dark:text-white font-semibold text-lg">{log.plan_name}</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">{log.date}</p>
+    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
+      <div
+        className="flex items-center gap-2 sm:gap-4 px-3 py-3 sm:px-5 sm:py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <div className="flex flex-col items-center w-12 shrink-0 text-center">
+          <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">{day}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 capitalize">{month}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{year}</span>
+          <span className="text-xs text-gray-300 dark:text-gray-600 capitalize mt-0.5">{weekday}</span>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setEditing(true)}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
-          >
-            Redigera
-          </button>
-          <button
-            onClick={handleDelete}
-            className="text-gray-400 dark:text-gray-600 hover:text-red-400 transition-colors text-sm"
-          >
-            Ta bort
-          </button>
+
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cardio ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-indigo-100 dark:bg-indigo-900/40"}`}>
+          {cardio
+            ? <Activity size={18} className="text-emerald-600 dark:text-emerald-400" />
+            : <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
+          }
         </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-gray-900 dark:text-white font-semibold text-sm leading-tight">{log.plan_name}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5 truncate">{exerciseNames}</p>
+        </div>
+
+        <div className="hidden sm:flex flex-col items-end shrink-0">
+          <span className="text-xs text-gray-400 dark:text-gray-500">Total lyft</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">{totalLyft}</span>
+        </div>
+
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${difficulty.className}`}>
+          {difficulty.label}
+        </span>
+
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v) }}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded transition-colors"
+          >
+            <MoreHorizontal size={16} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-20 min-w-[120px] py-1 overflow-hidden">
+              <button
+                onClick={() => { setMenuOpen(false); setEditing(true) }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Redigera
+              </button>
+              <button
+                onClick={() => { setMenuOpen(false); handleDelete() }}
+                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                Ta bort
+              </button>
+            </div>
+          )}
+        </div>
+
+        <ChevronDown
+          size={15}
+          className={`text-gray-400 shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+        />
       </div>
-      <div className="flex flex-col">{exerciseRows}</div>
-      <LogReactions
-        logId={log.id}
-        initialCount={log.reaction_count ?? 0}
-        initialLiked={false}
-        initialComments={log.comments ?? []}
-        currentUserEmail={currentUserEmail}
-      />
+
+      {expanded && (
+        <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
+          {/* Mobile: stacked cards */}
+          <div className="md:hidden flex flex-col divide-y divide-gray-100 dark:divide-gray-800 px-3 py-2">
+            {log.exercises.map((ex, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 py-3">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{ex.name}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {ex.sets} set × {ex.reps} reps · {ex.weight} kg · 1RM ~{estimate1RM(ex.weight, ex.reps)}
+                  </span>
+                </div>
+                <DifficultyBadge difficulty={ex.difficulty} />
+              </div>
+            ))}
+          </div>
+          {/* Desktop: full table */}
+          <table className="hidden md:table w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-gray-800">
+                <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Övningar</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Set</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Reps</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Vikt</th>
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">1RM (est.)</th>
+                <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {log.exercises.map((ex, i) => (
+                <tr key={i}>
+                  <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.sets}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.reps}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.weight} kg</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.weight, ex.reps)}</td>
+                  <td className="px-5 py-3 text-right"><DifficultyBadge difficulty={ex.difficulty} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

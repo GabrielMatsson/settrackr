@@ -1,5 +1,7 @@
 "use client"
 
+import { useRef } from "react"
+import { GripVertical } from "lucide-react"
 import type { Exercise } from "./types"
 
 type Props = {
@@ -12,6 +14,7 @@ type Props = {
   onUpdateName: (index: number, value: string) => void
   onUpdateSets: (index: number, value: number) => void
   onUpdateReps: (index: number, value: number) => void
+  onReorder: (from: number, to: number) => void
   onSave: () => void
   onCancel: () => void
 }
@@ -42,14 +45,28 @@ export default function PlanForm({
   onUpdateName,
   onUpdateSets,
   onUpdateReps,
+  onReorder,
   onSave,
   onCancel,
 }: Props) {
+  const dragIndex = useRef<number | null>(null)
+
   const exerciseRows = []
   for (let i = 0; i < exercises.length; i++) {
     const ex = exercises[i]
     exerciseRows.push(
-      <div key={i} className="flex gap-3 items-center">
+      <div
+        key={i}
+        draggable
+        onDragStart={() => { dragIndex.current = i }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => { if (dragIndex.current !== null) onReorder(dragIndex.current, i) }}
+        className="flex gap-3 items-center group"
+      >
+        <GripVertical
+          size={16}
+          className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab shrink-0"
+        />
         <input
           type="text"
           value={ex.name}
