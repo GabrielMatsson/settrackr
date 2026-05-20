@@ -34,7 +34,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
     getExerciseHistory(names)
       .then((data) => setHints(data as HintMap))
       .catch(() => {})
-  }, [showOverloadHints, plan.name])
+  }, [showOverloadHints, plan.exercises])
 
   function updateDone(index: number, done: boolean) {
     const updated = [...exerciseStates]

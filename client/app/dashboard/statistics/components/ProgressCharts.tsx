@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -112,15 +112,10 @@ const tooltipStyle = {
 
 export default function ProgressCharts({ logs, friendLogs, friendName, hideBarChart, noCard }: Props) {
   const exerciseNames = getExerciseNames(logs, friendLogs)
-  const [selectedExercise, setSelectedExercise] = useState(exerciseNames[0] ?? "")
+  const [selectedExercise, setSelectedExercise] = useState("")
+  const effectiveExercise = exerciseNames.includes(selectedExercise) ? selectedExercise : (exerciseNames[0] ?? "")
 
-  useEffect(() => {
-    if (exerciseNames.length > 0 && (!selectedExercise || !exerciseNames.includes(selectedExercise))) {
-      setSelectedExercise(exerciseNames[0])
-    }
-  }, [exerciseNames])
-
-  const lineData = selectedExercise ? getWeightProgression(logs, selectedExercise, friendLogs) : []
+  const lineData = effectiveExercise ? getWeightProgression(logs, effectiveExercise, friendLogs) : []
   const barData = getWeeklyWorkouts(logs)
   const hasFriend = !!friendLogs && friendLogs.length > 0
 
@@ -132,7 +127,7 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
           {exerciseNames.length > 0 ? (
             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
               <select
-                value={selectedExercise}
+                value={effectiveExercise}
                 onChange={(e) => setSelectedExercise(e.target.value)}
                 className="bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
               >
