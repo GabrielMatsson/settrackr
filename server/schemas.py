@@ -134,6 +134,16 @@ class CommentResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LevelResponse(BaseModel):
+    xp: int
+    level: int
+    title: str
+    current_threshold: int
+    next_threshold: int | None
+    next_title: str | None
+    progress_pct: float
+
+
 class SharedGoalCreate(BaseModel):
     friend_id: int
     exercise_name: str

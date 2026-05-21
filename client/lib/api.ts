@@ -220,3 +220,15 @@ export function getExerciseHistory(names: string[]) {
 export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }
+
+export function getMyLevel() {
+  return apiFetch("/users/me/level")
+}
+
+export function getFriendLevel(userId: number) {
+  return apiFetch(`/users/${userId}/level`)
+}
+
+export function clearCache(path: string) {
+  getCache.delete(path)
+}

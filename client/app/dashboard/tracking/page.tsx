@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { CheckCircle, X, Dumbbell, Users, Calendar } from "lucide-react"
+import { CheckCircle, X, Dumbbell, Users, Calendar, Zap, Trophy } from "lucide-react"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
 import WorkoutLogger from "./components/WorkoutLogger"
 import type { Exercise, WorkoutPlan, WorkoutLog } from "./components/types"
-import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan, getMe, reorderPlans } from "@/lib/api"
+import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan, getMe, reorderPlans, getMyLevel, clearCache } from "@/lib/api"
+
+type LevelInfo = { xp: number; level: number; title: string; progress_pct: number; next_title: string | null; next_threshold: number | null }
 
 type Friend = { id: number; name: string | null; email: string }
 type FriendEntry = { id: number; status: string; friend: Friend }
@@ -25,6 +27,8 @@ export default function TrackingPage() {
   const [loggerVisible, setLoggerVisible] = useState(false)
   const [loggingPlan, setLoggingPlan] = useState<{ name: string; exercises: Exercise[] } | null>(null)
   const [logSaved, setLogSaved] = useState(false)
+  const [xpResult, setXpResult] = useState<LevelInfo & { earned: number } | null>(null)
+  const [levelUpData, setLevelUpData] = useState<{ level: number; title: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showOverloadHints, setShowOverloadHints] = useState(false)
   const planDragIndex = useRef<number | null>(null)
@@ -110,9 +114,18 @@ export default function TrackingPage() {
 
   async function saveLog(log: WorkoutLog) {
     try {
+      const prevLevel = await getMyLevel().catch(() => null) as LevelInfo | null
       await createLog({ plan_name: log.planName, date: log.date, exercises: log.exercises })
       setLoggerVisible(false)
       setLogSaved(true)
+      clearCache("/users/me/level")
+      const newLevel = await getMyLevel().catch(() => null) as LevelInfo | null
+      if (prevLevel && newLevel) {
+        setXpResult({ ...newLevel, earned: newLevel.xp - prevLevel.xp })
+        if (newLevel.level > prevLevel.level) {
+          setLevelUpData({ level: newLevel.level, title: newLevel.title })
+        }
+      }
     } catch {
       setError("Kunde inte spara träningspasset")
     }
@@ -179,17 +192,65 @@ export default function TrackingPage() {
       </div>
 
       {logSaved && (
-        <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-5 py-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle size={18} className="text-green-500 shrink-0" />
-            <span className="text-green-800 dark:text-green-300 text-sm font-medium">Träningspasset är sparat!</span>
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-5 py-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={18} className="text-green-500 shrink-0" />
+              <span className="text-green-800 dark:text-green-300 text-sm font-medium">Träningspasset är sparat!</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/statistics/history" className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+                Visa i historik →
+              </Link>
+              <button onClick={() => { setLogSaved(false); setXpResult(null) }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X size={15} />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard/statistics/history" className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
-              Visa i historik →
-            </Link>
-            <button onClick={() => setLogSaved(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <X size={15} />
+
+          {xpResult && (
+            <div className="border-t border-green-200 dark:border-green-800 pt-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold text-sm">
+                +{xpResult.earned} XP
+                </span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                  Nivå {xpResult.level} · {xpResult.title}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-green-100 dark:bg-green-900/50 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${xpResult.progress_pct}%` }} />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {xpResult.next_title
+                  ? `${(xpResult.next_threshold! - xpResult.xp).toLocaleString("sv-SE")} XP kvar till ${xpResult.next_title}`
+                  : "Max nivå uppnådd!"}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {levelUpData && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setLevelUpData(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 max-w-xs w-full text-center flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Trophy size={48} className="text-indigo-500" />
+            <div className="flex flex-col gap-1">
+              <p className="text-xs uppercase tracking-widest text-indigo-500 font-semibold">Nivå upp!</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{levelUpData.title}</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Nivå {levelUpData.level}</p>
+            </div>
+            <button
+              onClick={() => setLevelUpData(null)}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-2 rounded-lg transition-colors"
+            >
+              Tack!
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { X } from "lucide-react"
 import DifficultyPicker from "./DifficultyPicker"
 import type { WorkoutLog, Difficulty } from "./types"
 
@@ -117,7 +118,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
               onClick={() => removeExercise(i)}
               className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
             >
-              ✕
+              <X size={16} />
             </button>
           )}
         </div>

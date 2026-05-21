@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LogOut, Dumbbell, Calendar, Users } from "lucide-react"
-import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe } from "@/lib/api"
+import { LogOut, Dumbbell, Calendar, Users, Info, Zap } from "lucide-react"
+import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -48,10 +48,13 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsOverloadHints, setSettingsOverloadHints] = useState(false)
+  const [levelInfo, setLevelInfo] = useState<{ xp: number; level: number; title: string; next_threshold: number | null; next_title: string | null; progress_pct: number; current_threshold: number } | null>(null)
+  const [showLevelInfo, setShowLevelInfo] = useState(false)
 
   useEffect(() => {
     getFriends().then(setFriends).catch(() => setError("Kunde inte hämta vänner"))
     getLogs().then(setLogs).catch(() => {})
+    getMyLevel().then((l) => setLevelInfo(l as typeof levelInfo)).catch(() => {})
     getMe().then((p) => {
       setProfile(p)
       setSettingsName(p.name ?? "")
@@ -160,15 +163,14 @@ export default function ProfileClient({ name, email, image }: Props) {
 
   const weekMotivation =
     thisWeekCount >= weeklyGoal
-      ? "Veckans mål uppnått! 🎉"
+      ? "Veckans mål uppnått!"
       : thisWeekCount > 0
-        ? "Du är på god väg! 👍"
-        : "Kör hårt! 💪"
+        ? "Du är på god väg!"
+        : "Kör hårt!"
 
   return (
     <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
 
-      {/* Profile header */}
       <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 bg-white dark:bg-gray-950">
         {image ? (
           <img src={image} alt={name} className="w-20 h-20 rounded-full shrink-0" />
@@ -192,7 +194,100 @@ export default function ProfileClient({ name, email, image }: Props) {
         </form>
       </div>
 
-      {/* Stat cards */}
+      {levelInfo && (
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap size={16} className="text-indigo-500 shrink-0" />
+              <span className="text-gray-900 dark:text-white font-bold">Nivå {levelInfo.level} · {levelInfo.title}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 dark:text-gray-500 text-sm">{levelInfo.xp.toLocaleString("sv-SE")} XP</span>
+              <button
+                onClick={() => setShowLevelInfo((v) => !v)}
+                className={`p-1 rounded-lg transition-colors ${showLevelInfo ? "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+                aria-label="Visa XP-information"
+              >
+                <Info size={15} />
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-indigo-500 rounded-full transition-all duration-500"
+                style={{ width: `${levelInfo.progress_pct}%` }}
+              />
+            </div>
+            <p className="text-gray-400 dark:text-gray-500 text-xs">
+              {levelInfo.next_title
+                ? `${(levelInfo.next_threshold! - levelInfo.xp).toLocaleString("sv-SE")} XP kvar till ${levelInfo.next_title}`
+                : "Max nivå uppnådd!"}
+            </p>
+          </div>
+
+          {showLevelInfo && (
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-gray-900 dark:text-white text-xs font-semibold uppercase tracking-wide">XP-regler</p>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-gray-800">
+                      <th className="text-left py-1.5 text-gray-500 dark:text-gray-400 font-medium">Händelse</th>
+                      <th className="text-right py-1.5 text-gray-500 dark:text-gray-400 font-medium">XP</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                    <tr>
+                      <td className="py-1.5 text-gray-700 dark:text-gray-300">Loggat pass (bas)</td>
+                      <td className="py-1.5 text-right text-indigo-600 dark:text-indigo-400 font-medium">+50</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-gray-700 dark:text-gray-300">Något set med svårighetsgrad &quot;Tufft&quot;</td>
+                      <td className="py-1.5 text-right text-indigo-600 dark:text-indigo-400 font-medium">+25</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-gray-700 dark:text-gray-300">Nytt personbästa i vikt på någon övning</td>
+                      <td className="py-1.5 text-right text-indigo-600 dark:text-indigo-400 font-medium">+50</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-gray-400 dark:text-gray-500 text-xs leading-relaxed">Det är en fast bonus, max en gång per loggat pass, oavsett hur många övningar som kvalificerar.</p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-gray-900 dark:text-white text-xs font-semibold uppercase tracking-wide">Nivågränser</p>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-gray-800">
+                      <th className="text-left py-1.5 text-gray-500 dark:text-gray-400 font-medium">Nivå</th>
+                      <th className="text-left py-1.5 text-gray-500 dark:text-gray-400 font-medium">Titel</th>
+                      <th className="text-right py-1.5 text-gray-500 dark:text-gray-400 font-medium">XP krävs</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                    {[
+                      [1, "Nybörjare", 0],
+                      [2, "Motionär", 250],
+                      [3, "Atlet", "1 000"],
+                      [4, "Veteran", "2 500"],
+                      [5, "Elit", "5 000"],
+                      [6, "Mästare", "12 500"],
+                    ].map(([lvl, title, xpNeeded]) => (
+                      <tr key={lvl} className={levelInfo.level === lvl ? "text-indigo-600 dark:text-indigo-400 font-semibold" : ""}>
+                        <td className="py-1.5">{lvl}</td>
+                        <td className="py-1.5">{title}</td>
+                        <td className="py-1.5 text-right">{xpNeeded}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
           <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-2.5 shrink-0">
@@ -202,7 +297,7 @@ export default function ProfileClient({ name, email, image }: Props) {
             <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">{totalWorkouts}</p>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">träningspass totalt</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
-              {totalWorkouts > 0 ? "Bra jobbat! Fortsätt så 🔥" : "Kom igång! 💪"}
+              {totalWorkouts > 0 ? "Bra jobbat! Fortsätt så" : "Kom igång!"}
             </p>
           </div>
         </div>
@@ -221,10 +316,8 @@ export default function ProfileClient({ name, email, image }: Props) {
         </div>
       </div>
 
-      {/* Two-column grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
-        {/* Settings card */}
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-5">
           <div>
             <p className="text-gray-900 dark:text-white font-semibold">Inställningar</p>
@@ -282,7 +375,6 @@ export default function ProfileClient({ name, email, image }: Props) {
           </div>
         </div>
 
-        {/* Friends card */}
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
@@ -297,7 +389,6 @@ export default function ProfileClient({ name, email, image }: Props) {
             </button>
           </div>
 
-          {/* Friend list */}
           {friends.length > 0 && (
             <div className="flex flex-col divide-y divide-gray-100 dark:divide-gray-800">
               {friends.map((f) => (
@@ -325,7 +416,6 @@ export default function ProfileClient({ name, email, image }: Props) {
             </div>
           )}
 
-          {/* Pending friend requests */}
           {requests.length > 0 && (
             <div className="flex flex-col gap-1">
               <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">Vänförfrågningar ({requests.length})</p>
@@ -351,7 +441,6 @@ export default function ProfileClient({ name, email, image }: Props) {
             </div>
           )}
 
-          {/* Plan invitations */}
           {invitations.length > 0 && (
             <div className="flex flex-col gap-1">
               <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">Planinbjudningar ({invitations.length})</p>
@@ -372,7 +461,6 @@ export default function ProfileClient({ name, email, image }: Props) {
             </div>
           )}
 
-          {/* Add friend form / CTA */}
           {addingFriend ? (
             <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
               <input

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Dumbbell, Activity, ChevronDown } from "lucide-react"
-import { getApiToken, getFriendPlans, copyFriendPlan } from "@/lib/api"
+import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
 import LogReactions from "./LogReactions"
 
@@ -234,9 +234,11 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
   const [loading, setLoading] = useState(true)
   const [plans, setPlans] = useState<FriendPlan[]>([])
   const [copiedPlanId, setCopiedPlanId] = useState<number | null>(null)
+  const [friendLevel, setFriendLevel] = useState<{ level: number; title: string } | null>(null)
 
   useEffect(() => {
     getFriendPlans(friend.id).then(setPlans).catch(() => {})
+    getFriendLevel(friend.id).then((l) => setFriendLevel(l as { level: number; title: string })).catch(() => {})
   }, [friend.id])
 
   async function handleCopyPlan(planId: number) {
@@ -293,6 +295,11 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
             <p className="text-gray-900 dark:text-white font-medium">{friend.name ?? friend.email}</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs">{friend.email}</p>
           </div>
+          {friendLevel && (
+            <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium px-2.5 py-1 rounded-full">
+              Nivå {friendLevel.level} · {friendLevel.title}
+            </span>
+          )}
         </div>
       </div>
 

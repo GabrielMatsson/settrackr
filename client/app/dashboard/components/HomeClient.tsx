@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dumbbell, Activity } from "lucide-react"
-import { getLogs, getMe } from "@/lib/api"
+import { Dumbbell, Activity, Flame } from "lucide-react"
+import { getLogs, getMe, getMyLevel } from "@/lib/api"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 
 type ExerciseLog = {
@@ -123,6 +123,7 @@ export default function HomeClient({ name }: Props) {
   const [weeklyGoal, setWeeklyGoal] = useState(3)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [levelInfo, setLevelInfo] = useState<{ level: number; title: string; xp: number } | null>(null)
   const router = useRouter()
 
   const today = new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })
@@ -133,6 +134,7 @@ export default function HomeClient({ name }: Props) {
       .then((data) => { setLogs(data); setLoading(false) })
       .catch(() => { setError("Kunde inte hämta träningsdata"); setLoading(false) })
     getMe().then((p) => setWeeklyGoal(p.weekly_goal)).catch(() => {})
+    getMyLevel().then((l) => setLevelInfo(l as { level: number; title: string; xp: number })).catch(() => {})
   }, [])
 
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -148,9 +150,14 @@ export default function HomeClient({ name }: Props) {
           <div className="flex items-center gap-3 mt-1">
             <p className="text-gray-400 dark:text-gray-500">{todayCapitalized}</p>
             {streak > 0 && (
-              <p className="text-orange-400 text-sm font-medium">{streak} dag{streak !== 1 ? "ar" : ""} streak 🔥</p>
+              <p className="flex items-center gap-1 text-orange-400 text-sm font-medium"><Flame size={14} className="shrink-0" />{streak} dag{streak !== 1 ? "ar" : ""} streak</p>
             )}
           </div>
+          {levelInfo && (
+            <p className="text-indigo-500 dark:text-indigo-400 text-sm font-medium mt-1">
+              Nivå {levelInfo.level} · {levelInfo.title} · {levelInfo.xp} XP
+            </p>
+          )}
         </div>
         <button
           onClick={() => router.push("/dashboard/profile")}

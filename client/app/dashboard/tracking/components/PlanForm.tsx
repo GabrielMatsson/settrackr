@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef } from "react"
-import { GripVertical } from "lucide-react"
+import { GripVertical, X } from "lucide-react"
 import type { Exercise } from "./types"
 
 type Props = {
@@ -91,9 +91,9 @@ export default function PlanForm({
         {exercises.length > 1 && (
           <button
             onClick={() => onRemoveExercise(i)}
-            className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors text-lg"
+            className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
           >
-            ✕
+            <X size={16} />
           </button>
         )}
       </div>
