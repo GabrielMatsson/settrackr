@@ -9,7 +9,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <NotificationProvider>
       <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-row">
         <Navbar />
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 min-w-0 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8 min-w-0 overflow-y-auto">{children}</main>
       </div>
       <ToastContainer />
     </NotificationProvider>

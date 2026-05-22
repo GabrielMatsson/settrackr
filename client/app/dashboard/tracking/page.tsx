@@ -290,7 +290,6 @@ export default function TrackingPage() {
               />
             </div>
           )}
-          {/* Own plans panel */}
           <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-950">
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
@@ -332,7 +331,6 @@ export default function TrackingPage() {
             </button>
           </div>
 
-          {/* Shared plans panel */}
           {sharedPlans.length > 0 && (
             <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-950">
               <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
@@ -361,7 +359,6 @@ export default function TrackingPage() {
           )}
         </div>
 
-        {/* Overview panel */}
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-5 bg-white dark:bg-gray-950 sticky top-8">
           <h3 className="font-semibold text-gray-900 dark:text-white">Översikt</h3>
           <div className="flex flex-col gap-4">
