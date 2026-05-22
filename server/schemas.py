@@ -14,6 +14,7 @@ class ExerciseResponse(ExerciseCreate):
 
 class WorkoutPlanCreate(BaseModel):
     name: str
+    icon: str = "Dumbbell"
     exercises: list[ExerciseCreate]
 
 class SharedAccessSummary(BaseModel):
@@ -24,6 +25,7 @@ class SharedAccessSummary(BaseModel):
 class WorkoutPlanResponse(BaseModel):
     id: int
     name: str
+    icon: str = "Dumbbell"
     copied_from_name: str | None = None
     position: int = 0
     exercises: list[ExerciseResponse]
@@ -101,12 +103,14 @@ class ExerciseLogResponse(ExerciseLogCreate):
 
 class WorkoutLogCreate(BaseModel):
     plan_name: str
+    icon: str = "Dumbbell"
     date: str
     exercises: list[ExerciseLogCreate]
 
 class WorkoutLogResponse(BaseModel):
     id: int
     plan_name: str
+    icon: str = "Dumbbell"
     date: str
     exercises: list[ExerciseLogResponse]
 

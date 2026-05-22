@@ -107,11 +107,11 @@ export function getPlans() {
   return apiFetch("/plans/")
 }
 
-export function createPlan(plan: { name: string; exercises: { name: string; sets: number; reps: number }[] }) {
+export function createPlan(plan: { name: string; icon?: string; exercises: { name: string; sets: number; reps: number }[] }) {
   return apiFetch("/plans/", { method: "POST", body: JSON.stringify(plan) })
 }
 
-export function updatePlan(id: number, plan: { name: string; exercises: { name: string; sets: number; reps: number }[] }) {
+export function updatePlan(id: number, plan: { name: string; icon?: string; exercises: { name: string; sets: number; reps: number }[] }) {
   return apiFetch(`/plans/${id}`, { method: "PUT", body: JSON.stringify(plan) })
 }
 
@@ -138,6 +138,7 @@ export function deleteLog(id: number) {
 
 export function createLog(log: {
   plan_name: string
+  icon?: string
   date: string
   exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean }[]
 }) {

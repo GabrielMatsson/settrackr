@@ -41,6 +41,7 @@ def get_logs(user=Depends(get_current_user), db: Session = Depends(get_db)):
         schemas.WorkoutLogWithReactionsResponse(
             id=log.id,
             plan_name=log.plan_name,
+            icon=log.icon,
             date=log.date,
             exercises=log.exercises,
             reaction_count=len(log.reactions),
@@ -77,6 +78,7 @@ def _fetch_log_data(user: dict) -> list:
             {
                 "id": log.id,
                 "plan_name": log.plan_name,
+                "icon": log.icon,
                 "date": log.date,
                 "exercises": [
                     {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done}
@@ -153,7 +155,7 @@ def get_exercise_history(
 def create_log(log: schemas.WorkoutLogCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
 
-    db_log = models.WorkoutLog(user_id=db_user.id, plan_name=log.plan_name, date=log.date)
+    db_log = models.WorkoutLog(user_id=db_user.id, plan_name=log.plan_name, icon=log.icon, date=log.date)
     db.add(db_log)
     db.flush()
 

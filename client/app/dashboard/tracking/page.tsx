@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { CheckCircle, X, Dumbbell, Users, Calendar, Zap, Trophy } from "lucide-react"
+import { CheckCircle, X, Dumbbell, Users, Calendar, Trophy } from "lucide-react"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
@@ -23,9 +23,10 @@ export default function TrackingPage() {
   const [formVisible, setFormVisible] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [planName, setPlanName] = useState("")
+  const [planIcon, setPlanIcon] = useState("Dumbbell")
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
   const [loggerVisible, setLoggerVisible] = useState(false)
-  const [loggingPlan, setLoggingPlan] = useState<{ name: string; exercises: Exercise[] } | null>(null)
+  const [loggingPlan, setLoggingPlan] = useState<{ name: string; icon?: string; exercises: Exercise[] } | null>(null)
   const [logSaved, setLogSaved] = useState(false)
   const [xpResult, setXpResult] = useState<LevelInfo & { earned: number } | null>(null)
   const [levelUpData, setLevelUpData] = useState<{ level: number; title: string } | null>(null)
@@ -76,21 +77,21 @@ export default function TrackingPage() {
   }
 
   function openCreateForm() {
-    setEditingId(null); setPlanName(""); setExercises([{ name: "", sets: 3, reps: 10 }]); setFormVisible(true)
+    setEditingId(null); setPlanName(""); setPlanIcon("Dumbbell"); setExercises([{ name: "", sets: 3, reps: 10 }]); setFormVisible(true)
   }
 
   function openEditForm(plan: WorkoutPlan) {
-    setEditingId(plan.id); setPlanName(plan.name); setExercises([...plan.exercises]); setFormVisible(true)
+    setEditingId(plan.id); setPlanName(plan.name); setPlanIcon(plan.icon ?? "Dumbbell"); setExercises([...plan.exercises]); setFormVisible(true)
   }
 
   async function savePlan() {
     if (!planName.trim()) return
     try {
       if (editingId === null) {
-        const saved = await createPlan({ name: planName, exercises })
+        const saved = await createPlan({ name: planName, icon: planIcon, exercises })
         setPlans([...plans, saved])
       } else {
-        const saved = await updatePlan(editingId, { name: planName, exercises })
+        const saved = await updatePlan(editingId, { name: planName, icon: planIcon, exercises })
         setPlans(plans.map((p) => (p.id === editingId ? saved : p)))
       }
       closeForm()
@@ -109,13 +110,13 @@ export default function TrackingPage() {
   }
 
   function closeForm() {
-    setFormVisible(false); setEditingId(null); setPlanName(""); setExercises([{ name: "", sets: 3, reps: 10 }])
+    setFormVisible(false); setEditingId(null); setPlanName(""); setPlanIcon("Dumbbell"); setExercises([{ name: "", sets: 3, reps: 10 }])
   }
 
   async function saveLog(log: WorkoutLog) {
     try {
       const prevLevel = await getMyLevel().catch(() => null) as LevelInfo | null
-      await createLog({ plan_name: log.planName, date: log.date, exercises: log.exercises })
+      await createLog({ plan_name: log.planName, icon: log.icon ?? "Dumbbell", date: log.date, exercises: log.exercises })
       setLoggerVisible(false)
       setLogSaved(true)
       clearCache("/users/me/level")
@@ -148,7 +149,7 @@ export default function TrackingPage() {
     setSharedPlans(updated)
   }
 
-  function openLogger(plan?: { name: string; exercises: Exercise[] }) {
+  function openLogger(plan?: { name: string; icon?: string; exercises: Exercise[] }) {
     setLoggingPlan(plan ?? null)
     setLoggerVisible(true)
     setLogSaved(false)
@@ -263,8 +264,10 @@ export default function TrackingPage() {
               <PlanForm
                 isEditing={editingId !== null}
                 planName={planName}
+                planIcon={planIcon}
                 exercises={exercises}
                 onPlanNameChange={setPlanName}
+                onPlanIconChange={setPlanIcon}
                 onAddExercise={addExercise}
                 onRemoveExercise={removeExercise}
                 onUpdateName={updateExerciseName}
@@ -309,7 +312,7 @@ export default function TrackingPage() {
                     plan={plan}
                     onEdit={openEditForm}
                     onDelete={handleDeletePlan}
-                    onLog={(p) => openLogger({ name: p.name, exercises: p.exercises })}
+                    onLog={(p) => openLogger({ name: p.name, icon: p.icon, exercises: p.exercises })}
                     friends={friends}
                     onShare={handleSharePlan}
                     onUnshare={handleUnsharePlan}

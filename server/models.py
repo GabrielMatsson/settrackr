@@ -36,6 +36,7 @@ class WorkoutPlan(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
+    icon = Column(String, default="Dumbbell")
     copied_from_name = Column(String, nullable=True)
     position = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -75,6 +76,7 @@ class WorkoutLog(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     plan_name = Column(String, nullable=False)
+    icon = Column(String, default="Dumbbell")
     date = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 

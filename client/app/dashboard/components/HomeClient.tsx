@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dumbbell, Flame } from "lucide-react"
+import { Flame } from "lucide-react"
 import { getLogs, getMe, getMyLevel } from "@/lib/api"
-import { getOverallDifficulty, getTotalLyft, estimate1RM } from "@/lib/workout-utils"
+import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 
 type ExerciseLog = {
@@ -20,6 +20,7 @@ type WorkoutLog = {
   id: number
   date: string
   plan_name: string
+  icon?: string
   exercises: ExerciseLog[]
 }
 
@@ -165,13 +166,14 @@ export default function HomeClient({ name }: Props) {
       {lastLog && (() => {
         const difficulty = getOverallDifficulty(lastLog.exercises)
         const totalLyft = getTotalLyft(lastLog.exercises)
+        const WorkoutIcon = getWorkoutIcon(lastLog.icon)
         return (
           <div className="flex flex-col gap-3">
             <p className="text-gray-900 dark:text-white font-semibold">Senaste passet</p>
             <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <div className="flex items-center gap-4 px-5 py-4">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
-                  <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
+                  <WorkoutIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 dark:text-white font-semibold text-sm leading-tight">{lastLog.plan_name}</p>

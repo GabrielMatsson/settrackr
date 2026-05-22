@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import DifficultyPicker from "./DifficultyPicker"
+import IconPicker from "./IconPicker"
 import type { WorkoutLog, Difficulty } from "./types"
 
 type CustomExercise = {
@@ -35,6 +36,8 @@ function getRepOptions() {
 }
 
 export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
+  const [planName, setPlanName] = useState("Anpassad träning")
+  const [icon, setIcon] = useState("Dumbbell")
   const [exercises, setExercises] = useState<CustomExercise[]>([
     { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium" },
   ])
@@ -81,6 +84,10 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   }
 
   function save() {
+    if (!planName.trim()) {
+      setError("Passet måste ha ett namn")
+      return
+    }
     for (let i = 0; i < exercises.length; i++) {
       if (!exercises[i].name.trim()) {
         setError("Alla övningar måste ha ett namn")
@@ -95,7 +102,8 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
     onSave({
       id: Date.now(),
       date: new Date().toLocaleDateString("sv-SE"),
-      planName: "Anpassad träning",
+      planName: planName.trim(),
+      icon,
       exercises: logs,
     })
   }
@@ -154,14 +162,30 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {rows}
-      <button
-        onClick={addExercise}
-        className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors self-start"
-      >
-        + Lägg till övning
-      </button>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <label className="text-sm text-gray-500 dark:text-gray-400">Passnamn</label>
+        <input
+          type="text"
+          value={planName}
+          onChange={(e) => setPlanName(e.target.value)}
+          placeholder="T.ex. Ben & Axlar"
+          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-sm text-gray-500 dark:text-gray-400">Ikon</label>
+        <IconPicker value={icon} onChange={setIcon} />
+      </div>
+      <div className="flex flex-col gap-3">
+        {rows}
+        <button
+          onClick={addExercise}
+          className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors self-start"
+        >
+          + Lägg till övning
+        </button>
+      </div>
       {error && <p className="text-red-400 text-xs">{error}</p>}
       <div className="flex gap-3 pt-2">
         <button

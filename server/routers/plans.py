@@ -30,6 +30,7 @@ def serialize_plan(plan: models.WorkoutPlan) -> schemas.WorkoutPlanResponse:
     return schemas.WorkoutPlanResponse(
         id=plan.id,
         name=plan.name,
+        icon=plan.icon,
         copied_from_name=plan.copied_from_name,
         exercises=plan.exercises,
         shared_with=[
@@ -247,7 +248,7 @@ def create_plan(plan: schemas.WorkoutPlanCreate, user=Depends(get_current_user),
     db_user = get_or_create_user(db, user)
 
     count = db.query(models.WorkoutPlan).filter(models.WorkoutPlan.user_id == db_user.id).count()
-    db_plan = models.WorkoutPlan(user_id=db_user.id, name=plan.name, position=count)
+    db_plan = models.WorkoutPlan(user_id=db_user.id, name=plan.name, icon=plan.icon, position=count)
     db.add(db_plan)
     db.flush()
 
@@ -270,6 +271,7 @@ def update_plan(plan_id: int, plan: schemas.WorkoutPlanCreate, user=Depends(get_
         raise HTTPException(status_code=404, detail="Plan not found")
 
     db_plan.name = plan.name
+    db_plan.icon = plan.icon
     db.query(models.Exercise).filter(models.Exercise.plan_id == plan_id).delete()
 
     for i, ex in enumerate(plan.exercises):

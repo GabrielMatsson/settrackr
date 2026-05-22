@@ -1,3 +1,14 @@
+import { Dumbbell, Flame, Zap, Target, Footprints, Trophy, Heart, Star } from "lucide-react"
+import type { ElementType } from "react"
+
+export const WORKOUT_ICONS: Record<string, ElementType> = {
+  Dumbbell, Flame, Zap, Target, Footprints, Trophy, Heart, Star,
+}
+
+export function getWorkoutIcon(name?: string): ElementType {
+  return WORKOUT_ICONS[name ?? "Dumbbell"] ?? Dumbbell
+}
+
 export type ExerciseLog = {
   name: string
   sets: number

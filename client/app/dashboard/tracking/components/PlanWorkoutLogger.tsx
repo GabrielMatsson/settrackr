@@ -70,6 +70,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
       id: Date.now(),
       date: new Date().toLocaleDateString("sv-SE"),
       planName: plan.name,
+      icon: plan.icon ?? "Dumbbell",
       exercises,
     })
   }

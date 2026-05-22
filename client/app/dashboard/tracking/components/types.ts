@@ -7,6 +7,7 @@ export type Exercise = {
 export type WorkoutPlan = {
   id: number
   name: string
+  icon?: string
   copied_from_name?: string | null
   exercises: Exercise[]
 }
@@ -26,5 +27,6 @@ export type WorkoutLog = {
   id: number
   date: string
   planName: string
+  icon?: string
   exercises: ExerciseLog[]
 }

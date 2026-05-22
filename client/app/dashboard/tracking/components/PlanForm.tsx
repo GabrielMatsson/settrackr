@@ -2,13 +2,16 @@
 
 import { useRef } from "react"
 import { GripVertical, X } from "lucide-react"
+import IconPicker from "./IconPicker"
 import type { Exercise } from "./types"
 
 type Props = {
   isEditing: boolean
   planName: string
+  planIcon: string
   exercises: Exercise[]
   onPlanNameChange: (value: string) => void
+  onPlanIconChange: (value: string) => void
   onAddExercise: () => void
   onRemoveExercise: (index: number) => void
   onUpdateName: (index: number, value: string) => void
@@ -38,8 +41,10 @@ function getRepOptions() {
 export default function PlanForm({
   isEditing,
   planName,
+  planIcon,
   exercises,
   onPlanNameChange,
+  onPlanIconChange,
   onAddExercise,
   onRemoveExercise,
   onUpdateName,
@@ -115,6 +120,11 @@ export default function PlanForm({
           placeholder="T.ex. Bröst & Triceps"
           className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm text-gray-500 dark:text-gray-400">Ikon</label>
+        <IconPicker value={planIcon} onChange={onPlanIconChange} />
       </div>
 
       <div className="flex flex-col gap-3">

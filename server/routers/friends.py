@@ -33,6 +33,7 @@ def serialize_log(log: models.WorkoutLog, viewer_user_id: int | None = None) -> 
     return {
         "id": log.id,
         "plan_name": log.plan_name,
+        "icon": log.icon,
         "date": log.date,
         "exercises": exercises,
         "reaction_count": len(log.reactions),
@@ -259,6 +260,7 @@ def get_friend_logs(friend_id: int, user=Depends(get_current_user), db: Session 
         result.append(schemas.WorkoutLogWithReactionsResponse(
             id=log.id,
             plan_name=log.plan_name,
+            icon=log.icon,
             date=log.date,
             exercises=log.exercises,
             reaction_count=len(log.reactions),

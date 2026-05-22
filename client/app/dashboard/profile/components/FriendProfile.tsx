@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dumbbell, ChevronDown } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
-import { getOverallDifficulty, getTotalLyft, estimate1RM } from "@/lib/workout-utils"
+import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
 import LogReactions from "./LogReactions"
 
@@ -25,6 +25,7 @@ type WorkoutLog = {
   id: number
   date: string
   plan_name: string
+  icon?: string
   exercises: ExerciseLog[]
   reaction_count: number
   liked_by_me: boolean
@@ -72,6 +73,7 @@ function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserE
   const difficulty = getOverallDifficulty(log.exercises)
   const totalLyft = getTotalLyft(log.exercises)
   const exerciseNames = log.exercises.map((e) => e.name).join(" · ")
+  const WorkoutIcon = getWorkoutIcon(log.icon)
 
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
@@ -87,7 +89,7 @@ function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserE
         </div>
 
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
-          <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
+          <WorkoutIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -157,6 +159,7 @@ function FriendPlanRow({ plan, copiedPlanId, onCopy }: {
   onCopy: (planId: number) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const PlanIcon = getWorkoutIcon()
   return (
     <div>
       <div
@@ -164,7 +167,7 @@ function FriendPlanRow({ plan, copiedPlanId, onCopy }: {
         onClick={() => setExpanded(!expanded)}
       >
         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-          <Dumbbell size={15} className="text-indigo-500" />
+          <PlanIcon size={15} className="text-indigo-500" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-gray-900 dark:text-white font-medium text-sm">{plan.name}</p>

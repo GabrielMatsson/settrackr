@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Dumbbell, MoreHorizontal, ChevronDown } from "lucide-react"
+import { MoreHorizontal, ChevronDown } from "lucide-react"
 import { updateLog, deleteLog } from "@/lib/api"
-import { getOverallDifficulty, getTotalLyft, estimate1RM } from "@/lib/workout-utils"
+import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 
 type ExerciseLog = {
   name: string
@@ -25,6 +25,7 @@ type WorkoutLog = {
   id: number
   date: string
   plan_name: string
+  icon?: string
   exercises: ExerciseLog[]
   reaction_count?: number
   comments?: Comment[]
@@ -193,6 +194,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
   const difficulty = getOverallDifficulty(log.exercises)
   const totalLyft = getTotalLyft(log.exercises)
   const exerciseNames = log.exercises.map((e) => e.name).join(" · ")
+  const WorkoutIcon = getWorkoutIcon(log.icon)
 
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
@@ -208,7 +210,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
         </div>
 
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
-          <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
+          <WorkoutIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
         </div>
 
         <div className="flex-1 min-w-0">
