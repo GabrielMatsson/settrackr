@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dumbbell, Activity, Flame } from "lucide-react"
+import { Dumbbell, Flame } from "lucide-react"
 import { getLogs, getMe, getMyLevel } from "@/lib/api"
+import { getOverallDifficulty, getTotalLyft, estimate1RM } from "@/lib/workout-utils"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 
 type ExerciseLog = {
@@ -20,33 +21,6 @@ type WorkoutLog = {
   date: string
   plan_name: string
   exercises: ExerciseLog[]
-}
-
-const CARDIO_KEYWORDS = ["löpning", "cykling", "kondition", "cardio", "yoga", "stretching"]
-
-function isCardio(planName: string): boolean {
-  const lower = planName.toLowerCase()
-  return CARDIO_KEYWORDS.some((kw) => lower.includes(kw))
-}
-
-function getOverallDifficulty(exercises: ExerciseLog[], cardio: boolean) {
-  if (cardio) return { label: "Kondition", className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400" }
-  const difficulties = exercises.map((e) => e.difficulty)
-  if (difficulties.some((d) => d === "hard")) return { label: "Tufft", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
-  if (difficulties.length > 0 && difficulties.every((d) => d === "easy")) return { label: "Lätt", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
-  return { label: "Medium", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
-}
-
-function getTotalLyft(exercises: ExerciseLog[]): string {
-  const total = exercises.reduce((sum, e) => sum + e.sets * e.reps * e.weight, 0)
-  if (total === 0) return "–"
-  return total.toLocaleString("sv-SE") + " kg"
-}
-
-function estimate1RM(weight: number, reps: number): string {
-  if (weight === 0 || reps === 0) return "–"
-  const rm = weight * (1 + reps / 30)
-  return (Math.round(rm * 2) / 2) + " kg"
 }
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
@@ -189,19 +163,15 @@ export default function HomeClient({ name }: Props) {
       <WorkoutOverview logs={logs} />
 
       {lastLog && (() => {
-        const cardio = isCardio(lastLog.plan_name)
-        const difficulty = getOverallDifficulty(lastLog.exercises, cardio)
+        const difficulty = getOverallDifficulty(lastLog.exercises)
         const totalLyft = getTotalLyft(lastLog.exercises)
         return (
           <div className="flex flex-col gap-3">
             <p className="text-gray-900 dark:text-white font-semibold">Senaste passet</p>
             <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <div className="flex items-center gap-4 px-5 py-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cardio ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-indigo-100 dark:bg-indigo-900/40"}`}>
-                  {cardio
-                    ? <Activity size={18} className="text-emerald-600 dark:text-emerald-400" />
-                    : <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
-                  }
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
+                  <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 dark:text-white font-semibold text-sm leading-tight">{lastLog.plan_name}</p>

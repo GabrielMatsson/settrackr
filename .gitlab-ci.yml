@@ -35,3 +35,18 @@ server:lint:
     - pip install ruff --quiet
   script:
     - ruff check server/
+
+server:test:
+  stage: check
+  image: python:3.11-slim
+  before_script:
+    - pip install pytest --quiet
+    - pip install -r server/requirements.txt --quiet
+  script:
+    - cd server && python -m pytest tests/ -v
+
+client:test:
+  stage: check
+  extends: .node_template
+  script:
+    - npm test -- --passWithNoTests

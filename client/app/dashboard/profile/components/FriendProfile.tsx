@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dumbbell, Activity, ChevronDown } from "lucide-react"
+import { Dumbbell, ChevronDown } from "lucide-react"
 import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
+import { getOverallDifficulty, getTotalLyft, estimate1RM } from "@/lib/workout-utils"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
 import LogReactions from "./LogReactions"
 
@@ -48,26 +49,6 @@ type Props = {
   currentUserEmail: string
 }
 
-const CARDIO_KEYWORDS = ["löpning", "cykling", "kondition", "cardio", "yoga", "stretching"]
-
-function isCardio(planName: string): boolean {
-  return CARDIO_KEYWORDS.some((kw) => planName.toLowerCase().includes(kw))
-}
-
-function getOverallDifficulty(exercises: ExerciseLog[], cardio: boolean) {
-  if (cardio) return { label: "Kondition", className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400" }
-  const difficulties = exercises.map((e) => e.difficulty)
-  if (difficulties.some((d) => d === "hard")) return { label: "Tufft", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
-  if (difficulties.length > 0 && difficulties.every((d) => d === "easy")) return { label: "Lätt", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
-  return { label: "Medium", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
-}
-
-function getTotalLyft(exercises: ExerciseLog[]): string {
-  const total = exercises.reduce((sum, e) => sum + e.sets * e.reps * e.weight, 0)
-  if (total === 0) return "–"
-  return total.toLocaleString("sv-SE") + " kg"
-}
-
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + "T12:00:00")
   return {
@@ -78,10 +59,6 @@ function formatDate(dateStr: string) {
   }
 }
 
-function estimate1RM(weight: number, reps: number): string {
-  if (weight === 0 || reps === 0) return "–"
-  return (Math.round(weight * (1 + reps / 30) * 2) / 2) + " kg"
-}
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
   if (difficulty === "easy") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Lätt</span>
@@ -91,9 +68,8 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
 
 function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserEmail: string }) {
   const [expanded, setExpanded] = useState(false)
-  const cardio = isCardio(log.plan_name)
   const { day, month, year, weekday } = formatDate(log.date)
-  const difficulty = getOverallDifficulty(log.exercises, cardio)
+  const difficulty = getOverallDifficulty(log.exercises)
   const totalLyft = getTotalLyft(log.exercises)
   const exerciseNames = log.exercises.map((e) => e.name).join(" · ")
 
@@ -110,11 +86,8 @@ function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserE
           <span className="text-xs text-gray-300 dark:text-gray-600 capitalize mt-0.5">{weekday}</span>
         </div>
 
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cardio ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-indigo-100 dark:bg-indigo-900/40"}`}>
-          {cardio
-            ? <Activity size={18} className="text-emerald-600 dark:text-emerald-400" />
-            : <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
-          }
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
+          <Dumbbell size={18} className="text-indigo-600 dark:text-indigo-400" />
         </div>
 
         <div className="flex-1 min-w-0">
