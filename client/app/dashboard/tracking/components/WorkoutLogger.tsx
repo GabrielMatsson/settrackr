@@ -17,7 +17,7 @@ type Mode = "choose" | "plan" | "custom"
 function getPlanOptions(plans: WorkoutPlan[]) {
   const options = []
   for (let i = 0; i < plans.length; i++) {
-    options.push(<option key={plans[i].id} value={i}>{plans[i].name}</option>)
+    options.push(<option key={plans[i].id ?? i} value={i}>{plans[i].name}</option>)
   }
   return options
 }
