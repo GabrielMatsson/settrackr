@@ -71,6 +71,8 @@ class UserProfileResponse(BaseModel):
     email: str
     weekly_goal: int = 3
     show_overload_hints: bool = False
+    show_chicken_legs: bool = False
+    show_gym_ghost: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -78,6 +80,8 @@ class UserProfileUpdate(BaseModel):
     name: str | None = None
     weekly_goal: int | None = None
     show_overload_hints: bool | None = None
+    show_chicken_legs: bool | None = None
+    show_gym_ghost: bool | None = None
 
 class FriendshipResponse(BaseModel):
     id: int

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, createElement } from "react"
 import { MoreHorizontal, ChevronDown } from "lucide-react"
 import { updateLog, deleteLog } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
@@ -194,7 +194,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
   const difficulty = getOverallDifficulty(log.exercises)
   const totalLyft = getTotalLyft(log.exercises)
   const exerciseNames = log.exercises.map((e) => e.name).join(" · ")
-  const WorkoutIcon = getWorkoutIcon(log.icon)
+  const workoutIcon = getWorkoutIcon(log.icon)
 
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
@@ -210,7 +210,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
         </div>
 
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100 dark:bg-indigo-900/40">
-          <WorkoutIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
+          {createElement(workoutIcon, { size: 18, className: "text-indigo-600 dark:text-indigo-400" })}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -260,7 +260,6 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
 
       {expanded && (
         <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
-          {/* Mobile: stacked cards */}
           <div className="md:hidden flex flex-col divide-y divide-gray-100 dark:divide-gray-800 px-3 py-2">
             {log.exercises.map((ex, i) => (
               <div key={i} className="flex items-center justify-between gap-3 py-3">
@@ -274,7 +273,6 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
               </div>
             ))}
           </div>
-          {/* Desktop: full table */}
           <table className="hidden md:table w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800">

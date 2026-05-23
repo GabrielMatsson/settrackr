@@ -107,7 +107,8 @@ export default function MyGoals({ logs }: Props) {
       }
       try {
         const created = await createGoal({ name: newName.trim(), target_weight: Number(newTarget) })
-        setGoals([...goals, created])
+        const updated = goals.concat([created])
+        setGoals(updated)
         resetForm()
       } catch {
         setError("Kunde inte spara målet")
@@ -116,7 +117,8 @@ export default function MyGoals({ logs }: Props) {
       if (newFriendId === "") { setError("Välj en vän"); return }
       try {
         const created = await createSharedGoal({ friend_id: Number(newFriendId), exercise_name: newName.trim(), target_weight: Number(newTarget) })
-        setSharedGoals([...sharedGoals, created])
+        const updated = sharedGoals.concat([created])
+        setSharedGoals(updated)
         resetForm()
       } catch {
         setError("Kunde inte skapa det delade målet")
@@ -127,7 +129,8 @@ export default function MyGoals({ logs }: Props) {
   async function handleDeletePersonal(id: number) {
     try {
       await deleteGoal(id)
-      setGoals(goals.filter((g) => g.id !== id))
+      const remaining = goals.filter((g) => g.id !== id)
+      setGoals(remaining)
     } catch {
       setError("Kunde inte ta bort målet")
     }
@@ -136,7 +139,8 @@ export default function MyGoals({ logs }: Props) {
   async function handleDeleteShared(id: number) {
     try {
       await deleteSharedGoal(id)
-      setSharedGoals(sharedGoals.filter((g) => g.id !== id))
+      const remaining = sharedGoals.filter((g) => g.id !== id)
+      setSharedGoals(remaining)
     } catch {
       setError("Kunde inte ta bort målet")
     }

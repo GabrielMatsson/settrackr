@@ -84,7 +84,8 @@ export default function SharedGoals() {
         exercise_name: exercise.trim(),
         target_weight: Number(target),
       })
-      setGoals([...goals, created])
+      const updated = goals.concat([created])
+      setGoals(updated)
       setExercise("")
       setTarget("")
       setFriendId("")
@@ -97,7 +98,8 @@ export default function SharedGoals() {
   async function handleDelete(id: number) {
     try {
       await deleteSharedGoal(id)
-      setGoals(goals.filter((g) => g.id !== id))
+      const remaining = goals.filter((g) => g.id !== id)
+      setGoals(remaining)
     } catch {
       setError("Kunde inte ta bort målet")
     }

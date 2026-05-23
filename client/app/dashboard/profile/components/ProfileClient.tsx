@@ -48,6 +48,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsOverloadHints, setSettingsOverloadHints] = useState(false)
+  const [settingsChickenLegs, setSettingsChickenLegs] = useState(false)
+  const [settingsGymGhost, setSettingsGymGhost] = useState(false)
   const [levelInfo, setLevelInfo] = useState<{ xp: number; level: number; title: string; next_threshold: number | null; next_title: string | null; progress_pct: number; current_threshold: number } | null>(null)
   const [showLevelInfo, setShowLevelInfo] = useState(false)
 
@@ -60,6 +62,8 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsName(p.name ?? "")
       setSettingsGoal(p.weekly_goal)
       setSettingsOverloadHints(p.show_overload_hints ?? false)
+      setSettingsChickenLegs(p.show_chicken_legs ?? false)
+      setSettingsGymGhost(p.show_gym_ghost ?? false)
     }).catch(() => {})
 
     getFriendRequests().then(setRequests).catch(() => {})
@@ -76,7 +80,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints })
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -103,8 +107,10 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleAccept(friendshipId: number) {
     try {
       const accepted = await acceptFriendRequest(friendshipId)
-      setRequests(requests.filter((r) => r.id !== friendshipId))
-      setFriends([...friends, accepted])
+      const remainingRequests = requests.filter((r) => r.id !== friendshipId)
+      setRequests(remainingRequests)
+      const updatedFriends = friends.concat([accepted])
+      setFriends(updatedFriends)
     } catch {
       setError("Kunde inte acceptera vänförfrågan")
     }
@@ -113,7 +119,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleDecline(friendshipId: number) {
     try {
       await deleteFriendship(friendshipId)
-      setRequests(requests.filter((r) => r.id !== friendshipId))
+      const remaining = requests.filter((r) => r.id !== friendshipId)
+      setRequests(remaining)
     } catch {
       setError("Kunde inte neka vänförfrågan")
     }
@@ -122,7 +129,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleRemoveFriend(friendshipId: number) {
     try {
       await deleteFriendship(friendshipId)
-      setFriends(friends.filter((f) => f.id !== friendshipId))
+      const remaining = friends.filter((f) => f.id !== friendshipId)
+      setFriends(remaining)
     } catch {
       setError("Kunde inte ta bort vän")
     }
@@ -131,7 +139,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleAcceptInvitation(id: number) {
     try {
       await acceptPlanInvitation(id)
-      setInvitations(invitations.filter((i) => i.id !== id))
+      const remaining = invitations.filter((i) => i.id !== id)
+      setInvitations(remaining)
     } catch {
       setError("Kunde inte acceptera planinbjudan")
     }
@@ -140,7 +149,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleDeclineInvitation(id: number) {
     try {
       await declinePlanInvitation(id)
-      setInvitations(invitations.filter((i) => i.id !== id))
+      const remaining = invitations.filter((i) => i.id !== id)
+      setInvitations(remaining)
     } catch {
       setError("Kunde inte neka planinbjudan")
     }
@@ -158,7 +168,9 @@ export default function ProfileClient({ name, email, image }: Props) {
   const startOfWeek = new Date()
   startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7))
   const startStr = startOfWeek.toISOString().slice(0, 10)
-  const thisWeekCount = new Set(logs.filter((l) => l.date >= startStr).map((l) => l.date)).size
+  const thisWeekLogs = logs.filter((l) => l.date >= startStr)
+  const thisWeekDates = new Set(thisWeekLogs.map((l) => l.date))
+  const thisWeekCount = thisWeekDates.size
   const weeklyGoal = profile?.weekly_goal ?? 3
 
   const weekMotivation =
@@ -361,6 +373,42 @@ export default function ProfileClient({ name, email, image }: Props) {
               </label>
             </div>
             <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Visar dina senaste och tyngsta lyft när du loggar ett pass.</p>
+          </div>
+
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-1">
+            <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wide mb-2">Personlighet</p>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="chicken-legs"
+                  checked={settingsChickenLegs}
+                  onChange={(e) => setSettingsChickenLegs(e.target.checked)}
+                  className="w-4 h-4 accent-indigo-500 shrink-0"
+                />
+                <label htmlFor="chicken-legs" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                  Kycklingben
+                </label>
+              </div>
+              <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Hoppat över bendag 3 gånger i rad?</p>
+            </div>
+
+            <div className="flex flex-col gap-1 mt-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="gym-ghost"
+                  checked={settingsGymGhost}
+                  onChange={(e) => setSettingsGymGhost(e.target.checked)}
+                  className="w-4 h-4 accent-indigo-500 shrink-0"
+                />
+                <label htmlFor="gym-ghost" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                  Gymspöket
+                </label>
+              </div>
+              <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">7 dagar utan träning?</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 pt-1">

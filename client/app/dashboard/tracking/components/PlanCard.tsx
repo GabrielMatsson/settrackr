@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, createElement } from "react"
 import { ChevronDown, GripVertical } from "lucide-react"
 import { getWorkoutIcon } from "@/lib/workout-utils"
 import type { WorkoutPlan } from "./types"
@@ -23,7 +23,7 @@ type Props = {
 
 export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], onShare, onUnshare, onDragStart, onDragOver, onDrop }: Props) {
   const [expanded, setExpanded] = useState(false)
-  const PlanIcon = getWorkoutIcon(plan.icon)
+  const planIcon = getWorkoutIcon(plan.icon)
   const [sharingOpen, setSharingOpen] = useState(false)
   const [selectedFriend, setSelectedFriend] = useState<number | "">("")
   const [shared, setShared] = useState(false)
@@ -58,7 +58,7 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
           />
         )}
         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-          <PlanIcon size={15} className="text-indigo-500" />
+          {createElement(planIcon, { size: 15, className: "text-indigo-500" })}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-gray-900 dark:text-white font-medium text-sm">{plan.name}</p>

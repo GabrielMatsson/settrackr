@@ -218,7 +218,7 @@ export function getExerciseHistory(names: string[]) {
   return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean }) {
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }
 

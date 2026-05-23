@@ -12,6 +12,8 @@ class User(Base):
     name = Column(String)
     weekly_goal = Column(Integer, nullable=True)
     show_overload_hints = Column(Boolean, nullable=False, default=False, server_default="0")
+    show_chicken_legs   = Column(Boolean, nullable=False, default=False, server_default="0")
+    show_gym_ghost      = Column(Boolean, nullable=False, default=False, server_default="0")
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")

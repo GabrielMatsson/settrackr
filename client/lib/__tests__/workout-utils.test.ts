@@ -1,4 +1,4 @@
-import { getTotalLyft, estimate1RM, getOverallDifficulty } from "../workout-utils"
+import { getTotalLyft, estimate1RM, getOverallDifficulty, hasChickenLegs, isGymGhost } from "../workout-utils"
 
 const ex = (overrides: Partial<{ name: string; sets: number; reps: number; weight: number; difficulty: string }> = {}) => ({
   name: "Squat", sets: 3, reps: 10, weight: 100, difficulty: "medium", ...overrides,

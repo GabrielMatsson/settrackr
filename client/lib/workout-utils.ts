@@ -35,3 +35,18 @@ export function estimate1RM(weight: number, reps: number): string {
   const rm = weight * (1 + reps / 30)
   return (Math.round(rm * 2) / 2) + " kg"
 }
+
+type WorkoutLogStub = { date: string; plan_name: string }
+
+export function hasChickenLegs(logs: WorkoutLogStub[]): boolean {
+  const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date))
+  if (sorted.length < 3) return false
+  const kws = ["ben", "leg", "legs"]
+  return sorted.slice(0, 3).every(l => !kws.some(kw => l.plan_name.toLowerCase().includes(kw)))
+}
+
+export function isGymGhost(logs: WorkoutLogStub[]): boolean {
+  if (logs.length === 0) return false
+  const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date))
+  return Math.floor((Date.now() - new Date(sorted[0].date).getTime()) / 86400000) >= 7
+}

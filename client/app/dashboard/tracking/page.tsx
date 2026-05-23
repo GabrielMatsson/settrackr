@@ -57,17 +57,41 @@ export default function TrackingPage() {
   async function handleLeaveSharedPlan(planId: number) {
     try {
       await leaveSharedPlan(planId)
-      setSharedPlans(sharedPlans.filter((p) => p.id !== planId))
+      const remaining = sharedPlans.filter((p) => p.id !== planId)
+      setSharedPlans(remaining)
     } catch {
       setError("Kunde inte ta bort delad plan")
     }
   }
 
-  function addExercise() { setExercises([...exercises, { name: "", sets: 3, reps: 10 }]) }
-  function removeExercise(index: number) { const u = [...exercises]; u.splice(index, 1); setExercises(u) }
-  function updateExerciseName(index: number, value: string) { const u = [...exercises]; u[index] = { ...u[index], name: value }; setExercises(u) }
-  function updateExerciseSets(index: number, value: number) { const u = [...exercises]; u[index] = { ...u[index], sets: value }; setExercises(u) }
-  function updateExerciseReps(index: number, value: number) { const u = [...exercises]; u[index] = { ...u[index], reps: value }; setExercises(u) }
+  function addExercise() {
+    const updated = exercises.concat([{ name: "", sets: 3, reps: 10 }])
+    setExercises(updated)
+  }
+
+  function removeExercise(index: number) {
+    const updated = [...exercises]
+    updated.splice(index, 1)
+    setExercises(updated)
+  }
+
+  function updateExerciseName(index: number, value: string) {
+    const updated = [...exercises]
+    updated[index] = { ...updated[index], name: value }
+    setExercises(updated)
+  }
+
+  function updateExerciseSets(index: number, value: number) {
+    const updated = [...exercises]
+    updated[index] = { ...updated[index], sets: value }
+    setExercises(updated)
+  }
+
+  function updateExerciseReps(index: number, value: number) {
+    const updated = [...exercises]
+    updated[index] = { ...updated[index], reps: value }
+    setExercises(updated)
+  }
   function reorderExercise(from: number, to: number) {
     if (from === to) return
     const updated = [...exercises]
@@ -77,11 +101,19 @@ export default function TrackingPage() {
   }
 
   function openCreateForm() {
-    setEditingId(null); setPlanName(""); setPlanIcon("Dumbbell"); setExercises([{ name: "", sets: 3, reps: 10 }]); setFormVisible(true)
+    setEditingId(null)
+    setPlanName("")
+    setPlanIcon("Dumbbell")
+    setExercises([{ name: "", sets: 3, reps: 10 }])
+    setFormVisible(true)
   }
 
   function openEditForm(plan: WorkoutPlan) {
-    setEditingId(plan.id); setPlanName(plan.name); setPlanIcon(plan.icon ?? "Dumbbell"); setExercises([...plan.exercises]); setFormVisible(true)
+    setEditingId(plan.id)
+    setPlanName(plan.name)
+    setPlanIcon(plan.icon ?? "Dumbbell")
+    setExercises([...plan.exercises])
+    setFormVisible(true)
   }
 
   async function savePlan() {
@@ -89,10 +121,12 @@ export default function TrackingPage() {
     try {
       if (editingId === null) {
         const saved = await createPlan({ name: planName, icon: planIcon, exercises })
-        setPlans([...plans, saved])
+        const updated = plans.concat([saved])
+        setPlans(updated)
       } else {
         const saved = await updatePlan(editingId, { name: planName, icon: planIcon, exercises })
-        setPlans(plans.map((p) => (p.id === editingId ? saved : p)))
+        const updated = plans.map((p) => (p.id === editingId ? saved : p))
+        setPlans(updated)
       }
       closeForm()
     } catch {
@@ -103,14 +137,19 @@ export default function TrackingPage() {
   async function handleDeletePlan(id: number) {
     try {
       await apiDeletePlan(id)
-      setPlans(plans.filter((p) => p.id !== id))
+      const remaining = plans.filter((p) => p.id !== id)
+      setPlans(remaining)
     } catch {
       setError("Kunde inte ta bort planen")
     }
   }
 
   function closeForm() {
-    setFormVisible(false); setEditingId(null); setPlanName(""); setPlanIcon("Dumbbell"); setExercises([{ name: "", sets: 3, reps: 10 }])
+    setFormVisible(false)
+    setEditingId(null)
+    setPlanName("")
+    setPlanIcon("Dumbbell")
+    setExercises([{ name: "", sets: 3, reps: 10 }])
   }
 
   async function saveLog(log: WorkoutLog) {

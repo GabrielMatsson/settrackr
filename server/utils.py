@@ -9,7 +9,7 @@ LEVELS = [
 
 
 def calculate_xp(logs) -> int:
-    sorted_logs = sorted(logs, key=lambda l: l.date)
+    sorted_logs = sorted(logs, key=lambda log: log.date)
     prev_max: dict[str, float] = {}
     total_xp = 0
     for log in sorted_logs:

@@ -24,6 +24,8 @@ def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
         "email": db_user.email,
         "weekly_goal": db_user.weekly_goal or 3,
         "show_overload_hints": db_user.show_overload_hints or False,
+        "show_chicken_legs": db_user.show_chicken_legs or False,
+        "show_gym_ghost": db_user.show_gym_ghost or False,
     }
 
 
@@ -38,6 +40,10 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         db_user.weekly_goal = update.weekly_goal
     if update.show_overload_hints is not None:
         db_user.show_overload_hints = update.show_overload_hints
+    if update.show_chicken_legs is not None:
+        db_user.show_chicken_legs = update.show_chicken_legs
+    if update.show_gym_ghost is not None:
+        db_user.show_gym_ghost = update.show_gym_ghost
     db.commit()
     db.refresh(db_user)
     return {
@@ -45,6 +51,8 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         "email": db_user.email,
         "weekly_goal": db_user.weekly_goal or 3,
         "show_overload_hints": db_user.show_overload_hints or False,
+        "show_chicken_legs": db_user.show_chicken_legs or False,
+        "show_gym_ghost": db_user.show_gym_ghost or False,
     }
 
 

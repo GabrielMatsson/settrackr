@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Flame } from "lucide-react"
 import { getLogs, getMe, getMyLevel } from "@/lib/api"
-import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
+import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon, hasChickenLegs, isGymGhost } from "@/lib/workout-utils"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
+import ChickenAnimation from "@/app/components/ChickenAnimation"
+import GhostAnimation from "@/app/components/GhostAnimation"
 
 type ExerciseLog = {
   name: string
@@ -89,6 +91,13 @@ function WeeklyRing({ count, target }: { count: number; target: number }) {
   )
 }
 
+type EasterEggProfile = {
+  weekly_goal: number
+  show_chicken_legs: boolean
+  show_gym_ghost: boolean
+}
+
+
 type Props = {
   name: string
 }
@@ -96,6 +105,9 @@ type Props = {
 export default function HomeClient({ name }: Props) {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
   const [weeklyGoal, setWeeklyGoal] = useState(3)
+  const [profile, setProfile] = useState<EasterEggProfile | null>(null)
+  const [chickenDismissed, setChickenDismissed] = useState(false)
+  const [ghostDismissed, setGhostDismissed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [levelInfo, setLevelInfo] = useState<{ level: number; title: string; xp: number } | null>(null)
@@ -106,11 +118,29 @@ export default function HomeClient({ name }: Props) {
 
   useEffect(() => {
     getLogs()
-      .then((data) => { setLogs(data); setLoading(false) })
-      .catch(() => { setError("Kunde inte hämta träningsdata"); setLoading(false) })
-    getMe().then((p) => setWeeklyGoal(p.weekly_goal)).catch(() => {})
+      .then((data) => {
+        setLogs(data)
+        setLoading(false)
+      })
+      .catch(() => {
+        setError("Kunde inte hämta träningsdata")
+        setLoading(false)
+      })
+    getMe()
+      .then((p) => {
+        setWeeklyGoal(p.weekly_goal)
+        setProfile(p)
+      })
+      .catch(() => {})
     getMyLevel().then((l) => setLevelInfo(l as { level: number; title: string; xp: number })).catch(() => {})
   }, [])
+
+  const showChicken = !chickenDismissed && profile !== null && profile.show_chicken_legs && logs.length > 0 && hasChickenLegs(logs)
+  const showGhost = !ghostDismissed && profile !== null && profile.show_gym_ghost && logs.length > 0 && isGymGhost(logs)
+
+  // force animations for testing: replace the two lines above with:
+  // const showChicken = !chickenDismissed
+  // const showGhost = !ghostDismissed
 
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
   const lastLog = sorted[0] ?? null
@@ -221,6 +251,9 @@ export default function HomeClient({ name }: Props) {
       {logs.length === 0 && (
         <p className="text-gray-400 dark:text-gray-500 text-sm">Inga pass loggade ännu, tryck på Logga ett pass för att komma igång!</p>
       )}
+
+      {showChicken && <ChickenAnimation onDone={() => setChickenDismissed(true)} />}
+      {showGhost   && <GhostAnimation   onDone={() => setGhostDismissed(true)} />}
     </div>
   )
 }
