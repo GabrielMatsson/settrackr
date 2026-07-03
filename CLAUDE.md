@@ -64,6 +64,11 @@ client/
     api.ts           # All API calls (apiFetch with caching)
 ```
 
+## Git & Commits
+
+- **Always run `git status` before committing** to catch any files the user edited manually that weren't part of Claude's changes — don't commit only the files Claude touched
+- **Never commit or push without asking the user first**
+
 ## Key Conventions
 
 - **UI language**: Swedish throughout (labels, error messages, placeholders)
@@ -108,6 +113,13 @@ client/
 - **Frontend**: push to `main` → Vercel auto-deploys (~1 min)
 - **Backend**: push to `main` → Render auto-deploys (~2 min)
 - No manual steps needed after initial setup
+
+### Health Check
+Run `healthcheck.ps1` at the repo root to check if both services are up:
+```powershell
+.\healthcheck.ps1
+```
+Or ask Claude to "run healthcheck" — it will execute the script and report the result. Checks backend (Render) and frontend (Vercel). A DOWN result on the backend may just be a cold start — wait 30-60s and retry.
 
 ### If Something Breaks
 - **Frontend errors**: Vercel → Deployments → Logs

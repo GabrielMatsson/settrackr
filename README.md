@@ -2,7 +2,7 @@
 
 
 ### Background
-Workout app that was initially created through the course TDDD27 Advanced Web Programming. Gym web app where you can track your workouts with set and rep tracking. The user inputs each workout with name, weight, reps, sets. This get stored and you can view your progress on a statistics page.
+Gym web app where you can track your workouts with set and rep tracking. The user inputs each workout with name, weight, reps, sets. This get stored and you can view your progress on a statistics page.
 
 ### TeckStack
 Client-side
@@ -23,5 +23,3 @@ The app is live at **[settrackr.vercel.app](https://settrackr.vercel.app)**.
 - Frontend is hosted on [Vercel](https://vercel.com) and deploys automatically on every push to `main`
 - Backend is hosted on [Render](https://render.com) and also deploys automatically on push
 - Database runs on [Supabase](https://supabase.com)
-
-To run locally, start the backend (`uvicorn main:app --reload` from `server/`) and frontend (`npm run dev` from `client/`) simultaneously.
