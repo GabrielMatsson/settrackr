@@ -5,7 +5,7 @@ import { getApiToken } from "@/lib/api"
 
 const API_URL = "http://localhost:8000"
 
-export type NotificationType = "like" | "comment" | "new_log"
+export type NotificationType = "new_log"
 
 export type Toast = {
   id: number

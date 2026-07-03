@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
@@ -84,8 +84,6 @@ class WorkoutLog(Base):
 
     user = relationship("User", back_populates="logs")
     exercises = relationship("ExerciseLog", back_populates="log", cascade="all, delete-orphan")
-    reactions = relationship("WorkoutReaction", back_populates="log", cascade="all, delete-orphan")
-    comments = relationship("WorkoutComment", back_populates="log", cascade="all, delete-orphan")
 
 
 class ExerciseLog(Base):
@@ -102,45 +100,6 @@ class ExerciseLog(Base):
 
     log = relationship("WorkoutLog", back_populates="exercises")
 
-
-class WorkoutReaction(Base):
-    __tablename__ = "workout_reactions"
-    __table_args__ = (UniqueConstraint("log_id", "user_id"),)
-
-    id = Column(Integer, primary_key=True)
-    log_id = Column(Integer, ForeignKey("workout_logs.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
-    log = relationship("WorkoutLog", back_populates="reactions")
-    user = relationship("User")
-
-
-class WorkoutComment(Base):
-    __tablename__ = "workout_comments"
-
-    id = Column(Integer, primary_key=True)
-    log_id = Column(Integer, ForeignKey("workout_logs.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    body = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
-    log = relationship("WorkoutLog", back_populates="comments")
-    user = relationship("User")
-
-
-class SharedGoal(Base):
-    __tablename__ = "shared_goals"
-
-    id = Column(Integer, primary_key=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    exercise_name = Column(String, nullable=False)
-    target_weight = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
-    owner = relationship("User", foreign_keys=[owner_id])
-    friend = relationship("User", foreign_keys=[friend_id])
 
 
 class SharedPlanAccess(Base):

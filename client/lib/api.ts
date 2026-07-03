@@ -169,30 +169,6 @@ export function unsharePlan(planId: number, friendId: number) {
   return apiFetch(`/plans/${planId}/share/${friendId}`, { method: "DELETE" })
 }
 
-export function toggleLike(logId: number) {
-  return apiFetch(`/logs/${logId}/like`, { method: "POST" })
-}
-
-export function addComment(logId: number, body: string) {
-  return apiFetch(`/logs/${logId}/comments`, { method: "POST", body: JSON.stringify({ body }) })
-}
-
-export function deleteComment(logId: number, commentId: number) {
-  return apiFetch(`/logs/${logId}/comments/${commentId}`, { method: "DELETE" })
-}
-
-export function getSharedGoals() {
-  return apiFetch("/shared-goals/")
-}
-
-export function createSharedGoal(data: { friend_id: number; exercise_name: string; target_weight: number }) {
-  return apiFetch("/shared-goals/", { method: "POST", body: JSON.stringify(data) })
-}
-
-export function deleteSharedGoal(id: number) {
-  return apiFetch(`/shared-goals/${id}`, { method: "DELETE" })
-}
-
 export function acceptPlanInvitation(id: number) {
   return apiFetch(`/plans/invitations/${id}/accept`, { method: "PUT" })
 }

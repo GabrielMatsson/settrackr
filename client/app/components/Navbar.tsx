@@ -4,13 +4,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Sun, Moon, Bell, Heart, MessageCircle, Dumbbell, X, Home, BarChart2, User } from "lucide-react"
+import { Sun, Moon, Bell, Dumbbell, X, Home, BarChart2, User } from "lucide-react"
 import { useNotifications } from "./NotificationProvider"
-import type { NotificationType } from "./NotificationProvider"
 
-function NotifIcon({ type }: { type: NotificationType }) {
-  if (type === "like") return <Heart size={14} className="text-pink-400 shrink-0" />
-  if (type === "comment") return <MessageCircle size={14} className="text-indigo-400 shrink-0" />
+function NotifIcon() {
   return <Dumbbell size={14} className="text-green-400 shrink-0" />
 }
 
@@ -56,7 +53,7 @@ export default function Navbar() {
       ) : (
         [...history].reverse().map((n) => (
           <div key={n.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
-            <NotifIcon type={n.type} />
+            <NotifIcon />
             <span className="text-gray-700 dark:text-gray-200 text-sm">{n.message}</span>
           </div>
         ))

@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 class ExerciseCreate(BaseModel):
     name: str
@@ -120,28 +119,6 @@ class WorkoutLogResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-class WorkoutLogWithReactionsResponse(WorkoutLogResponse):
-    reaction_count: int = 0
-    liked_by_me: bool = False
-    comments: list["CommentResponse"] = []
-
-
-class CommentAuthor(BaseModel):
-    id: int
-    name: str | None
-    email: str
-
-    model_config = {"from_attributes": True}
-
-class CommentResponse(BaseModel):
-    id: int
-    body: str
-    created_at: datetime
-    author: CommentAuthor
-
-    model_config = {"from_attributes": True}
-
-
 class LevelResponse(BaseModel):
     xp: int
     level: int
@@ -152,18 +129,3 @@ class LevelResponse(BaseModel):
     progress_pct: float
 
 
-class SharedGoalCreate(BaseModel):
-    friend_id: int
-    exercise_name: str
-    target_weight: float
-
-class SharedGoalResponse(BaseModel):
-    id: int
-    exercise_name: str
-    target_weight: float
-    owner: "UserPublicResponse"
-    friend: "UserPublicResponse"
-    owner_best: float
-    friend_best: float
-
-    model_config = {"from_attributes": True}

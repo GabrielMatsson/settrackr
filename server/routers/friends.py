@@ -24,23 +24,15 @@ def get_accepted_friendship(db: Session, user_id: int, friend_id: int):
     ).first()
 
 
-def serialize_log(log: models.WorkoutLog, viewer_user_id: int | None = None) -> dict:
-    exercises = [
-        {"id": ex.id, "name": ex.name, "sets": ex.sets, "reps": ex.reps, "weight": ex.weight, "difficulty": ex.difficulty, "done": ex.done}
-        for ex in log.exercises
-    ]
-    comments = sorted(log.comments, key=lambda c: c.created_at)
+def serialize_log(log: models.WorkoutLog) -> dict:
     return {
         "id": log.id,
         "plan_name": log.plan_name,
         "icon": log.icon,
         "date": log.date,
-        "exercises": exercises,
-        "reaction_count": len(log.reactions),
-        "liked_by_me": any(r.user_id == viewer_user_id for r in log.reactions) if viewer_user_id else False,
-        "comments": [
-            {"id": c.id, "body": c.body, "created_at": c.created_at.isoformat(), "author": {"id": c.user.id, "name": c.user.name, "email": c.user.email}}
-            for c in comments
+        "exercises": [
+            {"id": ex.id, "name": ex.name, "sets": ex.sets, "reps": ex.reps, "weight": ex.weight, "difficulty": ex.difficulty, "done": ex.done}
+            for ex in log.exercises
         ],
     }
 
@@ -237,7 +229,7 @@ def copy_friend_plan(friend_id: int, plan_id: int, user=Depends(get_current_user
     return schemas.WorkoutPlanResponse(id=result.id, name=result.name, exercises=result.exercises, shared_with=[])
 
 
-@router.get("/{friend_id}/logs", response_model=list[schemas.WorkoutLogWithReactionsResponse])
+@router.get("/{friend_id}/logs", response_model=list[schemas.WorkoutLogResponse])
 def get_friend_logs(friend_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
 
@@ -246,36 +238,11 @@ def get_friend_logs(friend_id: int, user=Depends(get_current_user), db: Session 
 
     logs = (
         db.query(models.WorkoutLog)
-        .options(
-            selectinload(models.WorkoutLog.exercises),
-            selectinload(models.WorkoutLog.reactions),
-            selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
-        )
+        .options(selectinload(models.WorkoutLog.exercises))
         .filter(models.WorkoutLog.user_id == friend_id)
         .all()
     )
-    result = []
-    for log in logs:
-        comments = sorted(log.comments, key=lambda c: c.created_at)
-        result.append(schemas.WorkoutLogWithReactionsResponse(
-            id=log.id,
-            plan_name=log.plan_name,
-            icon=log.icon,
-            date=log.date,
-            exercises=log.exercises,
-            reaction_count=len(log.reactions),
-            liked_by_me=any(r.user_id == db_user.id for r in log.reactions),
-            comments=[
-                schemas.CommentResponse(
-                    id=c.id,
-                    body=c.body,
-                    created_at=c.created_at,
-                    author=schemas.CommentAuthor(id=c.user.id, name=c.user.name, email=c.user.email),
-                )
-                for c in comments
-            ],
-        ))
-    return result
+    return logs
 
 
 def _fetch_friend_log_data(user: dict, friend_id: int) -> tuple:
@@ -286,16 +253,11 @@ def _fetch_friend_log_data(user: dict, friend_id: int) -> tuple:
             return None, None
         logs = (
             db.query(models.WorkoutLog)
-            .options(
-                selectinload(models.WorkoutLog.exercises),
-                selectinload(models.WorkoutLog.reactions),
-                selectinload(models.WorkoutLog.comments).selectinload(models.WorkoutComment.user),
-            )
+            .options(selectinload(models.WorkoutLog.exercises))
             .filter(models.WorkoutLog.user_id == friend_id)
             .all()
         )
-        viewer_id = db_user.id
-        return viewer_id, [serialize_log(log, viewer_id) for log in logs]
+        return db_user.id, [serialize_log(log) for log in logs]
     finally:
         db.close()
 
@@ -320,7 +282,7 @@ async def stream_friend_logs(friend_id: int, token: str = Query(...)):
             if viewer_id is None:
                 yield {"data": json.dumps({"error": "not friends"})}
                 return
-            sig = f"{len(data)}-" + "-".join(f"{d['id']}:{d['reaction_count']}:{len(d['comments'])}" for d in data)
+            sig = f"{len(data)}-" + "-".join(str(d["id"]) for d in data)
             if sig != last_sig:
                 last_sig = sig
                 yield {"data": json.dumps(data)}

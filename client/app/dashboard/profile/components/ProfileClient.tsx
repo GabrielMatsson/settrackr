@@ -159,7 +159,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   if (selectedFriend) {
     return (
       <div className="max-w-4xl mx-auto w-full">
-        <FriendProfile friend={selectedFriend} onBack={() => setSelectedFriend(null)} currentUserEmail={email} />
+        <FriendProfile friend={selectedFriend} onBack={() => setSelectedFriend(null)} />
       </div>
     )
   }

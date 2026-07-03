@@ -5,7 +5,6 @@ import { ChevronDown } from "lucide-react"
 import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
-import LogReactions from "./LogReactions"
 
 const API_URL = "http://localhost:8000"
 
@@ -18,18 +17,12 @@ type ExerciseLog = {
   done: boolean
 }
 
-type CommentAuthor = { id: number; name: string | null; email: string }
-type Comment = { id: number; body: string; created_at: string; author: CommentAuthor }
-
 type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   icon?: string
   exercises: ExerciseLog[]
-  reaction_count: number
-  liked_by_me: boolean
-  comments: Comment[]
 }
 
 type FriendPlan = {
@@ -47,7 +40,6 @@ type Friend = {
 type Props = {
   friend: Friend
   onBack: () => void
-  currentUserEmail: string
 }
 
 function formatDate(dateStr: string) {
@@ -67,7 +59,7 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
   return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">Medium</span>
 }
 
-function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserEmail: string }) {
+function FriendLogRow({ log }: { log: WorkoutLog }) {
   const [expanded, setExpanded] = useState(false)
   const { day, month, year, weekday } = formatDate(log.date)
   const difficulty = getOverallDifficulty(log.exercises)
@@ -138,15 +130,6 @@ function FriendLogRow({ log, currentUserEmail }: { log: WorkoutLog; currentUserE
               ))}
             </tbody>
           </table>
-          <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800">
-            <LogReactions
-              logId={log.id}
-              initialCount={log.reaction_count ?? 0}
-              initialLiked={log.liked_by_me ?? false}
-              initialComments={log.comments ?? []}
-              currentUserEmail={currentUserEmail}
-            />
-          </div>
         </div>
       )}
     </div>
@@ -204,7 +187,7 @@ function FriendPlanRow({ plan, copiedPlanId, onCopy }: {
   )
 }
 
-export default function FriendProfile({ friend, onBack, currentUserEmail }: Props) {
+export default function FriendProfile({ friend, onBack }: Props) {
   const [logs, setLogs] = useState<WorkoutLog[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -292,7 +275,7 @@ export default function FriendProfile({ friend, onBack, currentUserEmail }: Prop
         {loading && logs.length === 0 && <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>}
         {!loading && logs.length === 0 && !error && <p className="text-gray-400 dark:text-gray-500 text-sm">Inga loggade pass ännu.</p>}
         {sorted.map((log) => (
-          <FriendLogRow key={log.id} log={log} currentUserEmail={currentUserEmail} />
+          <FriendLogRow key={log.id} log={log} />
         ))}
       </div>
 
