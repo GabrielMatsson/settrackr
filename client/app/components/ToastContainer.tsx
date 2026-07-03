@@ -1,13 +1,11 @@
 "use client"
 
 import { useEffect } from "react"
-import { Heart, MessageCircle, Dumbbell, X } from "lucide-react"
+import { Dumbbell, X } from "lucide-react"
 import { useNotifications } from "./NotificationProvider"
-import type { Toast, NotificationType } from "./NotificationProvider"
+import type { Toast } from "./NotificationProvider"
 
-function ToastIcon({ type }: { type: NotificationType }) {
-  if (type === "like") return <Heart size={16} className="text-pink-400 shrink-0" />
-  if (type === "comment") return <MessageCircle size={16} className="text-indigo-400 shrink-0" />
+function ToastIcon() {
   return <Dumbbell size={16} className="text-green-400 shrink-0" />
 }
 
@@ -21,7 +19,7 @@ function ToastItem({ toast }: { toast: Toast }) {
 
   return (
     <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 w-72 toast-slide-in">
-      <ToastIcon type={toast.type} />
+      <ToastIcon />
       <span className="text-gray-900 dark:text-white text-sm flex-1 leading-snug">{toast.message}</span>
       <button
         onClick={() => dismissToast(toast.id)}
