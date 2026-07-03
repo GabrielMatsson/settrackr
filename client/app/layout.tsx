@@ -1,5 +1,23 @@
 import "./globals.css";
+import type { Metadata, Viewport } from "next"
 import { Providers } from "./providers"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#4f46e5",
+}
+
+export const metadata: Metadata = {
+  title: "SetTrackr",
+  description: "Track your gym workouts",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black",
+    title: "SetTrackr",
+  },
+}
 
 export default function RootLayout({
   children,
