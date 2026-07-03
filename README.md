@@ -16,3 +16,12 @@ Server-side
 - JWT verification
 - PostgreSQL (via Supabase)
 
+### Deployment
+
+The app is live at **[settrackr.vercel.app](https://settrackr.vercel.app)**.
+
+- Frontend is hosted on [Vercel](https://vercel.com) and deploys automatically on every push to `main`
+- Backend is hosted on [Render](https://render.com) and also deploys automatically on push
+- Database runs on [Supabase](https://supabase.com)
+
+To run locally, start the backend (`uvicorn main:app --reload` from `server/`) and frontend (`npm run dev` from `client/`) simultaneously.
