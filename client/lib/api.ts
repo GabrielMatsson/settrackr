@@ -76,9 +76,6 @@ export function deleteFriendship(id: number) {
   return apiFetch(`/friends/${id}`, { method: "DELETE" })
 }
 
-export function getFriendLogs(friendId: number) {
-  return apiFetch(`/friends/${friendId}/logs`)
-}
 
 export async function getApiToken(): Promise<string> {
   return getToken()

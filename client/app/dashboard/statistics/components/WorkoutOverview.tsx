@@ -21,9 +21,10 @@ type WorkoutLog = {
 
 type Props = {
   logs: WorkoutLog[]
+  allTime?: boolean
 }
 
-function computeStats(logs: WorkoutLog[], fromStr: string, toStr: string) {
+function computeStats(logs: WorkoutLog[], fromStr: string, toStr: string, allTime = false) {
   let workouts = 0
   let totalSets = 0
   let totalReps = 0
@@ -32,7 +33,7 @@ function computeStats(logs: WorkoutLog[], fromStr: string, toStr: string) {
 
   for (let i = 0; i < logs.length; i++) {
     const log = logs[i]
-    if (log.date < fromStr || log.date >= toStr) continue
+    if (!allTime && (log.date < fromStr || log.date > toStr)) continue
     workouts++
     for (let j = 0; j < log.exercises.length; j++) {
       const ex = log.exercises[j]
@@ -95,7 +96,7 @@ const statDefs = [
   },
 ]
 
-export default function WorkoutOverview({ logs }: Props) {
+export default function WorkoutOverview({ logs, allTime = false }: Props) {
   const { period } = useStatistics()
 
   const now = new Date()
@@ -105,7 +106,7 @@ export default function WorkoutOverview({ logs }: Props) {
   currentFrom.setDate(currentFrom.getDate() - period)
   const currentFromStr = currentFrom.toISOString().slice(0, 10)
 
-  const current = computeStats(logs, currentFromStr, toStr)
+  const current = computeStats(logs, currentFromStr, toStr, allTime)
 
   return (
     <div className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-950 overflow-hidden">

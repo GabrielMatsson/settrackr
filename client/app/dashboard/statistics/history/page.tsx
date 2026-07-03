@@ -8,7 +8,7 @@ import LogCard from "../components/LogCard"
 const PAGE = 10
 
 export default function HistoryPage() {
-  const { logs, currentUserEmail, loading, handleDelete, handleUpdate } = useStatistics()
+  const { logs, loading, handleDelete, handleUpdate } = useStatistics()
   const [visible, setVisible] = useState(PAGE)
 
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -29,7 +29,6 @@ export default function HistoryPage() {
               log={log}
               onDelete={handleDelete}
               onUpdate={handleUpdate}
-              currentUserEmail={currentUserEmail}
             />
           ))}
         </div>

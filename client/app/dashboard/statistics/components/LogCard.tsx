@@ -14,28 +14,18 @@ type ExerciseLog = {
   done: boolean
 }
 
-type Comment = {
-  id: number
-  body: string
-  created_at: string
-  author: { id: number; name: string | null; email: string }
-}
-
 type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   icon?: string
   exercises: ExerciseLog[]
-  reaction_count?: number
-  comments?: Comment[]
 }
 
 type Props = {
   log: WorkoutLog
   onDelete: (id: number) => void
   onUpdate: (updated: WorkoutLog) => void
-  currentUserEmail?: string
 }
 
 

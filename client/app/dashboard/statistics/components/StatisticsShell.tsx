@@ -4,10 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar } from "lucide-react"
-import { getCurrentUserEmail, getFriends, getLogs } from "@/lib/api"
+import { getLogs } from "@/lib/api"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
-
-type FriendEntry = { id: number; status: string; friend: { id: number; name: string | null; email: string } }
 
 const tabs = [
   { label: "Översikt", href: "/dashboard/statistics" },
@@ -17,20 +15,14 @@ const tabs = [
 export default function StatisticsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [logs, setLogs] = useState<WorkoutLog[]>([])
-  const [friends, setFriends] = useState<{ id: number; name: string | null; email: string }[]>([])
-  const [currentUserEmail, setCurrentUserEmail] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<7 | 30 | 90>(30)
 
   useEffect(() => {
-    getCurrentUserEmail().then(setCurrentUserEmail).catch(() => {})
     getLogs()
       .then((data) => { setLogs(data); setLoading(false) })
       .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
-    getFriends()
-      .then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend)))
-      .catch(() => {})
   }, [])
 
   function handleDelete(id: number) {
@@ -42,7 +34,7 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   }
 
   return (
-    <StatisticsContext.Provider value={{ logs, friends, currentUserEmail, loading, error, period, handleDelete, handleUpdate }}>
+    <StatisticsContext.Provider value={{ logs, loading, error, period, handleDelete, handleUpdate }}>
       <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Statistik</h1>
 

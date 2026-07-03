@@ -11,28 +11,15 @@ type ExerciseLog = {
   done: boolean
 }
 
-type Comment = {
-  id: number
-  body: string
-  created_at: string
-  author: { id: number; name: string | null; email: string }
-}
-
 export type WorkoutLog = {
   id: number
   date: string
   plan_name: string
   exercises: ExerciseLog[]
-  reaction_count?: number
-  comments?: Comment[]
 }
-
-export type Friend = { id: number; name: string | null; email: string }
 
 type StatisticsContextType = {
   logs: WorkoutLog[]
-  friends: Friend[]
-  currentUserEmail: string
   loading: boolean
   error: string | null
   period: 7 | 30 | 90
@@ -42,8 +29,6 @@ type StatisticsContextType = {
 
 export const StatisticsContext = createContext<StatisticsContextType>({
   logs: [],
-  friends: [],
-  currentUserEmail: "",
   loading: true,
   error: null,
   period: 30,

@@ -138,10 +138,6 @@ export default function HomeClient({ name }: Props) {
   const showChicken = !chickenDismissed && profile !== null && profile.show_chicken_legs && logs.length > 0 && hasChickenLegs(logs)
   const showGhost = !ghostDismissed && profile !== null && profile.show_gym_ghost && logs.length > 0 && isGymGhost(logs)
 
-  // force animations for testing: replace the two lines above with:
-  // const showChicken = !chickenDismissed
-  // const showGhost = !ghostDismissed
-
   const sorted = [...logs].sort((a, b) => (a.date < b.date ? 1 : -1))
   const lastLog = sorted[0] ?? null
   const streak = computeStreak(logs)
@@ -191,7 +187,7 @@ export default function HomeClient({ name }: Props) {
         </div>
       </div>
 
-      <WorkoutOverview logs={logs} />
+      <WorkoutOverview logs={logs} allTime />
 
       {lastLog && (() => {
         const difficulty = getOverallDifficulty(lastLog.exercises)

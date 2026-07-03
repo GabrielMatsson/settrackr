@@ -3,11 +3,10 @@
 import { useStatistics } from "./components/StatisticsContext"
 import WorkoutOverview from "./components/WorkoutOverview"
 import MyGoals from "./components/MyGoals"
-import CompareStats from "./components/CompareStats"
 import ProgressCharts from "./components/ProgressCharts"
 
 export default function OverviewPage() {
-  const { logs, friends, loading } = useStatistics()
+  const { logs, loading } = useStatistics()
 
   return (
     <div className="flex flex-col gap-6">
@@ -15,7 +14,6 @@ export default function OverviewPage() {
       <WorkoutOverview logs={logs} />
       <MyGoals logs={logs} />
       <ProgressCharts logs={logs} />
-      <CompareStats myLogs={logs} friends={friends} />
     </div>
   )
 }

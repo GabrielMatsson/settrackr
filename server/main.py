@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from database import engine, Base
-from routers import plans, logs, goals, friends, social, notifications, users
+from routers import plans, logs, goals, friends, notifications, users
 
 
 @asynccontextmanager
@@ -35,7 +35,6 @@ app.include_router(plans.router)
 app.include_router(logs.router)
 app.include_router(goals.router)
 app.include_router(friends.router)
-app.include_router(social.router)
 app.include_router(notifications.router)
 app.include_router(users.router)
 
