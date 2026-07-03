@@ -11,16 +11,24 @@ export default function Icon() {
           display: "flex",
           width: "100%",
           height: "100%",
-          background: "#4f46e5",
-          borderRadius: "20%",
+          background: "linear-gradient(145deg, #6366f1 0%, #4338ca 100%)",
+          borderRadius: "22%",
           alignItems: "center",
           justifyContent: "center",
+          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.25)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ width: 22, height: 72, background: "white", borderRadius: 4 }} />
-          <div style={{ width: 56, height: 16, background: "white" }} />
-          <div style={{ width: 22, height: 72, background: "white", borderRadius: 4 }} />
+          {/* Left outer plate */}
+          <div style={{ width: 28, height: 90, background: "white", borderRadius: 6, boxShadow: "2px 0 6px rgba(0,0,0,0.2)" }} />
+          {/* Left collar */}
+          <div style={{ width: 14, height: 54, background: "rgba(255,255,255,0.8)" }} />
+          {/* Bar */}
+          <div style={{ width: 36, height: 12, background: "rgba(255,255,255,0.9)", borderRadius: 3 }} />
+          {/* Right collar */}
+          <div style={{ width: 14, height: 54, background: "rgba(255,255,255,0.8)" }} />
+          {/* Right outer plate */}
+          <div style={{ width: 28, height: 90, background: "white", borderRadius: 6, boxShadow: "-2px 0 6px rgba(0,0,0,0.2)" }} />
         </div>
       </div>
     ),

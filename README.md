@@ -16,6 +16,16 @@ Server-side
 - JWT verification
 - PostgreSQL (via Supabase)
 
+### Mobile (PWA)
+
+SetTrackr is a Progressive Web App and can be installed on iPhone via Safari:
+
+1. Open [settrackr.vercel.app](https://settrackr.vercel.app) in Safari
+2. Tap the Share button → **Add to Home Screen**
+3. Tap **Add**
+
+The app opens fullscreen with no browser UI, just like a native app.
+
 ### Deployment
 
 The app is live at **[settrackr.vercel.app](https://settrackr.vercel.app)**.

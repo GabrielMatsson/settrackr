@@ -11,15 +11,23 @@ export default function AppleIcon() {
           display: "flex",
           width: "100%",
           height: "100%",
-          background: "#4f46e5",
+          background: "linear-gradient(145deg, #6366f1 0%, #4338ca 100%)",
           alignItems: "center",
           justifyContent: "center",
+          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.25)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ width: 20, height: 68, background: "white", borderRadius: 4 }} />
-          <div style={{ width: 52, height: 15, background: "white" }} />
-          <div style={{ width: 20, height: 68, background: "white", borderRadius: 4 }} />
+          {/* Left outer plate */}
+          <div style={{ width: 26, height: 84, background: "white", borderRadius: 6, boxShadow: "2px 0 6px rgba(0,0,0,0.2)" }} />
+          {/* Left collar */}
+          <div style={{ width: 13, height: 50, background: "rgba(255,255,255,0.8)" }} />
+          {/* Bar */}
+          <div style={{ width: 34, height: 11, background: "rgba(255,255,255,0.9)", borderRadius: 3 }} />
+          {/* Right collar */}
+          <div style={{ width: 13, height: 50, background: "rgba(255,255,255,0.8)" }} />
+          {/* Right outer plate */}
+          <div style={{ width: 26, height: 84, background: "white", borderRadius: 6, boxShadow: "-2px 0 6px rgba(0,0,0,0.2)" }} />
         </div>
       </div>
     ),
