@@ -1,7 +1,8 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from database import engine, Base
 from routers import plans, logs, goals, friends, notifications, users
@@ -38,6 +39,18 @@ app.include_router(goals.router)
 app.include_router(friends.router)
 app.include_router(notifications.router)
 app.include_router(users.router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):  # noqa: ARG001
+    allowed_origins = os.getenv("ALLOWED_ORIGIN", "http://localhost:3000").split(",")
+    origin = request.headers.get("origin", "")
+    cors_origin = origin if origin in allowed_origins else allowed_origins[0]
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+        headers={"Access-Control-Allow-Origin": cors_origin},
+    )
 
 
 @app.get("/")

@@ -138,7 +138,8 @@ export default function Navbar() {
       </nav>
 
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-stretch justify-around">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col justify-around" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex items-stretch justify-around">
         {links.map(({ label, href, icon: Icon }) => (
           <Link
             key={href}
@@ -198,6 +199,7 @@ export default function Navbar() {
             )}
           </>
         )}
+        </div>
       </div>
     </>
   )
