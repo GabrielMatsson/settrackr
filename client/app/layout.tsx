@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="sv" className="h-full" suppressHydrationWarning>
       <body className={`antialiased min-h-screen flex flex-col`}>
         <Providers>
-          <main className="flex-grow">
+          <main className="flex-grow flex flex-col">
             {children}
           </main>
 

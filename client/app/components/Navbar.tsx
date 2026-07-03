@@ -18,6 +18,9 @@ const links = [
   { label: "Profil", href: "/dashboard/profile", icon: User },
 ]
 
+// TEMP: notifications hidden — re-enable when they become meaningful again (e.g. push notifications)
+const SHOW_NOTIFICATIONS = false
+
 export default function Navbar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
@@ -97,37 +100,39 @@ export default function Navbar() {
               <span>{theme === "dark" ? "Ljust läge" : "Mörkt läge"}</span>
             </button>
 
-            <div ref={panelRef} className="relative">
-              <button
-                onClick={togglePanel}
-                className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm w-full"
-                aria-label="Notifikationer"
-              >
-                <Bell size={18} className="shrink-0" />
-                <span>Notifikationer</span>
-                {unreadCount > 0 && (
-                  <span className="ml-auto w-5 h-5 bg-indigo-500 text-white text-xs rounded-full flex items-center justify-center leading-none shrink-0">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
+            {SHOW_NOTIFICATIONS && (
+              <div ref={panelRef} className="relative">
+                <button
+                  onClick={togglePanel}
+                  className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm w-full"
+                  aria-label="Notifikationer"
+                >
+                  <Bell size={18} className="shrink-0" />
+                  <span>Notifikationer</span>
+                  {unreadCount > 0 && (
+                    <span className="ml-auto w-5 h-5 bg-indigo-500 text-white text-xs rounded-full flex items-center justify-center leading-none shrink-0">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
 
-              {showPanel && (
-                <div className="absolute left-full bottom-0 ml-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-white text-sm font-semibold">Notifikationer</span>
-                    <button
-                      onClick={() => setShowPanel(false)}
-                      className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                      aria-label="Stäng"
-                    >
-                      <X size={15} />
-                    </button>
+                {showPanel && (
+                  <div className="absolute left-full bottom-0 ml-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-white text-sm font-semibold">Notifikationer</span>
+                      <button
+                        onClick={() => setShowPanel(false)}
+                        className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                        aria-label="Stäng"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                    {notifPanel}
                   </div>
-                  {notifPanel}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </nav>
@@ -156,39 +161,41 @@ export default function Navbar() {
               <span className="text-[10px] font-medium">Tema</span>
             </button>
 
-            <div ref={panelRef} className="relative flex-1">
-              <button
-                onClick={togglePanel}
-                className="w-full h-full flex flex-col items-center justify-center gap-0.5 px-3 py-2 text-gray-400 dark:text-gray-500"
-                aria-label="Notifikationer"
-              >
-                <div className="relative">
-                  <Bell size={22} />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] rounded-full flex items-center justify-center leading-none">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-medium">Notiser</span>
-              </button>
-
-              {showPanel && (
-                <div className="absolute bottom-full right-0 mb-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <span className="text-gray-900 dark:text-white text-sm font-semibold">Notifikationer</span>
-                    <button
-                      onClick={() => setShowPanel(false)}
-                      className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                      aria-label="Stäng"
-                    >
-                      <X size={15} />
-                    </button>
+            {SHOW_NOTIFICATIONS && (
+              <div ref={panelRef} className="relative flex-1">
+                <button
+                  onClick={togglePanel}
+                  className="w-full h-full flex flex-col items-center justify-center gap-0.5 px-3 py-2 text-gray-400 dark:text-gray-500"
+                  aria-label="Notifikationer"
+                >
+                  <div className="relative">
+                    <Bell size={22} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] rounded-full flex items-center justify-center leading-none">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </div>
-                  {notifPanel}
-                </div>
-              )}
-            </div>
+                  <span className="text-[10px] font-medium">Notiser</span>
+                </button>
+
+                {showPanel && (
+                  <div className="absolute bottom-full right-0 mb-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-white text-sm font-semibold">Notifikationer</span>
+                      <button
+                        onClick={() => setShowPanel(false)}
+                        className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                        aria-label="Stäng"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                    {notifPanel}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

@@ -32,10 +32,13 @@ function ToastItem({ toast }: { toast: Toast }) {
   )
 }
 
+// TEMP: notifications hidden — re-enable when they become meaningful again (e.g. push notifications)
+const SHOW_NOTIFICATIONS = false
+
 export default function ToastContainer() {
   const { toasts } = useNotifications()
 
-  if (toasts.length === 0) return null
+  if (!SHOW_NOTIFICATIONS || toasts.length === 0) return null
 
   return (
     <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
