@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { getApiToken } from "@/lib/api"
 
-const API_URL = "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
 export type NotificationType = "new_log"
 
