@@ -10,6 +10,7 @@ type Props = {
   onSave: (log: WorkoutLog) => void
   onCancel: () => void
   showOverloadHints: boolean
+  autoStart?: boolean
 }
 
 type Mode = "choose" | "plan" | "custom"
@@ -22,8 +23,8 @@ function getPlanOptions(plans: WorkoutPlan[]) {
   return options
 }
 
-export default function WorkoutLogger({ plans, onSave, onCancel, showOverloadHints }: Props) {
-  const [mode, setMode] = useState<Mode>("choose")
+export default function WorkoutLogger({ plans, onSave, onCancel, showOverloadHints, autoStart = false }: Props) {
+  const [mode, setMode] = useState<Mode>(autoStart ? "plan" : "choose")
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0)
 
   if (mode === "plan") {

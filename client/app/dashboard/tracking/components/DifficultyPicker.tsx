@@ -7,14 +7,14 @@ type Props = {
 
 export default function DifficultyPicker({ value, onChange }: Props) {
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1.5">
       <button
         type="button"
         onClick={() => onChange("easy")}
-        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "easy"
-            ? "bg-green-600 text-white"
-            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            ? "border border-green-500 bg-green-500 text-white"
+            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
         Lätt
@@ -22,10 +22,10 @@ export default function DifficultyPicker({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => onChange("medium")}
-        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "medium"
-            ? "bg-yellow-500 text-gray-900"
-            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            ? "border border-yellow-500 bg-yellow-500 text-gray-900"
+            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
         Medium
@@ -33,13 +33,13 @@ export default function DifficultyPicker({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => onChange("hard")}
-        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "hard"
-            ? "bg-red-600 text-white"
-            : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            ? "border border-red-500 bg-red-500 text-white"
+            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
-        Tufft
+        Tuff
       </button>
     </div>
   )

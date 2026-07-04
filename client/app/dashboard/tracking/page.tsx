@@ -32,11 +32,26 @@ export default function TrackingPage() {
   const [levelUpData, setLevelUpData] = useState<{ level: number; title: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showOverloadHints, setShowOverloadHints] = useState(false)
+  const [autoStart, setAutoStart] = useState(false)
   const planDragIndex = useRef<number | null>(null)
   const sharedPlanDragIndex = useRef<number | null>(null)
 
   useEffect(() => {
-    getPlans().then(setPlans).catch(() => setError("Kunde inte ansluta till servern"))
+    getPlans().then((loadedPlans: WorkoutPlan[]) => {
+      setPlans(loadedPlans)
+      try {
+        const raw = localStorage.getItem("settrackr_wip")
+        if (raw) {
+          const wip = JSON.parse(raw)
+          const match = loadedPlans.find((p) => p.id === wip.planId)
+          if (match) {
+            setLoggingPlan(match)
+            setLoggerVisible(true)
+            setAutoStart(true)
+          }
+        }
+      } catch {}
+    }).catch(() => setError("Kunde inte ansluta till servern"))
     getSharedPlans().then(setSharedPlans).catch(() => {})
     getFriends().then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend))).catch(() => {})
     getMe().then((p: { show_overload_hints: boolean }) => setShowOverloadHints(p.show_overload_hints ?? false)).catch(() => {})
@@ -323,9 +338,10 @@ export default function TrackingPage() {
             <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950">
               <WorkoutLogger
                 plans={activePlans}
-                onSave={(log) => { saveLog(log); setLoggingPlan(null) }}
-                onCancel={() => { setLoggerVisible(false); setLoggingPlan(null) }}
+                onSave={(log) => { saveLog(log); setLoggingPlan(null); setAutoStart(false) }}
+                onCancel={() => { setLoggerVisible(false); setLoggingPlan(null); setAutoStart(false) }}
                 showOverloadHints={showOverloadHints}
+                autoStart={autoStart}
               />
             </div>
           )}

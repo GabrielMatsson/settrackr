@@ -213,8 +213,8 @@ export default function HomeClient({ name }: Props) {
                   {difficulty.label}
                 </span>
               </div>
-              <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-                <table className="w-full text-sm">
+              <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 overflow-x-auto">
+                <table className="w-full min-w-[500px] text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 dark:border-gray-800">
                       <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Övningar</th>
