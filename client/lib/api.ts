@@ -206,3 +206,11 @@ export function getFriendLevel(userId: number) {
 export function clearCache(path: string) {
   getCache.delete(path)
 }
+
+export function getAdminUsers() {
+  return apiFetch("/admin/users")
+}
+
+export function deleteAdminUser(id: number) {
+  return apiFetch(`/admin/users/${id}`, { method: "DELETE" })
+}
