@@ -67,7 +67,7 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
           )}
         </div>
         <span className="text-gray-400 dark:text-gray-500 text-sm shrink-0">{plan.exercises.length} övningar</span>
-        {shared && <span className="text-green-400 text-xs shrink-0">Delad!</span>}
+        {shared && <span className="text-green-500 dark:text-green-400 text-xs shrink-0">Delad!</span>}
         <ChevronDown
           size={16}
           className={`text-gray-400 transition-transform shrink-0 ${expanded ? "rotate-180" : ""}`}
@@ -108,7 +108,7 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
                   <select
                     value={selectedFriend}
                     onChange={(e) => setSelectedFriend(e.target.value ? Number(e.target.value) : "")}
-                    className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
                   >
                     <option value="">Välj vän att dela med…</option>
                     {sharable.map((f) => (

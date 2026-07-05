@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LogOut, Dumbbell, Calendar, Users, Info, Zap } from "lucide-react"
+import { useTheme } from "next-themes"
+import { LogOut, Dumbbell, Calendar, Users, Info, Zap, Sun, Moon } from "lucide-react"
 import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
@@ -50,8 +51,14 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsOverloadHints, setSettingsOverloadHints] = useState(false)
   const [settingsChickenLegs, setSettingsChickenLegs] = useState(false)
   const [settingsGymGhost, setSettingsGymGhost] = useState(false)
+  const [settingsKcalTarget, setSettingsKcalTarget] = useState(2200)
+  const [settingsProteinTarget, setSettingsProteinTarget] = useState(150)
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [levelInfo, setLevelInfo] = useState<{ xp: number; level: number; title: string; next_threshold: number | null; next_title: string | null; progress_pct: number; current_threshold: number } | null>(null)
   const [showLevelInfo, setShowLevelInfo] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     getFriends().then(setFriends).catch(() => setError("Kunde inte hämta vänner"))
@@ -64,6 +71,8 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsOverloadHints(p.show_overload_hints ?? false)
       setSettingsChickenLegs(p.show_chicken_legs ?? false)
       setSettingsGymGhost(p.show_gym_ghost ?? false)
+      setSettingsKcalTarget(p.kcal_target ?? 2200)
+      setSettingsProteinTarget(p.protein_target ?? 150)
     }).catch(() => {})
 
     getFriendRequests().then(setRequests).catch(() => {})
@@ -80,7 +89,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost })
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -360,6 +369,65 @@ export default function ProfileClient({ name, email, image }: Props) {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Kalorimål (kcal per dag)</label>
+            <input
+              type="number"
+              min={500}
+              max={10000}
+              value={settingsKcalTarget}
+              onChange={(e) => setSettingsKcalTarget(Number(e.target.value))}
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-24"
+            />
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Ditt dagliga kalorimål i kostspårningen.</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Proteinmål (g per dag)</label>
+            <input
+              type="number"
+              min={10}
+              max={500}
+              value={settingsProteinTarget}
+              onChange={(e) => setSettingsProteinTarget(Number(e.target.value))}
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-24"
+            />
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Ditt dagliga proteinmål i kostspårningen.</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Tema</label>
+            {mounted && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    theme === "light"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                >
+                  <Sun size={16} />
+                  Ljust
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    theme === "dark"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                >
+                  <Moon size={16} />
+                  Mörkt
+                </button>
+              </div>
+            )}
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Sparas lokalt på den här enheten.</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
@@ -540,8 +608,8 @@ export default function ProfileClient({ name, email, image }: Props) {
         </div>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      {success && <p className="text-green-400 text-sm">{success}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
+      {success && <p className="text-green-500 dark:text-green-400 text-sm">{success}</p>}
     </div>
   )
 }

@@ -191,7 +191,7 @@ export function getExerciseHistory(names: string[]) {
   return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean }) {
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; kcal_target?: number; protein_target?: number }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }
 
@@ -213,4 +213,35 @@ export function getAdminUsers() {
 
 export function deleteAdminUser(id: number) {
   return apiFetch(`/admin/users/${id}`, { method: "DELETE" })
+}
+
+type MealItemPayload = {
+  name: string
+  brand?: string | null
+  barcode?: string | null
+  grams: number
+  kcal_100g: number
+  protein_100g: number
+  carbs_100g: number
+  fat_100g: number
+}
+
+export function getMeals(date: string) {
+  return apiFetch(`/food/?date=${date}`)
+}
+
+export function getMealsRange(start: string, end: string) {
+  return apiFetch(`/food/range?start=${start}&end=${end}`)
+}
+
+export function createMeal(meal: { date: string; title: string; items: MealItemPayload[] }) {
+  return apiFetch("/food/", { method: "POST", body: JSON.stringify(meal) })
+}
+
+export function updateMeal(id: number, meal: { date: string; title: string; items: MealItemPayload[] }) {
+  return apiFetch(`/food/${id}`, { method: "PUT", body: JSON.stringify(meal) })
+}
+
+export function deleteMeal(id: number) {
+  return apiFetch(`/food/${id}`, { method: "DELETE" })
 }

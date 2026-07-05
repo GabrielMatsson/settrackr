@@ -72,6 +72,8 @@ class UserProfileResponse(BaseModel):
     show_overload_hints: bool = False
     show_chicken_legs: bool = False
     show_gym_ghost: bool = False
+    kcal_target: int = 2200
+    protein_target: int = 150
 
     model_config = {"from_attributes": True}
 
@@ -81,6 +83,8 @@ class UserProfileUpdate(BaseModel):
     show_overload_hints: bool | None = None
     show_chicken_legs: bool | None = None
     show_gym_ghost: bool | None = None
+    kcal_target: int | None = None
+    protein_target: int | None = None
 
 class FriendshipResponse(BaseModel):
     id: int
@@ -118,6 +122,36 @@ class WorkoutLogResponse(BaseModel):
     exercises: list[ExerciseLogResponse]
 
     model_config = {"from_attributes": True}
+
+class MealItemCreate(BaseModel):
+    name: str
+    brand: str | None = None
+    barcode: str | None = None
+    grams: float
+    kcal_100g: float
+    protein_100g: float
+    carbs_100g: float
+    fat_100g: float
+
+class MealItemResponse(MealItemCreate):
+    id: int
+
+    model_config = {"from_attributes": True}
+
+
+class MealCreate(BaseModel):
+    date: str
+    title: str
+    items: list[MealItemCreate]
+
+class MealResponse(BaseModel):
+    id: int
+    date: str
+    title: str
+    items: list[MealItemResponse]
+
+    model_config = {"from_attributes": True}
+
 
 class LevelResponse(BaseModel):
     xp: int

@@ -77,19 +77,19 @@ export default function PlanForm({
           value={ex.name}
           onChange={(e) => onUpdateName(i, e.target.value)}
           placeholder="Övningens namn"
-          className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         />
         <select
           value={ex.sets}
           onChange={(e) => onUpdateSets(i, Number(e.target.value))}
-          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         >
           {getSetOptions()}
         </select>
         <select
           value={ex.reps}
           onChange={(e) => onUpdateReps(i, Number(e.target.value))}
-          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         >
           {getRepOptions()}
         </select>
@@ -118,7 +118,7 @@ export default function PlanForm({
           value={planName}
           onChange={(e) => onPlanNameChange(e.target.value)}
           placeholder="T.ex. Bröst & Triceps"
-          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         />
       </div>
 

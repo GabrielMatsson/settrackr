@@ -2,9 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Sun, Moon, Bell, Dumbbell, X, Home, BarChart2, User } from "lucide-react"
+import { Bell, Dumbbell, X, Home, BarChart2, User, Apple } from "lucide-react"
 import { useNotifications } from "./NotificationProvider"
 
 function NotifIcon() {
@@ -14,6 +13,7 @@ function NotifIcon() {
 const links = [
   { label: "Hem", href: "/dashboard", icon: Home },
   { label: "Träning", href: "/dashboard/tracking", icon: Dumbbell },
+  { label: "Kost", href: "/dashboard/foodtracking", icon: Apple },
   { label: "Statistik", href: "/dashboard/statistics", icon: BarChart2 },
   { label: "Profil", href: "/dashboard/profile", icon: User },
 ]
@@ -23,8 +23,10 @@ const SHOW_NOTIFICATIONS = false
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
   const { history, unreadCount, clearUnread } = useNotifications()
+
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === href : pathname.startsWith(href)
   const [mounted, setMounted] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -78,7 +80,7 @@ export default function Navbar() {
               key={href}
               href={href}
               className={
-                pathname === href
+                isActive(href)
                   ? "bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full flex items-center gap-3"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-lg text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 w-full flex items-center gap-3"
               }
@@ -91,15 +93,6 @@ export default function Navbar() {
 
         {mounted && (
           <div className="flex flex-col gap-1">
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm w-full"
-              aria-label="Växla tema"
-            >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              <span>{theme === "dark" ? "Ljust läge" : "Mörkt läge"}</span>
-            </button>
-
             {SHOW_NOTIFICATIONS && (
               <div ref={panelRef} className="relative">
                 <button
@@ -146,22 +139,13 @@ export default function Navbar() {
             href={href}
             className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 flex-1"
           >
-            <Icon size={22} className={pathname === href ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"} />
-            <span className={`text-[10px] font-medium ${pathname === href ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"}`}>{label}</span>
+            <Icon size={22} className={isActive(href) ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"} />
+            <span className={`text-[10px] font-medium ${isActive(href) ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"}`}>{label}</span>
           </Link>
         ))}
 
         {mounted && (
           <>
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 flex-1 text-gray-400 dark:text-gray-500"
-              aria-label="Växla tema"
-            >
-              {theme === "dark" ? <Sun size={22} /> : <Moon size={22} />}
-              <span className="text-[10px] font-medium">Tema</span>
-            </button>
-
             {SHOW_NOTIFICATIONS && (
               <div ref={panelRef} className="relative flex-1">
                 <button

@@ -47,11 +47,11 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+    <div className="max-w-2xl mx-auto w-full">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         Användare ({users.length})
       </h1>
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
         {users.length === 0 ? (
           <p className="text-gray-400 text-sm px-4 py-6 text-center">Inga användare</p>
         ) : (

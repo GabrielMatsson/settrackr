@@ -35,7 +35,7 @@ export default function WorkoutLogger({ plans, onSave, onCancel, showOverloadHin
           <select
             value={selectedPlanIndex}
             onChange={(e) => setSelectedPlanIndex(Number(e.target.value))}
-            className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 self-start"
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 self-start"
           >
             {getPlanOptions(plans)}
           </select>

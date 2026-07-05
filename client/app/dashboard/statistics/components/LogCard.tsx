@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, createElement } from "react"
 import { MoreHorizontal, ChevronDown } from "lucide-react"
 import { updateLog, deleteLog } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
+import DifficultyBadge from "@/app/components/DifficultyBadge"
 
 type ExerciseLog = {
   name: string
@@ -38,12 +39,6 @@ function formatDate(dateStr: string) {
   return { day, month, year, weekday }
 }
 
-
-function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  if (difficulty === "easy") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 shrink-0">Lätt</span>
-  if (difficulty === "hard") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 shrink-0">Tufft</span>
-  return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 shrink-0">Medium</span>
-}
 
 function DifficultyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const options = [
@@ -161,7 +156,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
             </div>
           ))}
         </div>
-        {error && <p className="text-red-400 text-xs">{error}</p>}
+        {error && <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>}
         <div className="flex gap-2">
           <button
             onClick={handleSave}

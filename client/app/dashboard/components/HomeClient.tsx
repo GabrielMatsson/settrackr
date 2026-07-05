@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Flame } from "lucide-react"
-import { getLogs, getMe, getMyLevel } from "@/lib/api"
+import Link from "next/link"
+import { Flame, Apple, ChevronRight } from "lucide-react"
+import { getLogs, getMe, getMyLevel, getMeals } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon, hasChickenLegs, isGymGhost } from "@/lib/workout-utils"
+import { sumMealsMacros, todayStr, type Meal } from "@/lib/food-utils"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 import ChickenAnimation from "@/app/components/ChickenAnimation"
 import GhostAnimation from "@/app/components/GhostAnimation"
+import DifficultyBadge from "@/app/components/DifficultyBadge"
+import ProgressRing from "@/app/components/ProgressRing"
 
 type ExerciseLog = {
   name: string
@@ -24,12 +28,6 @@ type WorkoutLog = {
   plan_name: string
   icon?: string
   exercises: ExerciseLog[]
-}
-
-function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  if (difficulty === "easy") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Lätt</span>
-  if (difficulty === "hard") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Tufft</span>
-  return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">Medium</span>
 }
 
 function computeStreak(logs: WorkoutLog[]): number {
@@ -63,38 +61,12 @@ function workoutsThisWeek(logs: WorkoutLog[]): number {
   return new Set(logs.filter((l) => l.date >= mondayStr).map((l) => l.date)).size
 }
 
-function WeeklyRing({ count, target }: { count: number; target: number }) {
-  const radius = 28
-  const circumference = 2 * Math.PI * radius
-  const percent = Math.min(count / target, 1)
-  const offset = circumference * (1 - percent)
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="relative w-16 h-16">
-        <svg className="w-16 h-16 -rotate-90" viewBox="0 0 70 70">
-          <circle cx="35" cy="35" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="8" />
-          <circle
-            cx="35" cy="35" r={radius}
-            fill="none" stroke="#6366f1" strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            className="transition-all duration-500"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-gray-900 dark:text-white font-semibold text-xs">{count}/{target}</span>
-        </div>
-      </div>
-      <p className="text-gray-500 dark:text-gray-400 text-xs">Veckostatus</p>
-    </div>
-  )
-}
-
 type EasterEggProfile = {
   weekly_goal: number
   show_chicken_legs: boolean
   show_gym_ghost: boolean
+  kcal_target?: number
+  protein_target?: number
 }
 
 
@@ -111,6 +83,7 @@ export default function HomeClient({ name }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [levelInfo, setLevelInfo] = useState<{ level: number; title: string; xp: number } | null>(null)
+  const [foodMeals, setFoodMeals] = useState<Meal[]>([])
   const router = useRouter()
 
   const today = new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" })
@@ -133,6 +106,7 @@ export default function HomeClient({ name }: Props) {
       })
       .catch(() => {})
     getMyLevel().then((l) => setLevelInfo(l as { level: number; title: string; xp: number })).catch(() => {})
+    getMeals(todayStr()).then((data) => setFoodMeals(data as Meal[])).catch(() => {})
   }, [])
 
   const showChicken = !chickenDismissed && profile !== null && profile.show_chicken_legs && logs.length > 0 && hasChickenLegs(logs)
@@ -183,9 +157,32 @@ export default function HomeClient({ name }: Props) {
           </span>
         </button>
         <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex items-center justify-center shrink-0">
-          <WeeklyRing count={weekCount} target={weeklyGoal} />
+          <ProgressRing value={weekCount} target={weeklyGoal} label="Veckostatus" />
         </div>
       </div>
+
+      {(() => {
+        const foodTotals = sumMealsMacros(foodMeals)
+        const kcalTarget = profile?.kcal_target ?? 2200
+        const proteinTarget = profile?.protein_target ?? 150
+        return (
+          <Link
+            href="/dashboard/foodtracking"
+            className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-100 dark:bg-emerald-900/40">
+              <Apple size={18} className="text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-900 dark:text-white font-semibold text-sm leading-tight">Kost idag</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">
+                {foodTotals.kcal} / {kcalTarget} kcal · {foodTotals.protein} / {proteinTarget} g protein
+              </p>
+            </div>
+            <ChevronRight size={18} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </Link>
+        )
+      })()}
 
       <WorkoutOverview logs={logs} allTime />
 

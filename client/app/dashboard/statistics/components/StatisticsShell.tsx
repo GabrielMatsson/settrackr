@@ -60,7 +60,7 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
             })}
           </div>
           {pathname === "/dashboard/statistics" && (
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
               <Calendar size={14} className="text-gray-500 dark:text-gray-400 shrink-0" />
               <select
                 value={period}
@@ -75,7 +75,7 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
           )}
         </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
 
         {children}
       </div>

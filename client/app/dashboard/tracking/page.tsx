@@ -223,7 +223,7 @@ export default function TrackingPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
 
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>

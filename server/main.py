@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from database import engine, Base
-from routers import plans, logs, goals, friends, notifications, users, admin
+from routers import plans, logs, goals, friends, notifications, users, admin, food
 
 
 @asynccontextmanager
@@ -19,8 +19,11 @@ async def lifespan(app: FastAPI):
         conn.execute(text(
             "ALTER TABLE workout_plans ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0"
         ))
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS kcal_target INTEGER"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS protein_target INTEGER"))
         conn.execute(text("DROP TABLE IF EXISTS workout_reactions CASCADE"))
         conn.execute(text("DROP TABLE IF EXISTS workout_comments CASCADE"))
+        conn.execute(text("DROP TABLE IF EXISTS food_logs CASCADE"))
         conn.commit()
     yield
 
@@ -42,6 +45,7 @@ app.include_router(friends.router)
 app.include_router(notifications.router)
 app.include_router(users.router)
 app.include_router(admin.router)
+app.include_router(food.router)
 
 
 @app.exception_handler(Exception)

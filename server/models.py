@@ -14,10 +14,13 @@ class User(Base):
     show_overload_hints = Column(Boolean, nullable=False, default=False, server_default="0")
     show_chicken_legs   = Column(Boolean, nullable=False, default=False, server_default="0")
     show_gym_ghost      = Column(Boolean, nullable=False, default=False, server_default="0")
+    kcal_target = Column(Integer, nullable=True)
+    protein_target = Column(Integer, nullable=True)
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
+    meals = relationship("Meal", back_populates="user", cascade="all, delete-orphan")
 
 
 class Friendship(Base):
@@ -100,6 +103,36 @@ class ExerciseLog(Base):
 
     log = relationship("WorkoutLog", back_populates="exercises")
 
+
+
+class Meal(Base):
+    __tablename__ = "meals"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    date = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="meals")
+    items = relationship("MealItem", back_populates="meal", cascade="all, delete-orphan")
+
+
+class MealItem(Base):
+    __tablename__ = "meal_items"
+
+    id = Column(Integer, primary_key=True)
+    meal_id = Column(Integer, ForeignKey("meals.id"), nullable=False)
+    name = Column(String, nullable=False)
+    brand = Column(String, nullable=True)
+    barcode = Column(String, nullable=True)
+    grams = Column(Float, nullable=False)
+    kcal_100g = Column(Float, nullable=False)
+    protein_100g = Column(Float, nullable=False)
+    carbs_100g = Column(Float, nullable=False)
+    fat_100g = Column(Float, nullable=False)
+
+    meal = relationship("Meal", back_populates="items")
 
 
 class SharedPlanAccess(Base):

@@ -79,6 +79,18 @@ client/
 - **API caching**: `apiFetch` in `api.ts` caches GET responses for 10 seconds and deduplicates in-flight requests
 - **Icons**: never use emojis use icons, workout plan icons use Lucide icon names stored as strings (e.g. `"Dumbbell"`, `"Flame"`)
 
+## UI-konventioner
+
+Standard Tailwind tokens — follow these when adding or editing UI:
+
+- **Card**: `bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl` with `p-5`/`p-6` (tinted section headers inside cards use `bg-gray-50 dark:bg-gray-900`)
+- **Page h1**: `text-2xl font-bold text-gray-900 dark:text-white` (exception: home greeting is `text-3xl`)
+- **Select/input**: `bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500`
+- **Primary button**: `bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg`
+- **Status text**: error `text-red-500 dark:text-red-400`, success `text-green-500 dark:text-green-400`
+- **Difficulty badge**: use the shared `client/app/components/DifficultyBadge.tsx` (classes come from `getDifficulty` in `lib/workout-utils.ts`) — don't inline badge markup
+- **Page width**: `max-w-4xl mx-auto w-full` (tracking uses 5xl, admin 2xl)
+
 ## Deployment
 
 ### Live URLs

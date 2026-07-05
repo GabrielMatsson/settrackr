@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react"
 import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
+import DifficultyBadge from "@/app/components/DifficultyBadge"
 
 const API_URL = "http://localhost:8000"
 
@@ -52,12 +53,6 @@ function formatDate(dateStr: string) {
   }
 }
 
-
-function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  if (difficulty === "easy") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Lätt</span>
-  if (difficulty === "hard") return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Tufft</span>
-  return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">Medium</span>
-}
 
 function FriendLogRow({ log }: { log: WorkoutLog }) {
   const [expanded, setExpanded] = useState(false)
@@ -266,7 +261,7 @@ export default function FriendProfile({ friend, onBack }: Props) {
         </div>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
 
       <WorkoutOverview logs={logs} />
 

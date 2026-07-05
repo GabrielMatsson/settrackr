@@ -115,7 +115,7 @@ export default function MyGoals({ logs }: Props) {
         </button>
       </div>
 
-      {error && <p className="text-red-400 text-xs">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>}
 
       {adding && (
         <div className="flex flex-col gap-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">

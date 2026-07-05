@@ -17,11 +17,17 @@ export type ExerciseLog = {
   difficulty: string
 }
 
+export function getDifficulty(difficulty: string): { label: string; className: string } {
+  if (difficulty === "hard") return { label: "Tufft", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
+  if (difficulty === "easy") return { label: "Lätt", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
+  return { label: "Medium", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
+}
+
 export function getOverallDifficulty(exercises: ExerciseLog[]) {
   const difficulties = exercises.map((e) => e.difficulty)
-  if (difficulties.some((d) => d === "hard")) return { label: "Tufft", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
-  if (difficulties.length > 0 && difficulties.every((d) => d === "easy")) return { label: "Lätt", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
-  return { label: "Medium", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
+  if (difficulties.some((d) => d === "hard")) return getDifficulty("hard")
+  if (difficulties.length > 0 && difficulties.every((d) => d === "easy")) return getDifficulty("easy")
+  return getDifficulty("medium")
 }
 
 export function getTotalLyft(exercises: ExerciseLog[]): string {
