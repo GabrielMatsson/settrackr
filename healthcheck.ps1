@@ -1,6 +1,7 @@
 # SetTrackr healthcheck
 #   .\healthcheck.ps1          - check both services are up + backend runs the pushed commit
-#   .\healthcheck.ps1 -Wait    - poll up to 5 min until the backend serves local HEAD (use after git push)
+#   .\healthcheck.ps1 -Wait    - poll up to 10 min until the backend serves local HEAD (use after git push)
+#                                (a normal Render free-tier deploy takes ~7-8 min incl. build queue)
 param(
     [switch]$Wait
 )
@@ -50,7 +51,7 @@ if ($null -eq $info) {
 
 if ($Wait) {
     if (-not $localHead) { Write-Host "No local git HEAD available - cannot wait for match"; exit 1 }
-    $deadline = (Get-Date).AddMinutes(5)
+    $deadline = (Get-Date).AddMinutes(10)
     while ((Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 20
         $info = Get-BackendInfo

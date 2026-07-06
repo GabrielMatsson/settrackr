@@ -146,9 +146,9 @@ Standard Tailwind tokens — follow these when adding or editing UI:
 Run `healthcheck.ps1` at the repo root:
 ```powershell
 .\healthcheck.ps1        # both services up? backend running local HEAD?
-.\healthcheck.ps1 -Wait  # after git push: poll up to 5 min until Render serves the new commit
+.\healthcheck.ps1 -Wait  # after git push: poll up to 10 min until Render serves the new commit (normal deploy ~7-8 min)
 ```
-Or ask Claude to "run healthcheck". The backend exposes its commit via `RENDER_GIT_COMMIT` in the root endpoint, and the script compares it to local `git rev-parse HEAD` — this catches Render's silent stale-deploy failures (happened twice: 2026-07-04 and 2026-07-05). On MISMATCH after a push: wait for the build, or if it never flips, go to Render dashboard → Deploys → Manual Deploy. A DOWN result may just be a cold start — the script uses a 60s timeout, but retry once if needed.
+**Only run healthcheck when the user asks for it** — never automatically after pushes. The backend exposes its commit via `RENDER_GIT_COMMIT` in the root endpoint, and the script compares it to local `git rev-parse HEAD` — this catches Render's stale-deploy problem (Render has NOT auto-deployed on push; every deploy 2026-07-04 → 07-06 needed Manual Deploy in the dashboard). On MISMATCH: Render dashboard → Deploys → Manual Deploy. A DOWN result may just be a cold start — the script uses a 60s timeout, but retry once if needed.
 
 ### If Something Breaks
 - **Frontend errors**: Vercel → Deployments → Logs
