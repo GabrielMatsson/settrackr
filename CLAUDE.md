@@ -36,6 +36,22 @@ npm run dev
 
 Both must run simultaneously — the frontend calls the backend at port 8000.
 
+### Verifying changes
+```powershell
+# From client/ — runs typecheck + lint + jest in one go
+npm run check
+# Full production build check when needed
+npm run build
+```
+
+### Testing the API locally (no Google login needed)
+`server/scripts/api_smoke.py` mints a JWT from `AUTH_SECRET` (same as the frontend token route) and hits the API directly:
+```powershell
+# With uvicorn running on port 8000, from server/
+venv\Scripts\python.exe scripts\api_smoke.py
+```
+Default run is a read-only smoke pass over all routers. For feature-specific tests, `from scripts.api_smoke import call` in a scratch script and use `call("POST", "/food/", {...})` etc. — create and delete your own test data.
+
 ## Project Structure
 
 ```
@@ -126,12 +142,13 @@ Standard Tailwind tokens — follow these when adding or editing UI:
 - **Backend**: push to `main` → Render auto-deploys (~2 min)
 - No manual steps needed after initial setup
 
-### Health Check
-Run `healthcheck.ps1` at the repo root to check if both services are up:
+### Health Check & Deploy Verification
+Run `healthcheck.ps1` at the repo root:
 ```powershell
-.\healthcheck.ps1
+.\healthcheck.ps1        # both services up? backend running local HEAD?
+.\healthcheck.ps1 -Wait  # after git push: poll up to 5 min until Render serves the new commit
 ```
-Or ask Claude to "run healthcheck" — it will execute the script and report the result. Checks backend (Render) and frontend (Vercel). A DOWN result on the backend may just be a cold start — wait 30-60s and retry.
+Or ask Claude to "run healthcheck". The backend exposes its commit via `RENDER_GIT_COMMIT` in the root endpoint, and the script compares it to local `git rev-parse HEAD` — this catches Render's silent stale-deploy failures (happened twice: 2026-07-04 and 2026-07-05). On MISMATCH after a push: wait for the build, or if it never flips, go to Render dashboard → Deploys → Manual Deploy. A DOWN result may just be a cold start — the script uses a 60s timeout, but retry once if needed.
 
 ### If Something Breaks
 - **Frontend errors**: Vercel → Deployments → Logs

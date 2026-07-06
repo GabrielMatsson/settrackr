@@ -62,4 +62,9 @@ async def global_exception_handler(request: Request, exc: Exception):  # noqa: A
 
 @app.get("/")
 def root():
-    return {"message": "SetTrackr API is running"}
+    # RENDER_GIT_COMMIT is set automatically by Render; lets healthcheck.ps1
+    # verify the live backend is actually running the pushed commit
+    return {
+        "message": "SetTrackr API is running",
+        "commit": os.getenv("RENDER_GIT_COMMIT", "dev"),
+    }
