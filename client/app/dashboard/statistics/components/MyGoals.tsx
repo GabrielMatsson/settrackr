@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { motion } from "motion/react"
+import { gentleSpring } from "@/lib/motion"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
+import PressableButton from "@/app/components/PressableButton"
 import { getGoals, createGoal, deleteGoal } from "@/lib/api"
 
 type ExerciseLog = {
@@ -36,11 +40,13 @@ function ProgressRing({ percent, gradientId, colorStart = "#6366f1", colorEnd = 
         </linearGradient>
       </defs>
       <circle cx="50" cy="50" r={radius} fill="none" stroke="currentColor" strokeWidth="10" className="text-gray-100 dark:text-gray-800" />
-      <circle
+      <motion.circle
         cx="50" cy="50" r={radius} fill="none"
         stroke={`url(#${gradientId})`} strokeWidth="10" strokeLinecap="round"
-        strokeDasharray={circumference} strokeDashoffset={offset}
-        className="transition-all duration-500"
+        strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={gentleSpring}
       />
     </svg>
   )
@@ -104,7 +110,7 @@ export default function MyGoals({ logs }: Props) {
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex flex-col gap-4">
+    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 bg-white dark:bg-gray-950 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Mina mål</h2>
         <button
@@ -133,12 +139,12 @@ export default function MyGoals({ logs }: Props) {
             className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           />
           <div className="flex gap-2">
-            <button
+            <PressableButton
               onClick={handleAdd}
               className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Lägg till
-            </button>
+            </PressableButton>
             <button
               onClick={resetForm}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors px-2"
@@ -162,7 +168,7 @@ export default function MyGoals({ logs }: Props) {
               <div className="relative w-24 h-24">
                 <ProgressRing percent={percent} gradientId={`ring-p-${goal.id}`} />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-gray-900 dark:text-white font-semibold text-sm">{Math.round(Math.min(percent, 100))}%</span>
+                  <span className="text-gray-900 dark:text-white font-semibold text-sm"><AnimatedNumber value={Math.round(Math.min(percent, 100))} />%</span>
                 </div>
               </div>
               <div className="text-center">

@@ -36,7 +36,7 @@ export default function HistoryPage() {
       {visible < sorted.length && (
         <button
           onClick={() => setVisible((v) => v + PAGE)}
-          className="w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-950 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card bg-white dark:bg-gray-950 transition-colors"
         >
           <ChevronDown size={15} /> Visa fler pass
         </button>

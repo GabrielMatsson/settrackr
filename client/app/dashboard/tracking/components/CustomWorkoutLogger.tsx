@@ -112,14 +112,14 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   for (let i = 0; i < exercises.length; i++) {
     const ex = exercises[i]
     rows.push(
-      <div key={i} className="flex flex-col gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
+      <div key={i} className="flex flex-col gap-2 bg-indigo-50/60 dark:bg-gray-800 border border-indigo-100 dark:border-transparent rounded-lg p-3">
         <div className="flex gap-2 items-center">
           <input
             type="text"
             value={ex.name}
             onChange={(e) => updateName(i, e.target.value)}
             placeholder="Övningens namn"
-            className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            className="flex-1 bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           />
           {exercises.length > 1 && (
             <button
@@ -134,14 +134,14 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
           <select
             value={ex.sets}
             onChange={(e) => updateSets(i, Number(e.target.value))}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           >
             {getSetOptions()}
           </select>
           <select
             value={ex.reps}
             onChange={(e) => updateReps(i, Number(e.target.value))}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           >
             {getRepOptions()}
           </select>
@@ -150,7 +150,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
             value={ex.weight || ""}
             onChange={(e) => updateWeight(i, Number(e.target.value))}
             placeholder="kg"
-            className="w-16 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
+            className="w-16 bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           />
           <DifficultyPicker
             value={ex.difficulty}
@@ -170,7 +170,7 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
           value={planName}
           onChange={(e) => setPlanName(e.target.value)}
           placeholder="T.ex. Ben & Axlar"
-          className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
         />
       </div>
       <div className="flex flex-col gap-1">

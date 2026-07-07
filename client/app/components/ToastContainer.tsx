@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
+import { motion, AnimatePresence } from "motion/react"
 import { Dumbbell, X } from "lucide-react"
+import { snappySpring } from "@/lib/motion"
 import { useNotifications } from "./NotificationProvider"
 import type { Toast } from "./NotificationProvider"
 
@@ -18,7 +20,7 @@ function ToastItem({ toast }: { toast: Toast }) {
   }, [toast.id, dismissToast])
 
   return (
-    <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 w-72 toast-slide-in">
+    <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 w-72">
       <ToastIcon />
       <span className="text-gray-900 dark:text-white text-sm flex-1 leading-snug">{toast.message}</span>
       <button
@@ -38,13 +40,25 @@ const SHOW_NOTIFICATIONS = false
 export default function ToastContainer() {
   const { toasts } = useNotifications()
 
-  if (!SHOW_NOTIFICATIONS || toasts.length === 0) return null
+  if (!SHOW_NOTIFICATIONS) return null
 
   return (
     <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} />
-      ))}
+      {/* layout makes remaining toasts glide up when one exits */}
+      <AnimatePresence initial={false}>
+        {toasts.map((toast) => (
+          <motion.div
+            key={toast.id}
+            layout
+            initial={{ opacity: 0, x: 80 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 40 }}
+            transition={snappySpring}
+          >
+            <ToastItem toast={toast} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { motion } from "motion/react"
+import { easeOut } from "@/lib/motion"
+import PressableButton from "@/app/components/PressableButton"
 import { calcMacros, type OFFProduct, type FoodItemInput } from "@/lib/food-utils"
 
 const inputClass =
@@ -58,7 +61,11 @@ export default function FoodEntryForm({ mode, product, barcode, notice, initial,
   }
 
   return (
-    <div className="bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 flex flex-col gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: easeOut }}
+      className="bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 flex flex-col gap-4">
       {notice && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2">
           <p className="text-sm text-amber-800 dark:text-amber-300">{notice}</p>
@@ -124,13 +131,13 @@ export default function FoodEntryForm({ mode, product, barcode, notice, initial,
       </p>
 
       <div className="flex gap-3">
-        <button
+        <PressableButton
           onClick={handleAdd}
           disabled={!valid}
           className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors"
         >
           {submitLabel ?? "Lägg till i måltiden"}
-        </button>
+        </PressableButton>
         <button
           onClick={onCancel}
           className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-4 py-2 text-sm"
@@ -138,6 +145,6 @@ export default function FoodEntryForm({ mode, product, barcode, notice, initial,
           Avbryt
         </button>
       </div>
-    </div>
+    </motion.div>
   )
 }

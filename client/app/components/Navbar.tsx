@@ -3,7 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useRef, useCallback } from "react"
+import { motion } from "motion/react"
 import { Bell, Dumbbell, X, Home, BarChart2, User, Apple } from "lucide-react"
+import { snappySpring } from "@/lib/motion"
 import { useNotifications } from "./NotificationProvider"
 
 function NotifIcon() {
@@ -81,12 +83,19 @@ export default function Navbar() {
               href={href}
               className={
                 isActive(href)
-                  ? "bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full flex items-center gap-3"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-lg text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 w-full flex items-center gap-3"
+                  ? "relative text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full flex items-center gap-3"
+                  : "relative text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-lg text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 w-full flex items-center gap-3"
               }
             >
-              <Icon size={18} className="shrink-0" />
-              {label}
+              {isActive(href) && (
+                <motion.span
+                  layoutId="nav-pill-desktop"
+                  className="absolute inset-0 bg-indigo-600 rounded-lg"
+                  transition={snappySpring}
+                />
+              )}
+              <Icon size={18} className="shrink-0 relative" />
+              <span className="relative">{label}</span>
             </Link>
           ))}
         </div>
@@ -137,8 +146,15 @@ export default function Navbar() {
           <Link
             key={href}
             href={href}
-            className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 flex-1"
+            className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 flex-1"
           >
+            {isActive(href) && (
+              <motion.span
+                layoutId="nav-pill-mobile"
+                className="absolute top-0 h-0.5 w-10 rounded-full bg-indigo-600"
+                transition={snappySpring}
+              />
+            )}
             <Icon size={22} className={isActive(href) ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"} />
             <span className={`text-[10px] font-medium ${isActive(href) ? "text-indigo-600" : "text-gray-400 dark:text-gray-500"}`}>{label}</span>
           </Link>

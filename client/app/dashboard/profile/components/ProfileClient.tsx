@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
+import { motion } from "motion/react"
 import { LogOut, Dumbbell, Calendar, Users, Info, Zap, Sun, Moon } from "lucide-react"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
+import SaveButton from "@/app/components/SaveButton"
+import { gentleSpring, fadeUp, fadeUpTransition } from "@/lib/motion"
 import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel } from "@/lib/api"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
@@ -192,7 +196,11 @@ export default function ProfileClient({ name, email, image }: Props) {
   return (
     <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
 
-      <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 bg-white dark:bg-gray-950">
+      <motion.div
+        initial={fadeUp.initial}
+        animate={fadeUp.animate}
+        transition={fadeUpTransition(0)}
+        className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 bg-white dark:bg-gray-950">
         {image ? (
           <img src={image} alt={name} className="w-20 h-20 rounded-full shrink-0" />
         ) : (
@@ -213,17 +221,21 @@ export default function ProfileClient({ name, email, image }: Props) {
             Logga ut
           </button>
         </form>
-      </div>
+      </motion.div>
 
       {levelInfo && (
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex flex-col gap-3">
+        <motion.div
+          initial={fadeUp.initial}
+          animate={fadeUp.animate}
+          transition={fadeUpTransition(1)}
+          className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 bg-white dark:bg-gray-950 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={16} className="text-indigo-500 shrink-0" />
               <span className="text-gray-900 dark:text-white font-bold">Nivå {levelInfo.level} · {levelInfo.title}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-gray-400 dark:text-gray-500 text-sm">{levelInfo.xp.toLocaleString("sv-SE")} XP</span>
+              <span className="text-gray-400 dark:text-gray-500 text-sm"><AnimatedNumber value={levelInfo.xp} format={(v) => v.toLocaleString("sv-SE")} /> XP</span>
               <button
                 onClick={() => setShowLevelInfo((v) => !v)}
                 className={`p-1 rounded-lg transition-colors ${showLevelInfo ? "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
@@ -235,9 +247,11 @@ export default function ProfileClient({ name, email, image }: Props) {
           </div>
           <div className="flex flex-col gap-1.5">
             <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-2 bg-indigo-500 rounded-full transition-all duration-500"
-                style={{ width: `${levelInfo.progress_pct}%` }}
+              <motion.div
+                className="h-2 w-full bg-indigo-500 rounded-full origin-left"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: levelInfo.progress_pct / 100 }}
+                transition={gentleSpring}
               />
             </div>
             <p className="text-gray-400 dark:text-gray-500 text-xs">
@@ -306,40 +320,48 @@ export default function ProfileClient({ name, email, image }: Props) {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
+      <motion.div
+        initial={fadeUp.initial}
+        animate={fadeUp.animate}
+        transition={fadeUpTransition(2)}
+        className="grid grid-cols-2 gap-4">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
           <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-2.5 shrink-0">
             <Dumbbell size={20} className="text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">{totalWorkouts}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none"><AnimatedNumber value={totalWorkouts} /></p>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">träningspass totalt</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
               {totalWorkouts > 0 ? "Bra jobbat! Fortsätt så" : "Kom igång!"}
             </p>
           </div>
         </div>
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 bg-white dark:bg-gray-950 flex items-start gap-4">
           <div className="bg-green-100 dark:bg-green-900/40 rounded-xl p-2.5 shrink-0">
             <Calendar size={20} className="text-green-600 dark:text-green-400" />
           </div>
           <div>
             <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">
-              {thisWeekCount}
+              <AnimatedNumber value={thisWeekCount} />
               <span className="text-gray-400 dark:text-gray-500 text-xl font-normal"> / {weeklyGoal}</span>
             </p>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">denna vecka</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{weekMotivation}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+      <motion.div
+        initial={fadeUp.initial}
+        animate={fadeUp.animate}
+        transition={fadeUpTransition(3)}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-5">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 bg-white dark:bg-gray-950 flex flex-col gap-5">
           <div>
             <p className="text-gray-900 dark:text-white font-semibold">Inställningar</p>
             <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Hantera dina uppgifter och inställningar</p>
@@ -479,19 +501,17 @@ export default function ProfileClient({ name, email, image }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-1">
-            <button
+          <div className="pt-1">
+            <SaveButton
+              status={settingsSaving ? "saving" : settingsSaved ? "success" : "idle"}
+              idleLabel="Spara ändringar"
               onClick={handleSaveSettings}
-              disabled={settingsSaving}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
-            >
-              {settingsSaving ? "Sparar..." : "Spara ändringar"}
-            </button>
-            {settingsSaved && <span className="text-green-500 text-sm">Sparat!</span>}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+            />
           </div>
         </div>
 
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950 flex flex-col gap-4">
+        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 bg-white dark:bg-gray-950 flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-900 dark:text-white font-semibold">Mina vänner</p>
@@ -606,7 +626,7 @@ export default function ProfileClient({ name, email, image }: Props) {
             </button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
       {success && <p className="text-green-500 dark:text-green-400 text-sm">{success}</p>}

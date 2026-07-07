@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { CheckCircle, X, Dumbbell, Users, Calendar, Trophy } from "lucide-react"
+import { X, Dumbbell, Users, Calendar, Trophy, Sparkles } from "lucide-react"
+import { motion, AnimatePresence, Reorder, useDragControls } from "motion/react"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
+import SuccessCheck from "@/app/components/SuccessCheck"
+import PressableButton from "@/app/components/PressableButton"
+import { easeOut, popSpring, gentleSpring, fadeUp, fadeUpTransition } from "@/lib/motion"
 import PlanForm from "./components/PlanForm"
 import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
@@ -15,6 +20,58 @@ type LevelInfo = { xp: number; level: number; title: string; progress_pct: numbe
 type Friend = { id: number; name: string | null; email: string }
 type FriendEntry = { id: number; status: string; friend: Friend }
 type SharedPlan = { id: number; name: string; exercises: { id: number; name: string; sets: number; reps: number }[]; owner: Friend }
+
+// One-shot star burst behind the level-up trophy — transform/opacity only
+const BURST_STARS = Array.from({ length: 8 }, (_, i) => {
+  const angle = (i / 8) * Math.PI * 2 - Math.PI / 2
+  return {
+    x: Math.round(Math.cos(angle) * 78),
+    y: Math.round(Math.sin(angle) * 78),
+    size: i % 2 === 0 ? 18 : 13,
+    delay: 0.18 + (i % 4) * 0.04,
+  }
+})
+
+function CelebrationBurst() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+      {BURST_STARS.map(({ x, y, size, delay }, i) => (
+        <motion.span
+          key={i}
+          className="absolute text-indigo-400 dark:text-indigo-300"
+          initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+          animate={{ x, y, scale: [0, 1, 0.85], opacity: [0, 1, 0] }}
+          transition={{ duration: 0.8, delay, ease: easeOut }}
+        >
+          <Sparkles size={size} />
+        </motion.span>
+      ))}
+    </div>
+  )
+}
+
+// Reorder.Item wrapper: drag starts only from the grip handle so taps/clicks
+// on the row still expand the card, and rows lift slightly while dragged
+function DraggableRow<T>({ value, onDragEnd, children }: {
+  value: T
+  onDragEnd?: () => void
+  children: (startDrag: (e: React.PointerEvent) => void) => React.ReactNode
+}) {
+  const dragControls = useDragControls()
+  return (
+    <Reorder.Item
+      as="div"
+      value={value}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
+      whileDrag={{ scale: 1.02, boxShadow: "0 8px 24px rgba(0,0,0,0.15)", zIndex: 10 }}
+      className="relative bg-white dark:bg-gray-950"
+    >
+      {children((e) => dragControls.start(e))}
+    </Reorder.Item>
+  )
+}
 
 export default function TrackingPage() {
   const [plans, setPlans] = useState<WorkoutPlan[]>([])
@@ -33,8 +90,12 @@ export default function TrackingPage() {
   const [error, setError] = useState<string | null>(null)
   const [showOverloadHints, setShowOverloadHints] = useState(false)
   const [autoStart, setAutoStart] = useState(false)
-  const planDragIndex = useRef<number | null>(null)
-  const sharedPlanDragIndex = useRef<number | null>(null)
+  // Mirrors plans so the drag-end handler persists the order Reorder produced
+  const plansRef = useRef<WorkoutPlan[]>([])
+
+  useEffect(() => {
+    plansRef.current = plans
+  }, [plans])
 
   useEffect(() => {
     getPlans().then((loadedPlans: WorkoutPlan[]) => {
@@ -186,21 +247,8 @@ export default function TrackingPage() {
     }
   }
 
-  async function reorderPlan(from: number, to: number) {
-    if (from === to) return
-    const updated = [...plans]
-    const [moved] = updated.splice(from, 1)
-    updated.splice(to, 0, moved)
-    setPlans(updated)
-    await reorderPlans(updated.map((p) => p.id))
-  }
-
-  function reorderSharedPlan(from: number, to: number) {
-    if (from === to) return
-    const updated = [...sharedPlans]
-    const [moved] = updated.splice(from, 1)
-    updated.splice(to, 0, moved)
-    setSharedPlans(updated)
+  function persistPlanOrder() {
+    reorderPlans(plansRef.current.map((p) => p.id)).catch(() => setError("Kunde inte spara ordningen"))
   }
 
   function openLogger(plan?: { name: string; icon?: string; exercises: Exercise[] }) {
@@ -231,26 +279,32 @@ export default function TrackingPage() {
           <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Skapa, hantera och följ dina träningsplaner.</p>
         </div>
         <div className="flex items-center gap-2 sm:w-auto w-full">
-          <button
+          <PressableButton
             onClick={() => openLogger()}
             className="flex-1 sm:flex-none border border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 font-medium px-4 py-2 rounded-lg transition-colors text-sm"
           >
             + Logga pass
-          </button>
-          <button
+          </PressableButton>
+          <PressableButton
             onClick={openCreateForm}
             className="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm"
           >
             + Skapa ny plan
-          </button>
+          </PressableButton>
         </div>
       </div>
 
+      <AnimatePresence>
       {logSaved && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-5 py-4 flex flex-col gap-3">
+        <motion.div
+          initial={fadeUp.initial}
+          animate={fadeUp.animate}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: easeOut }}
+          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-5 py-4 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <CheckCircle size={18} className="text-green-500 shrink-0" />
+              <SuccessCheck size={18} className="text-green-500 shrink-0" />
               <span className="text-green-800 dark:text-green-300 text-sm font-medium">Träningspasset är sparat!</span>
             </div>
             <div className="flex items-center gap-3">
@@ -267,14 +321,19 @@ export default function TrackingPage() {
             <div className="border-t border-green-200 dark:border-green-800 pt-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold text-sm">
-                +{xpResult.earned} XP
+                +<AnimatedNumber value={xpResult.earned} /> XP
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 text-xs">
                   Nivå {xpResult.level} · {xpResult.title}
                 </span>
               </div>
               <div className="w-full h-1.5 bg-green-100 dark:bg-green-900/50 rounded-full overflow-hidden">
-                <div className="h-1.5 bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${xpResult.progress_pct}%` }} />
+                <motion.div
+                  className="h-1.5 w-full bg-indigo-500 rounded-full origin-left"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: xpResult.progress_pct / 100 }}
+                  transition={gentleSpring}
+                />
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {xpResult.next_title
@@ -283,38 +342,56 @@ export default function TrackingPage() {
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {levelUpData && (
-        <div
+        <motion.div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: easeOut }}
           onClick={() => setLevelUpData(null)}
         >
-          <div
-            className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 max-w-xs w-full text-center flex flex-col items-center gap-4"
+          <motion.div
+            className="relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 max-w-xs w-full text-center flex flex-col items-center gap-4"
+            initial={{ opacity: 0, scale: 0.85, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15, ease: easeOut } }}
+            transition={popSpring}
             onClick={(e) => e.stopPropagation()}
           >
-            <Trophy size={48} className="text-indigo-500" />
+            <CelebrationBurst />
+            <motion.div
+              initial={{ scale: 0, rotate: -12 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ ...popSpring, delay: 0.15 }}
+            >
+              <Trophy size={48} className="text-indigo-500" />
+            </motion.div>
             <div className="flex flex-col gap-1">
               <p className="text-xs uppercase tracking-widest text-indigo-500 font-semibold">Nivå upp!</p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{levelUpData.title}</p>
               <p className="text-gray-400 dark:text-gray-500 text-sm">Nivå {levelUpData.level}</p>
             </div>
-            <button
+            <PressableButton
               onClick={() => setLevelUpData(null)}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-2 rounded-lg transition-colors"
             >
               Tack!
-            </button>
-          </div>
-        </div>
+            </PressableButton>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-5 items-start">
         <div className="flex flex-col gap-4">
           {formVisible && (
-            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950">
+            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 bg-white dark:bg-gray-950">
               <PlanForm
                 isEditing={editingId !== null}
                 planName={planName}
@@ -335,7 +412,7 @@ export default function TrackingPage() {
           )}
 
           {loggerVisible && (
-            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-950">
+            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 bg-white dark:bg-gray-950">
               <WorkoutLogger
                 plans={activePlans}
                 onSave={(log) => { saveLog(log); setLoggingPlan(null); setAutoStart(false) }}
@@ -345,7 +422,11 @@ export default function TrackingPage() {
               />
             </div>
           )}
-          <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-950">
+          <motion.div
+            initial={fadeUp.initial}
+            animate={fadeUp.animate}
+            transition={fadeUpTransition(0)}
+            className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card overflow-hidden bg-white dark:bg-gray-950">
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
                 <Dumbbell size={15} className="text-indigo-500" />
@@ -359,23 +440,30 @@ export default function TrackingPage() {
             {plans.length === 0 ? (
               <p className="text-gray-400 dark:text-gray-500 text-sm px-5 py-4">Inga planer ännu. Skapa din första!</p>
             ) : (
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {plans.map((plan, i) => (
-                  <PlanCard
-                    key={plan.id}
-                    plan={plan}
-                    onEdit={openEditForm}
-                    onDelete={handleDeletePlan}
-                    onLog={(p) => openLogger({ name: p.name, icon: p.icon, exercises: p.exercises })}
-                    friends={friends}
-                    onShare={handleSharePlan}
-                    onUnshare={handleUnsharePlan}
-                    onDragStart={() => { planDragIndex.current = i }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => { if (planDragIndex.current !== null) reorderPlan(planDragIndex.current, i) }}
-                  />
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={plans}
+                onReorder={setPlans}
+                className="divide-y divide-gray-100 dark:divide-gray-800"
+              >
+                {plans.map((plan) => (
+                  <DraggableRow key={plan.id} value={plan} onDragEnd={persistPlanOrder}>
+                    {(startDrag) => (
+                      <PlanCard
+                        plan={plan}
+                        onEdit={openEditForm}
+                        onDelete={handleDeletePlan}
+                        onLog={(p) => openLogger({ name: p.name, icon: p.icon, exercises: p.exercises })}
+                        friends={friends}
+                        onShare={handleSharePlan}
+                        onUnshare={handleUnsharePlan}
+                        onGripPointerDown={startDrag}
+                      />
+                    )}
+                  </DraggableRow>
                 ))}
-              </div>
+              </Reorder.Group>
             )}
 
             <button
@@ -384,10 +472,14 @@ export default function TrackingPage() {
             >
               + Skapa ny plan
             </button>
-          </div>
+          </motion.div>
 
           {sharedPlans.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-950">
+            <motion.div
+              initial={fadeUp.initial}
+              animate={fadeUp.animate}
+              transition={fadeUpTransition(1)}
+              className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card overflow-hidden bg-white dark:bg-gray-950">
               <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
                 <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
                   <Users size={15} className="text-emerald-500" />
@@ -397,24 +489,35 @@ export default function TrackingPage() {
                   <p className="text-gray-400 dark:text-gray-500 text-xs">Träningsplaner som delats med dig</p>
                 </div>
               </div>
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {sharedPlans.map((plan, i) => (
-                  <SharedPlanCard
-                    key={plan.id}
-                    plan={plan}
-                    onLog={(p) => openLogger({ name: p.name, exercises: p.exercises })}
-                    onRemove={handleLeaveSharedPlan}
-                    onDragStart={() => { sharedPlanDragIndex.current = i }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => { if (sharedPlanDragIndex.current !== null) reorderSharedPlan(sharedPlanDragIndex.current, i) }}
-                  />
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={sharedPlans}
+                onReorder={setSharedPlans}
+                className="divide-y divide-gray-100 dark:divide-gray-800"
+              >
+                {sharedPlans.map((plan) => (
+                  <DraggableRow key={plan.id} value={plan}>
+                    {(startDrag) => (
+                      <SharedPlanCard
+                        plan={plan}
+                        onLog={(p) => openLogger({ name: p.name, exercises: p.exercises })}
+                        onRemove={handleLeaveSharedPlan}
+                        onGripPointerDown={startDrag}
+                      />
+                    )}
+                  </DraggableRow>
                 ))}
-              </div>
-            </div>
+              </Reorder.Group>
+            </motion.div>
           )}
         </div>
 
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-5 bg-white dark:bg-gray-950 sticky top-8">
+        <motion.div
+          initial={fadeUp.initial}
+          animate={fadeUp.animate}
+          transition={fadeUpTransition(2)}
+          className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 flex flex-col gap-5 bg-white dark:bg-gray-950 sticky top-8">
           <h3 className="font-semibold text-gray-900 dark:text-white">Översikt</h3>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
@@ -422,7 +525,7 @@ export default function TrackingPage() {
                 <Calendar size={16} className="text-blue-500" />
               </div>
               <div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">{plans.length}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white leading-none"><AnimatedNumber value={plans.length} /></p>
                 <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Planer</p>
               </div>
             </div>
@@ -431,7 +534,7 @@ export default function TrackingPage() {
                 <Dumbbell size={16} className="text-indigo-500" />
               </div>
               <div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">{totalExercises}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white leading-none"><AnimatedNumber value={totalExercises} /></p>
                 <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Övningar</p>
               </div>
             </div>
@@ -441,13 +544,13 @@ export default function TrackingPage() {
                   <Users size={16} className="text-emerald-500" />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">{sharedPlans.length}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white leading-none"><AnimatedNumber value={sharedPlans.length} /></p>
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Delade planer</p>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

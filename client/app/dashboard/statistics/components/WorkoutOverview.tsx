@@ -1,6 +1,7 @@
 "use client"
 
 import { Dumbbell, Layers, RotateCcw, TrendingUp, Flame } from "lucide-react"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
 import { useStatistics } from "./StatisticsContext"
 
 type ExerciseLog = {
@@ -109,7 +110,7 @@ export default function WorkoutOverview({ logs, allTime = false }: Props) {
   const current = computeStats(logs, currentFromStr, toStr, allTime)
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-950 overflow-hidden">
+    <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card bg-white dark:bg-gray-950 overflow-hidden">
       <div className="px-5 pt-5 pb-2">
         <h2 className="text-gray-900 dark:text-white font-semibold text-lg">Översikt</h2>
       </div>
@@ -123,7 +124,7 @@ export default function WorkoutOverview({ logs, allTime = false }: Props) {
                 <Icon size={18} className={iconColor} />
               </div>
               <div className="min-w-0">
-                <p className="text-lg font-bold text-gray-900 dark:text-white leading-none whitespace-nowrap">{format(value)}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white leading-none whitespace-nowrap"><AnimatedNumber value={value} format={format} /></p>
                 <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{label}</p>
               </div>
             </div>

@@ -10,7 +10,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const isFood = pathname.startsWith("/dashboard/foodtracking")
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-row">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-row">
         <Navbar />
         <main
           className={`flex-1 p-4 lg:p-8 min-w-0 overflow-y-auto ${

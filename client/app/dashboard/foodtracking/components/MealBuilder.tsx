@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import dynamic from "next/dynamic"
+import { motion } from "motion/react"
 import { ScanBarcode, Plus, X, Pencil } from "lucide-react"
+import { layoutSpring } from "@/lib/motion"
+import PressableButton from "@/app/components/PressableButton"
 import { calcMacros, sumMacros, lookupBarcode, mealItemsToInputs, type Meal, type FoodItemInput, type OFFProduct } from "@/lib/food-utils"
 import FoodEntryForm from "./FoodEntryForm"
 
@@ -96,7 +99,7 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-5 flex flex-col gap-4">
+    <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-5 flex flex-col gap-4">
       <p className="text-gray-900 dark:text-white font-semibold">
         {initial ? "Redigera måltid" : "Ny måltid"}
       </p>
@@ -134,7 +137,13 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
             {items.map((item, i) => {
               const m = calcMacros(item)
               return (
-                <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-white dark:bg-gray-900">
+                <motion.div
+                  key={i}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={layoutSpring}
+                  className="flex items-center gap-3 px-3 py-2.5 bg-white dark:bg-gray-900">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-800 dark:text-gray-200 truncate">{item.name}</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
@@ -155,7 +164,7 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
                   >
                     <X size={15} />
                   </button>
-                </div>
+                </motion.div>
               )
             })}
           </div>
@@ -178,20 +187,20 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
       ) : (
         !lookingUp && (
           <div className="flex gap-2 flex-wrap">
-            <button
+            <PressableButton
               onClick={() => setShowScanner(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+              className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
             >
-              <ScanBarcode size={15} />
+              <ScanBarcode size={15} className="transition-transform duration-200 group-hover:scale-110" />
               Skanna streckkod
-            </button>
-            <button
+            </PressableButton>
+            <PressableButton
               onClick={() => setItemForm({ mode: "manual", product: null, barcode: null, notice: null })}
-              className="border border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+              className="group border border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
             >
-              <Plus size={15} />
+              <Plus size={15} className="transition-transform duration-200 group-hover:rotate-90" />
               Lägg till manuellt
-            </button>
+            </PressableButton>
           </div>
         )
       )}
@@ -202,13 +211,13 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
           {" · "}{totals.protein} g protein · {totals.carbs} g kolhydrater · {totals.fat} g fett
         </p>
         <div className="flex gap-2">
-          <button
+          <PressableButton
             onClick={handleSave}
             disabled={!valid || saving}
             className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors"
           >
             {saving ? "Sparar…" : "Spara måltid"}
-          </button>
+          </PressableButton>
           <button
             onClick={onCancel}
             className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 text-sm"

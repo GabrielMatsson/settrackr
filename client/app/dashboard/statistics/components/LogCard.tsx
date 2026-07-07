@@ -43,7 +43,7 @@ function formatDate(dateStr: string) {
 function DifficultyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const options = [
     { key: "easy", label: "Lätt", active: "bg-green-600 text-white", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
-    { key: "medium", label: "Medium", active: "bg-yellow-500 text-gray-900", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
+    { key: "medium", label: "Medium", active: "bg-amber-500 text-amber-950", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
     { key: "hard", label: "Tufft", active: "bg-red-600 text-white", inactive: "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
   ]
   return (
@@ -117,7 +117,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
 
   if (editing) {
     return (
-      <div className="bg-white dark:bg-gray-950 border border-indigo-500 rounded-2xl overflow-hidden p-5 flex flex-col gap-4">
+      <div className="bg-white dark:bg-gray-950 border border-indigo-500 rounded-2xl shadow-card overflow-hidden p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <input
             value={planName}
@@ -182,7 +182,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
   const workoutIcon = getWorkoutIcon(log.icon)
 
   return (
-    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
+    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card">
       <div
         className="flex items-center gap-2 sm:gap-4 px-3 py-3 sm:px-5 sm:py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
         onClick={() => setExpanded((v) => !v)}
@@ -244,8 +244,8 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
-          <div className="md:hidden flex flex-col divide-y divide-gray-100 dark:divide-gray-800 px-3 py-2">
+        <div className="border-t border-indigo-100 dark:border-gray-800 bg-indigo-50/50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
+          <div className="md:hidden flex flex-col divide-y divide-indigo-100/60 dark:divide-gray-800 px-3 py-2">
             {log.exercises.map((ex, i) => (
               <div key={i} className="flex items-center justify-between gap-3 py-3">
                 <div className="flex flex-col gap-0.5 min-w-0">
@@ -260,7 +260,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
           </div>
           <table className="hidden md:table w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800">
+              <tr className="border-b border-indigo-100 dark:border-gray-800">
                 <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Övningar</th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Set</th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Reps</th>
@@ -269,7 +269,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
                 <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody className="divide-y divide-indigo-100/60 dark:divide-gray-800">
               {log.exercises.map((ex, i) => (
                 <tr key={i}>
                   <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>

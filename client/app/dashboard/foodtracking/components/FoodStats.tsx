@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { motion } from "motion/react"
 import { ChevronLeft, ChevronRight, Flame, Beef, Target, Utensils } from "lucide-react"
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts"
 import { getMealsRange, getMe } from "@/lib/api"
 import { todayStr, shiftDate, startOfWeek, weekDates, dailyTotals, weekSummary, type Meal } from "@/lib/food-utils"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
+import { fadeUp, fadeUpTransition } from "@/lib/motion"
 
 // Chart palette validated with the dataviz six-checks script — passes light AND dark surfaces
 const KCAL_COLOR = "#059669"    // emerald-600
@@ -31,7 +34,8 @@ function weekLabel(startStr: string): string {
 
 type Tile = {
   label: string
-  value: string
+  value: number | null // null renders as "–"
+  suffix?: string
   sub: string
   icon: typeof Flame
   chip: string
@@ -78,22 +82,22 @@ export default function FoodStats() {
 
   const tiles: Tile[] = [
     {
-      label: "Snitt kcal/dag", value: summary.loggedDays > 0 ? String(summary.avgKcal) : "–",
+      label: "Snitt kcal/dag", value: summary.loggedDays > 0 ? summary.avgKcal : null,
       sub: `mål ${kcalTarget}`, icon: Flame,
       chip: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400",
     },
     {
-      label: "Snitt protein/dag", value: summary.loggedDays > 0 ? `${summary.avgProtein} g` : "–",
+      label: "Snitt protein/dag", value: summary.loggedDays > 0 ? summary.avgProtein : null, suffix: " g",
       sub: `mål ${proteinTarget} g`, icon: Beef,
       chip: "bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400",
     },
     {
-      label: "Dagar i mål", value: summary.loggedDays > 0 ? String(summary.daysOnTarget) : "–",
+      label: "Dagar i mål", value: summary.loggedDays > 0 ? summary.daysOnTarget : null,
       sub: `av ${summary.loggedDays} loggade`, icon: Target,
       chip: "bg-lime-100 dark:bg-lime-900/40 text-lime-600 dark:text-lime-400",
     },
     {
-      label: "Måltider", value: String(meals.length),
+      label: "Måltider", value: meals.length,
       sub: "denna vecka", icon: Utensils,
       chip: "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400",
     },
@@ -106,18 +110,18 @@ export default function FoodStats() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setWeekStart(shiftDate(weekStart, -7))}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors"
+            className="group p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors"
             aria-label="Föregående vecka"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
           <button
             onClick={() => setWeekStart(shiftDate(weekStart, 7))}
             disabled={isCurrentWeek}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="group p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Nästa vecka"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
           {!isCurrentWeek && (
             <button
@@ -134,17 +138,24 @@ export default function FoodStats() {
       {loading && <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {tiles.map(({ label, value, sub, icon: Icon, chip }) => (
-          <div key={label} className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-4 flex flex-col gap-2">
+        {tiles.map(({ label, value, suffix, sub, icon: Icon, chip }, i) => (
+          <motion.div
+            key={label}
+            initial={fadeUp.initial}
+            animate={fadeUp.animate}
+            transition={fadeUpTransition(i)}
+            className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-4 flex flex-col gap-2">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${chip}`}>
               <Icon size={17} />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{value}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                {value === null ? "–" : <><AnimatedNumber value={value} />{suffix}</>}
+              </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500">{sub}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -155,13 +166,13 @@ export default function FoodStats() {
         </div>
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-5 flex flex-col gap-4">
+          <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-5 flex flex-col gap-4">
             <p className="text-gray-900 dark:text-white font-semibold">Kalorier per dag</p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData} margin={{ top: 12, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
-                <XAxis dataKey="day" tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kcal`]} cursor={{ fill: "rgba(5,150,105,0.08)" }} />
                 <ReferenceLine y={kcalTarget} stroke={TARGET_COLOR} strokeDasharray="4 4" label={{ value: "Mål", fill: TARGET_COLOR, fontSize: 11, position: "insideTopRight" }} />
                 <Bar dataKey="kcal" fill={KCAL_COLOR} radius={[4, 4, 0, 0]} maxBarSize={28} />
@@ -169,13 +180,13 @@ export default function FoodStats() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-5 flex flex-col gap-4">
+          <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-5 flex flex-col gap-4">
             <p className="text-gray-900 dark:text-white font-semibold">Protein per dag</p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData} margin={{ top: 12, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
-                <XAxis dataKey="day" tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} unit=" g" width={44} />
+                <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} unit=" g" width={44} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} g protein`]} cursor={{ fill: "rgba(13,148,136,0.08)" }} />
                 <ReferenceLine y={proteinTarget} stroke={TARGET_COLOR} strokeDasharray="4 4" label={{ value: "Mål", fill: TARGET_COLOR, fontSize: 11, position: "insideTopRight" }} />
                 <Bar dataKey="protein" fill={PROTEIN_COLOR} radius={[4, 4, 0, 0]} maxBarSize={28} />

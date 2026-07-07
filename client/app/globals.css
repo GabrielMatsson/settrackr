@@ -1,11 +1,29 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* Remap gray → slate: cool blue-grey that pairs with the indigo accent */
+  --color-gray-50: oklch(0.984 0.003 247.858); /* #f8fafc */
+  --color-gray-100: oklch(0.968 0.007 247.896); /* #f1f5f9 */
+  --color-gray-200: oklch(0.929 0.013 255.508); /* #e2e8f0 */
+  --color-gray-300: oklch(0.869 0.022 252.894); /* #cbd5e1 */
+  --color-gray-400: oklch(0.704 0.04 256.788); /* #94a3b8 */
+  --color-gray-500: oklch(0.554 0.046 257.417); /* #64748b */
+  --color-gray-600: oklch(0.446 0.043 257.281); /* #475569 */
+  --color-gray-700: oklch(0.372 0.044 257.287); /* #334155 */
+  --color-gray-800: oklch(0.279 0.041 260.031); /* #1e293b */
+  --color-gray-900: oklch(0.208 0.042 265.755); /* #0f172a */
+  --color-gray-950: oklch(0.129 0.042 264.695); /* #020617 */
+
+  /* Subtle card lift for light mode (~invisible on the dark page) */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --ring-track: #e5e7eb;
-  --color-grid: #e5e7eb;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --ring-track: #e2e8f0;
+  --color-grid: #e2e8f0;
 }
 
 @theme inline {
@@ -18,14 +36,14 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --ring-track: #1f2937;
-  --color-grid: #374151;
+  --ring-track: #1e293b;
+  --color-grid: #334155;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 .no-scrollbar {
@@ -34,12 +52,4 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-}
-
-@keyframes toast-slide-in {
-  from { transform: translateX(110%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-.toast-slide-in {
-  animation: toast-slide-in 0.2s ease-out;
 }

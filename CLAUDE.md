@@ -99,13 +99,17 @@ client/
 
 Standard Tailwind tokens — follow these when adding or editing UI:
 
-- **Card**: `bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl` with `p-5`/`p-6` (tinted section headers inside cards use `bg-gray-50 dark:bg-gray-900`)
+- **Page background**: `bg-gray-50 dark:bg-gray-950` — set in `DashboardShell.tsx`, never per page
+- **Grey palette**: `gray-*` is remapped to Tailwind slate values in `globals.css` `@theme` — always write `gray-*`, never `slate-*`
+- **Card**: `bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card` with `p-5`/`p-6` (tinted section headers inside cards use `bg-gray-50 dark:bg-gray-900`; overlays/modals use `shadow-lg`/`shadow-xl` instead of `shadow-card`)
+- **Font**: Geist Sans via `next/font` in `layout.tsx` — never reintroduce Arial/system stacks
 - **Page h1**: `text-2xl font-bold text-gray-900 dark:text-white` (exception: home greeting is `text-3xl`)
 - **Select/input**: `bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500`
 - **Primary button**: `bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg`
 - **Status text**: error `text-red-500 dark:text-red-400`, success `text-green-500 dark:text-green-400`
-- **Difficulty badge**: use the shared `client/app/components/DifficultyBadge.tsx` (classes come from `getDifficulty` in `lib/workout-utils.ts`) — don't inline badge markup
+- **Difficulty badge**: use the shared `client/app/components/DifficultyBadge.tsx` (classes come from `getDifficulty` in `lib/workout-utils.ts`) — don't inline badge markup; medium is **amber**, not yellow
 - **Page width**: `max-w-4xl mx-auto w-full` (tracking uses 5xl, admin 2xl)
+- **Animations**: Motion (`motion/react`) with global `MotionConfig reducedMotion="user"` in providers.tsx — full conventions (springs, durations, patterns) live in the `settrackr-design` project skill (`.claude/skills/settrackr-design/SKILL.md`)
 
 ## Deployment
 

@@ -14,7 +14,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "easy"
             ? "border border-green-500 bg-green-500 text-white"
-            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+            : "border border-indigo-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
         Lätt
@@ -24,8 +24,8 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         onClick={() => onChange("medium")}
         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "medium"
-            ? "border border-yellow-500 bg-yellow-500 text-gray-900"
-            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+            ? "border border-amber-500 bg-amber-500 text-amber-950"
+            : "border border-indigo-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
         Medium
@@ -36,7 +36,7 @@ export default function DifficultyPicker({ value, onChange }: Props) {
         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
           value === "hard"
             ? "border border-red-500 bg-red-500 text-white"
-            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+            : "border border-indigo-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
         }`}
       >
         Tuff

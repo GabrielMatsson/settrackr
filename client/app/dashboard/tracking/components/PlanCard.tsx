@@ -2,6 +2,7 @@
 
 import { useState, createElement } from "react"
 import { ChevronDown, GripVertical } from "lucide-react"
+import PressableButton from "@/app/components/PressableButton"
 import { getWorkoutIcon } from "@/lib/workout-utils"
 import type { WorkoutPlan } from "./types"
 
@@ -16,12 +17,11 @@ type Props = {
   friends?: Friend[]
   onShare?: (planId: number, friendId: number) => Promise<void>
   onUnshare?: (planId: number, friendId: number) => void
-  onDragStart?: () => void
-  onDragOver?: (e: React.DragEvent) => void
-  onDrop?: () => void
+  // Starts a Motion Reorder drag from the grip handle
+  onGripPointerDown?: (e: React.PointerEvent) => void
 }
 
-export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], onShare, onUnshare, onDragStart, onDragOver, onDrop }: Props) {
+export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], onShare, onUnshare, onGripPointerDown }: Props) {
   const [expanded, setExpanded] = useState(false)
   const planIcon = getWorkoutIcon(plan.icon)
   const [sharingOpen, setSharingOpen] = useState(false)
@@ -43,17 +43,14 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
   return (
     <div>
       <div
-        draggable={!!onDragStart}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
         className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
         onClick={() => setExpanded(!expanded)}
       >
-        {onDragStart && (
+        {onGripPointerDown && (
           <GripVertical
             size={16}
-            className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab shrink-0"
+            className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+            onPointerDown={(e) => { e.stopPropagation(); onGripPointerDown(e) }}
             onClick={(e) => e.stopPropagation()}
           />
         )}
@@ -130,12 +127,12 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
           )}
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
+            <PressableButton
               onClick={() => onLog(plan)}
               className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
             >
               Logga pass
-            </button>
+            </PressableButton>
             {friends.length > 0 && (
               <button
                 onClick={() => setSharingOpen(!sharingOpen)}

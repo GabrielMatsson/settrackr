@@ -121,7 +121,7 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
 
   return (
     <div className={hideBarChart ? "flex flex-col gap-4" : "grid grid-cols-1 lg:grid-cols-2 gap-4"}>
-      <div className={noCard ? "flex flex-col gap-4" : "bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4"}>
+      <div className={noCard ? "flex flex-col gap-4" : "bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 flex flex-col gap-4"}>
         <div className="flex items-center justify-between">
           {!noCard && <p className="text-gray-900 dark:text-white font-semibold">Viktutveckling</p>}
           {exerciseNames.length > 0 ? (
@@ -157,10 +157,10 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
-              <XAxis dataKey="date" tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#9ca3af", fontSize: 11, dx: -10 }} unit=" kg" axisLine={false} tickLine={false} width={48} />
+              <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#94a3b8", fontSize: 11, dx: -10 }} unit=" kg" axisLine={false} tickLine={false} width={48} />
               <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`]} />
-              {hasFriend && <Legend wrapperStyle={{ fontSize: 12, color: "#9ca3af" }} />}
+              {hasFriend && <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8" }} />}
               <Area
                 type="monotone"
                 dataKey="weight"
@@ -191,7 +191,7 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
       </div>
 
       {!hideBarChart && (
-        <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 flex flex-col gap-4">
           <p className="text-gray-900 dark:text-white font-semibold">Pass per vecka</p>
 
           {barData.length === 0 ? (
@@ -208,8 +208,8 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
-                <XAxis dataKey="week" tick={{ fill: "#9ca3af", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <XAxis dataKey="week" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} allowDecimals={false} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v) => [v, "Pass"]} cursor={{ fill: "rgba(99,102,241,0.06)" }} />
                 <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
               </BarChart>

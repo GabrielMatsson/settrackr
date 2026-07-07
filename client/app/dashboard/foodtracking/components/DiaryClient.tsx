@@ -1,12 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "motion/react"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { getMeals, createMeal, updateMeal, deleteMeal, getMe } from "@/lib/api"
 import { sumMealsMacros, mealItemsToInputs, todayStr, shiftDate, formatDateLabel, type Meal, type FoodItemInput } from "@/lib/food-utils"
 import ProgressRing from "@/app/components/ProgressRing"
+import AnimatedNumber from "@/app/components/AnimatedNumber"
+import PressableButton from "@/app/components/PressableButton"
+import { easeOut, fadeUp, fadeUpTransition } from "@/lib/motion"
 import MealBuilder from "./MealBuilder"
 import MealCard from "./MealCard"
+import KostMascot from "./KostMascot"
 
 type BuilderState = null | { mode: "create" } | { mode: "edit"; meal: Meal }
 
@@ -87,15 +92,16 @@ export default function DiaryClient() {
   }
 
   return (
+    <div className="lg:grid lg:grid-cols-[1fr_240px] lg:gap-5 lg:items-start">
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-1">
           <button
             onClick={() => setDate(shiftDate(date, -1))}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors"
+            className="group p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors"
             aria-label="Föregående dag"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
           <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[90px] text-center">
             {formatDateLabel(date)}
@@ -103,10 +109,10 @@ export default function DiaryClient() {
           <button
             onClick={() => setDate(shiftDate(date, 1))}
             disabled={isToday}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="group p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Nästa dag"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
           {!isToday && (
             <button
@@ -119,47 +125,60 @@ export default function DiaryClient() {
         </div>
 
         {!builder && (
-          <button
+          <PressableButton
             onClick={() => setBuilder({ mode: "create" })}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-md shadow-emerald-500/20"
+            className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-md shadow-emerald-500/20"
           >
-            <Plus size={16} />
+            <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" />
             Ny måltid
-          </button>
+          </PressableButton>
         )}
       </div>
 
       {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
 
-      <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-5 flex items-center justify-around gap-4 flex-wrap">
+      <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-5 flex items-center justify-around gap-4 flex-wrap">
         <ProgressRing
           value={totals.kcal}
           target={kcalTarget}
           label="Kalorier"
-          centerText={`${Math.round((totals.kcal / kcalTarget) * 100)}%`}
+          centerText={<><AnimatedNumber value={Math.round((totals.kcal / kcalTarget) * 100)} />%</>}
           color="#10b981"
         />
         <ProgressRing
           value={totals.protein}
           target={proteinTarget}
           label="Protein"
-          centerText={`${Math.round((totals.protein / proteinTarget) * 100)}%`}
+          centerText={<><AnimatedNumber value={Math.round((totals.protein / proteinTarget) * 100)} />%</>}
           color="#84cc16"
         />
         <div className="flex flex-col gap-1 text-sm">
-          <p className="text-gray-900 dark:text-white font-semibold">{totals.kcal} / {kcalTarget} kcal</p>
-          <p className="text-gray-500 dark:text-gray-400">{totals.protein} / {proteinTarget} g protein</p>
+          <p className="text-gray-900 dark:text-white font-semibold"><AnimatedNumber value={totals.kcal} /> / {kcalTarget} kcal</p>
+          <p className="text-gray-500 dark:text-gray-400"><AnimatedNumber value={totals.protein} decimals={1} /> / {proteinTarget} g protein</p>
           <p className="text-gray-400 dark:text-gray-500 text-xs">{totals.carbs} g kolhydrater · {totals.fat} g fett</p>
         </div>
       </div>
 
-      {builder && (
-        <MealBuilder
-          initial={builder.mode === "edit" ? builder.meal : undefined}
-          onSave={handleSave}
-          onCancel={() => setBuilder(null)}
-        />
-      )}
+      <div className="lg:hidden">
+        <KostMascot compact kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
+      </div>
+
+      <AnimatePresence>
+        {builder && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.22, ease: easeOut }}
+          >
+            <MealBuilder
+              initial={builder.mode === "edit" ? builder.meal : undefined}
+              onSave={handleSave}
+              onCancel={() => setBuilder(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
         <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>
@@ -171,20 +190,31 @@ export default function DiaryClient() {
           <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Tryck på Ny måltid för att komma igång.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div key={date} className="flex flex-col gap-3">
           {meals.map((meal, i) => (
-            <MealCard
+            <motion.div
               key={meal.id}
-              meal={meal}
-              index={i}
-              onEdit={() => setBuilder({ mode: "edit", meal })}
-              onCopy={() => handleCopy(meal)}
-              onMove={(delta) => handleMove(meal, delta)}
-              onDelete={() => handleDelete(meal.id)}
-            />
+              initial={fadeUp.initial}
+              animate={fadeUp.animate}
+              transition={fadeUpTransition(i)}
+            >
+              <MealCard
+                meal={meal}
+                index={i}
+                onEdit={() => setBuilder({ mode: "edit", meal })}
+                onCopy={() => handleCopy(meal)}
+                onMove={(delta) => handleMove(meal, delta)}
+                onDelete={() => handleDelete(meal.id)}
+              />
+            </motion.div>
           ))}
         </div>
       )}
+    </div>
+
+    <div className="hidden lg:block sticky top-8">
+      <KostMascot kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
+    </div>
     </div>
   )
 }

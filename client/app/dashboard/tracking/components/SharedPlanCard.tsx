@@ -11,12 +11,11 @@ type Props = {
   plan: SharedPlan
   onLog: (plan: SharedPlan) => void
   onRemove: (planId: number) => void
-  onDragStart?: () => void
-  onDragOver?: (e: React.DragEvent) => void
-  onDrop?: () => void
+  // Starts a Motion Reorder drag from the grip handle
+  onGripPointerDown?: (e: React.PointerEvent) => void
 }
 
-export default function SharedPlanCard({ plan, onLog, onRemove, onDragStart, onDragOver, onDrop }: Props) {
+export default function SharedPlanCard({ plan, onLog, onRemove, onGripPointerDown }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   const ownerLabel = plan.owner.name ?? plan.owner.email.split("@")[0]
@@ -25,17 +24,14 @@ export default function SharedPlanCard({ plan, onLog, onRemove, onDragStart, onD
   return (
     <div>
       <div
-        draggable={!!onDragStart}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
         className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
         onClick={() => setExpanded(!expanded)}
       >
-        {onDragStart && (
+        {onGripPointerDown && (
           <GripVertical
             size={16}
-            className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab shrink-0"
+            className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+            onPointerDown={(e) => { e.stopPropagation(); onGripPointerDown(e) }}
             onClick={(e) => e.stopPropagation()}
           />
         )}

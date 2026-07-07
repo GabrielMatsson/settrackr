@@ -63,7 +63,7 @@ function FriendLogRow({ log }: { log: WorkoutLog }) {
   const workoutIcon = getWorkoutIcon(log.icon)
 
   return (
-    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl">
+    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card">
       <div
         className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
         onClick={() => setExpanded((v) => !v)}
@@ -100,10 +100,10 @@ function FriendLogRow({ log }: { log: WorkoutLog }) {
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
+        <div className="border-t border-indigo-100 dark:border-gray-800 bg-indigo-50/50 dark:bg-gray-900/50 rounded-b-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800">
+              <tr className="border-b border-indigo-100 dark:border-gray-800">
                 <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Övningar</th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Set</th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">Reps</th>
@@ -112,7 +112,7 @@ function FriendLogRow({ log }: { log: WorkoutLog }) {
                 <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody className="divide-y divide-indigo-100/60 dark:divide-gray-800">
               {log.exercises.map((ex, i) => (
                 <tr key={i}>
                   <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>
@@ -277,7 +277,7 @@ export default function FriendProfile({ friend, onBack }: Props) {
       {plans.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-gray-900 dark:text-white font-semibold">Träningsplaner</p>
-          <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-950">
+          <div className="border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card overflow-hidden bg-white dark:bg-gray-950">
             <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {plans.map((plan) => (
                 <FriendPlanRow

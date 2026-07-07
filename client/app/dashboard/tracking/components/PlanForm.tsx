@@ -106,7 +106,7 @@ export default function PlanForm({
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-5">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-6 flex flex-col gap-5">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
         {isEditing ? "Redigera plan" : "Ny träningsplan"}
       </h2>

@@ -126,7 +126,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
         className={`rounded-2xl border shadow-sm overflow-hidden transition-colors ${
           state.done
             ? "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20"
-            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+            : "border-indigo-100 dark:border-gray-700 bg-white dark:bg-gray-900"
         }`}
       >
         <div className="px-4 pt-4 pb-3 flex items-start gap-3">
@@ -134,7 +134,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
             type="button"
             onClick={() => updateDone(i, !state.done)}
             className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${
-              state.done ? "bg-green-500 border-green-500" : "border-gray-300 dark:border-gray-500"
+              state.done ? "bg-green-500 border-green-500" : "border-indigo-300 dark:border-gray-500"
             }`}
           >
             {state.done && <Check size={11} className="text-white" strokeWidth={3} />}
@@ -165,7 +165,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
                 className={`w-16 text-right text-base font-semibold rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
                   state.done
                     ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+                    : "bg-indigo-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                 }`}
               />
               <span className="text-xs text-gray-400 dark:text-gray-500">kg</span>
@@ -174,7 +174,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
         </div>
 
         <div className={`px-4 py-3 flex items-center gap-3 border-t ${
-          state.done ? "border-green-200 dark:border-green-800" : "border-gray-100 dark:border-gray-800"
+          state.done ? "border-green-200 dark:border-green-800" : "border-indigo-100 dark:border-gray-800"
         }`}>
           <span className="text-xs text-gray-400 dark:text-gray-500 font-medium shrink-0">Intensitet</span>
           <DifficultyPicker value={state.difficulty} onChange={(d) => updateDifficulty(i, d)} />

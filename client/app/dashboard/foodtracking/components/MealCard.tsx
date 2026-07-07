@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { motion, AnimatePresence } from "motion/react"
 import { ChevronDown, ChevronLeft, ChevronRight, Pencil, Trash2, Copy, Coffee, Utensils, UtensilsCrossed, Cookie } from "lucide-react"
+import { accordionSpring } from "@/lib/motion"
 import { calcMacros, sumMacros, mealAccent, todayStr, type Meal, type MealAccentKey } from "@/lib/food-utils"
 
 const ACCENTS: Record<MealAccentKey, { border: string; chip: string; icon: typeof Coffee }> = {
@@ -29,7 +31,7 @@ export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete
   const canMoveForward = meal.date < todayStr()
 
   return (
-    <div className={`bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 border-l-4 ${accent.border} rounded-2xl overflow-hidden`}>
+    <div className={`bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 border-l-4 ${accent.border} rounded-2xl shadow-card overflow-hidden`}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
@@ -49,8 +51,14 @@ export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete
         />
       </button>
 
+      <AnimatePresence initial={false}>
       {expanded && (
-        <div className="border-t border-emerald-50 dark:border-emerald-900/30">
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={accordionSpring}
+          className="overflow-hidden border-t border-emerald-50 dark:border-emerald-900/30">
           <div className="divide-y divide-emerald-50 dark:divide-emerald-900/30">
             {meal.items.map((item) => {
               const m = calcMacros(item)
@@ -129,8 +137,9 @@ export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

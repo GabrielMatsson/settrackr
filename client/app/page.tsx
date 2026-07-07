@@ -2,8 +2,8 @@ import { signIn } from "@/auth"
 
 export default function LoginPage() {
   return (
-    <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-950 px-6 py-8">
-      <div className="flex flex-col items-center gap-8 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-8 sm:px-12 py-10 sm:py-14 w-full max-w-sm shadow-xl">
+    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-6 py-8">
+      <div className="flex flex-col items-center gap-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl px-8 sm:px-12 py-10 sm:py-14 w-full max-w-sm shadow-xl">
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">SetTrackr</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Håll koll på din träning</p>
