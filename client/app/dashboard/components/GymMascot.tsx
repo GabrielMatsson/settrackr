@@ -155,7 +155,7 @@ export default function GymMascot({ weekCount, weeklyGoal, daysSinceLast, compac
         transition={{ duration: 0.5, ease: easeOut }}
         style={{ originY: 1 }}
       >
-        <svg viewBox="0 0 200 120" className={compact ? "w-32 h-auto" : "w-44 h-auto mx-auto"} aria-hidden="true">
+        <svg viewBox="0 0 200 120" className={compact ? "w-32 h-auto" : "w-28 h-auto mx-auto"} aria-hidden="true">
           {/* ground shadow */}
           <motion.ellipse
             cx="100" cy="108" rx="64" ry="5"
@@ -259,7 +259,7 @@ export default function GymMascot({ weekCount, weeklyGoal, daysSinceLast, compac
       <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-4 flex items-center gap-5">
         {figure}
         <div className="flex flex-col gap-0.5 min-w-0">
-          <p className="text-gray-900 dark:text-white font-semibold text-sm">Hasse</p>
+          <p className="text-gray-900 dark:text-white font-semibold text-sm">Hasse Hantel</p>
           {label}
         </div>
       </div>
@@ -267,8 +267,8 @@ export default function GymMascot({ weekCount, weeklyGoal, daysSinceLast, compac
   }
 
   return (
-    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-5 flex flex-col items-center gap-3">
-      <p className="text-gray-900 dark:text-white font-semibold text-sm self-start">Hasse</p>
+    <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-4 flex flex-col items-center gap-2">
+      <p className="text-gray-900 dark:text-white font-semibold text-sm self-start">Hasse Hantel</p>
       {figure}
       {label}
     </div>

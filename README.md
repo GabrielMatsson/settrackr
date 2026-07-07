@@ -4,6 +4,19 @@
 ### Background
 Gym web app where you can track your workouts with set and rep tracking. The user inputs each workout with name, weight, reps, sets. This get stored and you can view your progress on a statistics page.
 
+### Screenshots
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/01-dashboard.png" width="400" alt="Dashboard" /><br/><sub>Dashboard — daily overview, streaks, and Hasse Hantel</sub></td>
+    <td><img src="docs/screenshots/02-food-diary.png" width="400" alt="Food diary" /><br/><sub>Food diary — meal tracking with Avo</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/03-workout-logging.png" width="400" alt="Workout logging" /><br/><sub>Logging a workout (mobile)</sub></td>
+    <td><img src="docs/screenshots/04-food-stats.png" width="400" alt="Food statistics" /><br/><sub>Weekly nutrition stats (mobile)</sub></td>
+  </tr>
+</table>
+
 ### TeckStack
 Client-side
 - Next.js

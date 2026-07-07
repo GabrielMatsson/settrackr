@@ -66,41 +66,45 @@ export default function PlanForm({
         onDragStart={() => { dragIndex.current = i }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => { if (dragIndex.current !== null) onReorder(dragIndex.current, i) }}
-        className="flex gap-3 items-center group"
+        className="flex flex-col gap-2 group"
       >
-        <GripVertical
-          size={16}
-          className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab shrink-0"
-        />
-        <input
-          type="text"
-          value={ex.name}
-          onChange={(e) => onUpdateName(i, e.target.value)}
-          placeholder="Övningens namn"
-          className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-        />
-        <select
-          value={ex.sets}
-          onChange={(e) => onUpdateSets(i, Number(e.target.value))}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-        >
-          {getSetOptions()}
-        </select>
-        <select
-          value={ex.reps}
-          onChange={(e) => onUpdateReps(i, Number(e.target.value))}
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-        >
-          {getRepOptions()}
-        </select>
-        {exercises.length > 1 && (
-          <button
-            onClick={() => onRemoveExercise(i)}
-            className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
+        <div className="flex gap-3 items-center">
+          <GripVertical
+            size={16}
+            className="text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 cursor-grab shrink-0"
+          />
+          <input
+            type="text"
+            value={ex.name}
+            onChange={(e) => onUpdateName(i, e.target.value)}
+            placeholder="Övningens namn"
+            className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+          />
+          {exercises.length > 1 && (
+            <button
+              onClick={() => onRemoveExercise(i)}
+              className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors shrink-0"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        <div className="flex gap-2 items-center flex-wrap pl-7">
+          <select
+            value={ex.sets}
+            onChange={(e) => onUpdateSets(i, Number(e.target.value))}
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
           >
-            <X size={16} />
-          </button>
-        )}
+            {getSetOptions()}
+          </select>
+          <select
+            value={ex.reps}
+            onChange={(e) => onUpdateReps(i, Number(e.target.value))}
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+          >
+            {getRepOptions()}
+          </select>
+        </div>
       </div>
     )
   }

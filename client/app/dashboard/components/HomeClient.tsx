@@ -148,7 +148,7 @@ export default function HomeClient({ name }: Props) {
   const daysSinceLast = daysSinceLastLog(lastLog)
 
   return (
-    <div className="lg:grid lg:grid-cols-[1fr_240px] lg:gap-5 lg:items-start max-w-4xl mx-auto w-full">
+    <div className="xl:grid xl:grid-cols-[1fr_200px] xl:gap-4 xl:items-start max-w-4xl xl:max-w-5xl mx-auto w-full">
     <div className="flex flex-col gap-8 min-w-0">
       <div className="flex items-start justify-between">
         <div>
@@ -198,7 +198,7 @@ export default function HomeClient({ name }: Props) {
         </div>
       </div>
 
-      <div className="lg:hidden">
+      <div className="xl:hidden">
         <GymMascot compact weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
       </div>
 
@@ -290,7 +290,7 @@ export default function HomeClient({ name }: Props) {
       {showGhost   && <GhostAnimation   onDone={() => setGhostDismissed(true)} />}
     </div>
 
-    <div className="hidden lg:block sticky top-8">
+    <div className="hidden xl:block sticky top-8">
       <GymMascot weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
     </div>
     </div>
