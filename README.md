@@ -8,12 +8,12 @@ Gym web app where you can track your workouts with set and rep tracking. The use
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/01-dashboard.png" width="400" alt="Dashboard" /><br/><sub>Dashboard — daily overview, streaks, and Hasse Hantel</sub></td>
-    <td><img src="docs/screenshots/02-food-diary.png" width="400" alt="Food diary" /><br/><sub>Food diary — meal tracking with Avo</sub></td>
+    <td><img src="docs/screenshots/01-dashboard.png" height="260" alt="Dashboard" /><br/><sub>Dashboard — daily overview, streaks, and Hasse Hantel</sub></td>
+    <td><img src="docs/screenshots/02-food-diary.png" height="260" alt="Food diary" /><br/><sub>Food diary — meal tracking with Avo</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/03-workout-logging.png" width="400" alt="Workout logging" /><br/><sub>Logging a workout (mobile)</sub></td>
-    <td><img src="docs/screenshots/04-food-stats.png" width="400" alt="Food statistics" /><br/><sub>Weekly nutrition stats (mobile)</sub></td>
+    <td><img src="docs/screenshots/03-workout-logging.png" height="260" alt="Workout logging" /><br/><sub>Logging a workout (mobile)</sub></td>
+    <td><img src="docs/screenshots/04-food-stats.png" height="260" alt="Food statistics" /><br/><sub>Weekly nutrition stats (mobile)</sub></td>
   </tr>
 </table>
 
