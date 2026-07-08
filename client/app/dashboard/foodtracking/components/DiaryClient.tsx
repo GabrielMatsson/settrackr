@@ -22,6 +22,7 @@ export default function DiaryClient() {
   const [error, setError] = useState<string | null>(null)
   const [kcalTarget, setKcalTarget] = useState(2200)
   const [proteinTarget, setProteinTarget] = useState(150)
+  const [showFoodMascot, setShowFoodMascot] = useState(false)
   const [builder, setBuilder] = useState<BuilderState>(null)
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function DiaryClient() {
       .then((p) => {
         setKcalTarget(p.kcal_target ?? 2200)
         setProteinTarget(p.protein_target ?? 150)
+        setShowFoodMascot(p.show_food_mascot ?? false)
       })
       .catch(() => {})
   }, [])
@@ -159,9 +161,11 @@ export default function DiaryClient() {
         </div>
       </div>
 
-      <div className="lg:hidden">
-        <KostMascot compact kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
-      </div>
+      {showFoodMascot && (
+        <div className="lg:hidden">
+          <KostMascot compact kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
+        </div>
+      )}
 
       <AnimatePresence>
         {builder && (
@@ -212,9 +216,11 @@ export default function DiaryClient() {
       )}
     </div>
 
-    <div className="hidden lg:block sticky top-8">
-      <KostMascot kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
-    </div>
+    {showFoodMascot && (
+      <div className="hidden lg:block sticky top-8">
+        <KostMascot kcal={totals.kcal} kcalTarget={kcalTarget} protein={totals.protein} proteinTarget={proteinTarget} />
+      </div>
+    )}
     </div>
   )
 }

@@ -278,7 +278,7 @@ export function getExerciseHistory(names: string[]) {
   return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; kcal_target?: number; protein_target?: number }) {
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; show_gym_mascot?: boolean; show_food_mascot?: boolean; kcal_target?: number; protein_target?: number }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }
 

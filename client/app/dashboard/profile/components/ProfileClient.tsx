@@ -55,6 +55,8 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsOverloadHints, setSettingsOverloadHints] = useState(false)
   const [settingsChickenLegs, setSettingsChickenLegs] = useState(false)
   const [settingsGymGhost, setSettingsGymGhost] = useState(false)
+  const [settingsGymMascot, setSettingsGymMascot] = useState(false)
+  const [settingsFoodMascot, setSettingsFoodMascot] = useState(false)
   const [settingsKcalTarget, setSettingsKcalTarget] = useState(2200)
   const [settingsProteinTarget, setSettingsProteinTarget] = useState(150)
   const { theme, setTheme } = useTheme()
@@ -75,6 +77,8 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsOverloadHints(p.show_overload_hints ?? false)
       setSettingsChickenLegs(p.show_chicken_legs ?? false)
       setSettingsGymGhost(p.show_gym_ghost ?? false)
+      setSettingsGymMascot(p.show_gym_mascot ?? false)
+      setSettingsFoodMascot(p.show_food_mascot ?? false)
       setSettingsKcalTarget(p.kcal_target ?? 2200)
       setSettingsProteinTarget(p.protein_target ?? 150)
     }).catch(() => {})
@@ -93,7 +97,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, show_gym_mascot: settingsGymMascot, show_food_mascot: settingsFoodMascot, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -463,6 +467,38 @@ export default function ProfileClient({ name, email, image }: Props) {
               </label>
             </div>
             <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Visar dina senaste och tyngsta lyft när du loggar ett pass.</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="gym-mascot"
+                checked={settingsGymMascot}
+                onChange={(e) => setSettingsGymMascot(e.target.checked)}
+                className="w-4 h-4 accent-indigo-500 shrink-0"
+              />
+              <label htmlFor="gym-mascot" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                Visa Hasse
+              </label>
+            </div>
+            <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Gymmaskoten dyker upp på hemsidan.</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="food-mascot"
+                checked={settingsFoodMascot}
+                onChange={(e) => setSettingsFoodMascot(e.target.checked)}
+                className="w-4 h-4 accent-indigo-500 shrink-0"
+              />
+              <label htmlFor="food-mascot" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                Visa Avo
+              </label>
+            </div>
+            <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Avokadomaskoten dyker upp i kostdagboken.</p>
           </div>
 
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-1">

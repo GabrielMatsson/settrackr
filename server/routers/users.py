@@ -26,6 +26,8 @@ def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
         "show_overload_hints": db_user.show_overload_hints or False,
         "show_chicken_legs": db_user.show_chicken_legs or False,
         "show_gym_ghost": db_user.show_gym_ghost or False,
+        "show_gym_mascot": db_user.show_gym_mascot or False,
+        "show_food_mascot": db_user.show_food_mascot or False,
         "kcal_target": db_user.kcal_target or 2200,
         "protein_target": db_user.protein_target or 150,
     }
@@ -46,6 +48,10 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         db_user.show_chicken_legs = update.show_chicken_legs
     if update.show_gym_ghost is not None:
         db_user.show_gym_ghost = update.show_gym_ghost
+    if update.show_gym_mascot is not None:
+        db_user.show_gym_mascot = update.show_gym_mascot
+    if update.show_food_mascot is not None:
+        db_user.show_food_mascot = update.show_food_mascot
     if update.kcal_target is not None:
         if not 500 <= update.kcal_target <= 10000:
             raise HTTPException(status_code=400, detail="kcal_target must be between 500 and 10000")
@@ -63,6 +69,8 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         "show_overload_hints": db_user.show_overload_hints or False,
         "show_chicken_legs": db_user.show_chicken_legs or False,
         "show_gym_ghost": db_user.show_gym_ghost or False,
+        "show_gym_mascot": db_user.show_gym_mascot or False,
+        "show_food_mascot": db_user.show_food_mascot or False,
         "kcal_target": db_user.kcal_target or 2200,
         "protein_target": db_user.protein_target or 150,
     }

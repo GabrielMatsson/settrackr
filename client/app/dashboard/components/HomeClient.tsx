@@ -75,6 +75,7 @@ type EasterEggProfile = {
   weekly_goal: number
   show_chicken_legs: boolean
   show_gym_ghost: boolean
+  show_gym_mascot?: boolean
   kcal_target?: number
   protein_target?: number
 }
@@ -198,9 +199,11 @@ export default function HomeClient({ name }: Props) {
         </div>
       </div>
 
-      <div className="xl:hidden">
-        <GymMascot compact weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
-      </div>
+      {profile?.show_gym_mascot && (
+        <div className="xl:hidden">
+          <GymMascot compact weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
+        </div>
+      )}
 
       {(() => {
         const foodTotals = sumMealsMacros(foodMeals)
@@ -290,9 +293,11 @@ export default function HomeClient({ name }: Props) {
       {showGhost   && <GhostAnimation   onDone={() => setGhostDismissed(true)} />}
     </div>
 
-    <div className="hidden xl:block sticky top-8">
-      <GymMascot weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
-    </div>
+    {profile?.show_gym_mascot && (
+      <div className="hidden xl:block sticky top-8">
+        <GymMascot weekCount={weekCount} weeklyGoal={weeklyGoal} daysSinceLast={daysSinceLast} />
+      </div>
+    )}
     </div>
   )
 }

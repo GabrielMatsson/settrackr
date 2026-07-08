@@ -17,6 +17,14 @@ async def lifespan(app: FastAPI):
             "show_overload_hints BOOLEAN NOT NULL DEFAULT FALSE"
         ))
         conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+            "show_gym_mascot BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+            "show_food_mascot BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        conn.execute(text(
             "ALTER TABLE workout_plans ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0"
         ))
         conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS kcal_target INTEGER"))

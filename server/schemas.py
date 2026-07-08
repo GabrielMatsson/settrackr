@@ -72,6 +72,8 @@ class UserProfileResponse(BaseModel):
     show_overload_hints: bool = False
     show_chicken_legs: bool = False
     show_gym_ghost: bool = False
+    show_gym_mascot: bool = False
+    show_food_mascot: bool = False
     kcal_target: int = 2200
     protein_target: int = 150
 
@@ -83,6 +85,8 @@ class UserProfileUpdate(BaseModel):
     show_overload_hints: bool | None = None
     show_chicken_legs: bool | None = None
     show_gym_ghost: bool | None = None
+    show_gym_mascot: bool | None = None
+    show_food_mascot: bool | None = None
     kcal_target: int | None = None
     protein_target: int | None = None
 

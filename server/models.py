@@ -14,6 +14,8 @@ class User(Base):
     show_overload_hints = Column(Boolean, nullable=False, default=False, server_default="0")
     show_chicken_legs   = Column(Boolean, nullable=False, default=False, server_default="0")
     show_gym_ghost      = Column(Boolean, nullable=False, default=False, server_default="0")
+    show_gym_mascot     = Column(Boolean, nullable=False, default=False, server_default="0")
+    show_food_mascot    = Column(Boolean, nullable=False, default=False, server_default="0")
     kcal_target = Column(Integer, nullable=True)
     protein_target = Column(Integer, nullable=True)
 
