@@ -83,7 +83,7 @@ export default function TrackingPage() {
   const [planIcon, setPlanIcon] = useState("Dumbbell")
   const [exercises, setExercises] = useState<Exercise[]>([{ name: "", sets: 3, reps: 10 }])
   const [loggerVisible, setLoggerVisible] = useState(false)
-  const [loggingPlan, setLoggingPlan] = useState<{ name: string; icon?: string; exercises: Exercise[] } | null>(null)
+  const [loggingPlan, setLoggingPlan] = useState<{ id?: number; name: string; icon?: string; exercises: Exercise[] } | null>(null)
   const [logSaved, setLogSaved] = useState(false)
   const [xpResult, setXpResult] = useState<LevelInfo & { earned: number } | null>(null)
   const [levelUpData, setLevelUpData] = useState<{ level: number; title: string } | null>(null)
@@ -97,21 +97,31 @@ export default function TrackingPage() {
     plansRef.current = plans
   }, [plans])
 
+  // Restore an ongoing workout from localStorage BEFORE any network call —
+  // the WIP snapshot contains the whole plan, so a cold/unreachable backend
+  // (Render free-tier boot) can't lose a session that's mid-workout
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("settrackr_wip")
+      if (!raw) return
+      const wip = JSON.parse(raw)
+      const fresh = typeof wip.savedAt !== "number" || Date.now() - wip.savedAt < 24 * 3_600_000
+      if (!fresh) {
+        localStorage.removeItem("settrackr_wip")
+        return
+      }
+      if (wip.plan?.name && Array.isArray(wip.plan.exercises)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoggingPlan(wip.plan)
+        setLoggerVisible(true)
+        setAutoStart(true)
+      }
+    } catch {}
+  }, [])
+
   useEffect(() => {
     getPlans().then((loadedPlans: WorkoutPlan[]) => {
       setPlans(loadedPlans)
-      try {
-        const raw = localStorage.getItem("settrackr_wip")
-        if (raw) {
-          const wip = JSON.parse(raw)
-          const match = loadedPlans.find((p) => p.id === wip.planId)
-          if (match) {
-            setLoggingPlan(match)
-            setLoggerVisible(true)
-            setAutoStart(true)
-          }
-        }
-      } catch {}
     }).catch(() => setError("Kunde inte ansluta till servern"))
     getSharedPlans().then(setSharedPlans).catch(() => {})
     getFriends().then((data: FriendEntry[]) => setFriends(data.map((f) => f.friend))).catch(() => {})
@@ -251,7 +261,7 @@ export default function TrackingPage() {
     reorderPlans(plansRef.current.map((p) => p.id)).catch(() => setError("Kunde inte spara ordningen"))
   }
 
-  function openLogger(plan?: { name: string; icon?: string; exercises: Exercise[] }) {
+  function openLogger(plan?: { id?: number; name: string; icon?: string; exercises: Exercise[] }) {
     setLoggingPlan(plan ?? null)
     setLoggerVisible(true)
     setLogSaved(false)
@@ -454,7 +464,7 @@ export default function TrackingPage() {
                         plan={plan}
                         onEdit={openEditForm}
                         onDelete={handleDeletePlan}
-                        onLog={(p) => openLogger({ name: p.name, icon: p.icon, exercises: p.exercises })}
+                        onLog={(p) => openLogger({ id: p.id, name: p.name, icon: p.icon, exercises: p.exercises })}
                         friends={friends}
                         onShare={handleSharePlan}
                         onUnshare={handleUnsharePlan}
@@ -501,7 +511,7 @@ export default function TrackingPage() {
                     {(startDrag) => (
                       <SharedPlanCard
                         plan={plan}
-                        onLog={(p) => openLogger({ name: p.name, exercises: p.exercises })}
+                        onLog={(p) => openLogger({ id: p.id, name: p.name, exercises: p.exercises })}
                         onRemove={handleLeaveSharedPlan}
                         onGripPointerDown={startDrag}
                       />

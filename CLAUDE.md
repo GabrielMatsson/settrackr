@@ -123,9 +123,11 @@ Standard Tailwind tokens — follow these when adding or editing UI:
 | Service | Purpose | Free tier | Dashboard |
 |---|---|---|---|
 | Vercel | Next.js frontend | Yes, unlimited | vercel.com |
-| Render | FastAPI backend | Yes, spins down on inactivity | dashboard.render.com |
+| Render | FastAPI backend | Yes, spins down after 15 idle min (cold boot 30-60s) | dashboard.render.com |
 | Supabase | PostgreSQL database | Yes, pauses after 1 week no activity | supabase.com |
-| UptimeRobot | Keep-alive pinger (every 14 min) | Yes | uptimerobot.com |
+| UptimeRobot | Primary keep-alive pinger (every 5 min, `GET /` — `HEAD /` also supported) | Yes | uptimerobot.com |
+
+Backup pinger: `.github/workflows/keepalive.yml` curls the backend every ~10 min via GitHub Actions cron (can drift a few minutes — UptimeRobot is primary).
 
 ### Environment Variables
 
@@ -160,4 +162,4 @@ Run `healthcheck.ps1` at the repo root:
 - **Auth broken**: check Google Cloud Console → OAuth client → authorized redirect URIs includes `https://settrackr.vercel.app/api/auth/callback/google`
 - **CORS errors**: check `ALLOWED_ORIGIN` env var on Render matches Vercel URL exactly (no trailing slash)
 - **All 404s on API**: `NEXT_PUBLIC_API_URL` has a trailing slash — remove it in Vercel env vars then redeploy
-- **Render cold start**: first request after inactivity takes ~30-60s — UptimeRobot prevents this by pinging every 14 min
+- **Render cold start**: first request after 15 idle min takes ~30-60s — UptimeRobot (5 min) + `keepalive.yml` (10 min) prevent this; the frontend also fires `warmUp()` on load and shows the "Servern vaknar…" banner (`ColdStartBanner.tsx`) while GETs auto-retry

@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -68,3 +68,10 @@ def root():
         "message": "SetTrackr API is running",
         "commit": os.getenv("RENDER_GIT_COMMIT", "dev"),
     }
+
+
+@app.head("/")
+def root_head():
+    # Uptime monitors (UptimeRobot) probe with HEAD; without this they get 405
+    # and the keep-alive that prevents Render free-tier spin-down breaks
+    return Response(status_code=200)

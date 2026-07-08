@@ -1,18 +1,60 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
-let cachedToken: string | null = null
+// The backend JWT lives 1h — refresh well before expiry so long-idle tabs
+// don't start failing with 401s. Parallel callers share one in-flight fetch.
+const TOKEN_TTL = 50 * 60_000
+let cachedToken: { token: string; fetchedAt: number } | null = null
+let pendingToken: Promise<string> | null = null
 
 async function getToken(): Promise<string> {
-  if (cachedToken) return cachedToken
-  const res = await fetch("/api/auth/token")
-  const data = await res.json()
-  cachedToken = data.token
-  return cachedToken!
+  if (cachedToken && Date.now() - cachedToken.fetchedAt < TOKEN_TTL) return cachedToken.token
+  if (pendingToken) return pendingToken
+  pendingToken = (async () => {
+    try {
+      const res = await fetch("/api/auth/token")
+      const data = await res.json()
+      cachedToken = { token: data.token, fetchedAt: Date.now() }
+      return data.token as string
+    } finally {
+      pendingToken = null
+    }
+  })()
+  return pendingToken
+}
+
+// Cold-start tracking: Render's free tier spins down after 15 idle minutes
+// and takes 30-60s to boot. Slow or retrying requests flip a shared "cold"
+// flag so the UI can show a "Servern vaknar…" indicator (ColdStartBanner).
+const coldListeners = new Set<(cold: boolean) => void>()
+let coldCount = 0
+
+export function onColdChange(cb: (cold: boolean) => void): () => void {
+  coldListeners.add(cb)
+  cb(coldCount > 0)
+  return () => coldListeners.delete(cb)
+}
+
+function changeCold(delta: number) {
+  const was = coldCount > 0
+  coldCount += delta
+  const is = coldCount > 0
+  if (was !== is) coldListeners.forEach((cb) => cb(is))
+}
+
+// Fire-and-forget unauthenticated ping that starts waking the container as
+// early as possible, overlapping the boot with login/rendering
+export function warmUp() {
+  fetch(`${API_URL}/`).catch(() => {})
 }
 
 const getCache = new Map<string, { data: unknown; ts: number }>()
 const pendingGets = new Map<string, Promise<unknown>>()
 const CACHE_TTL = 10_000
+const SLOW_MS = 2_500
+const RETRY_DELAYS = [2_000, 5_000]
+const RETRYABLE_STATUS = new Set([502, 503, 504])
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function apiFetch(path: string, options?: RequestInit) {
   const method = (options?.method ?? "GET").toUpperCase()
@@ -27,28 +69,73 @@ async function apiFetch(path: string, options?: RequestInit) {
   }
 
   const promise = (async () => {
-    const token = await getToken()
-    const res = await fetch(`${API_URL}${path}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...options?.headers,
-      },
-    })
-    if (!res.ok) throw new Error(`API error ${res.status}`)
-    const data = await res.json()
-
-    if (isGet) {
-      getCache.set(path, { data, ts: Date.now() })
-      pendingGets.delete(path)
-    } else {
-      const prefix = "/" + path.split("/").filter(Boolean)[0]
-      for (const key of getCache.keys()) {
-        if (key.startsWith(prefix)) getCache.delete(key)
+    let coldMarked = false
+    const markCold = () => {
+      if (!coldMarked) {
+        coldMarked = true
+        changeCold(1)
       }
     }
-    return data
+    const slowTimer = setTimeout(markCold, SLOW_MS)
+
+    try {
+      let authRetried = false
+      let attempt = 0
+
+      while (true) {
+        let res: Response
+        try {
+          const token = await getToken()
+          res = await fetch(`${API_URL}${path}`, {
+            ...options,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              ...options?.headers,
+            },
+          })
+        } catch (err) {
+          // Network failure — during a cold boot the proxy can drop requests.
+          // Only GETs are retried; mutations must never run twice.
+          if (isGet && attempt < RETRY_DELAYS.length) {
+            markCold()
+            await sleep(RETRY_DELAYS[attempt])
+            attempt++
+            continue
+          }
+          throw err
+        }
+
+        if (res.status === 401 && !authRetried) {
+          // Token expired (backend never executed the request) — refresh once
+          authRetried = true
+          cachedToken = null
+          continue
+        }
+        if (isGet && RETRYABLE_STATUS.has(res.status) && attempt < RETRY_DELAYS.length) {
+          markCold()
+          await sleep(RETRY_DELAYS[attempt])
+          attempt++
+          continue
+        }
+        if (!res.ok) throw new Error(`API error ${res.status}`)
+        const data = await res.json()
+
+        if (isGet) {
+          getCache.set(path, { data, ts: Date.now() })
+          pendingGets.delete(path)
+        } else {
+          const prefix = "/" + path.split("/").filter(Boolean)[0]
+          for (const key of getCache.keys()) {
+            if (key.startsWith(prefix)) getCache.delete(key)
+          }
+        }
+        return data
+      }
+    } finally {
+      clearTimeout(slowTimer)
+      if (coldMarked) changeCold(-1)
+    }
   })()
 
   if (isGet) {

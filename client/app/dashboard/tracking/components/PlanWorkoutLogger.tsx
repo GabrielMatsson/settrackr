@@ -28,7 +28,9 @@ function getInitialStates(plan: WorkoutPlan): ExerciseState[] {
     const raw = localStorage.getItem(WIP_KEY)
     if (raw) {
       const wip = JSON.parse(raw)
-      if (wip.planId === plan.id && Array.isArray(wip.exerciseStates) && wip.exerciseStates.length === plan.exercises.length) {
+      const sameId = wip.planId !== undefined && wip.planId === plan.id
+      const sameName = wip.plan?.name !== undefined && wip.plan.name === plan.name
+      if ((sameId || sameName) && Array.isArray(wip.exerciseStates) && wip.exerciseStates.length === plan.exercises.length) {
         return wip.exerciseStates
       }
     }
@@ -51,8 +53,15 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   }, [showOverloadHints, plan.exercises])
 
   useEffect(() => {
-    localStorage.setItem(WIP_KEY, JSON.stringify({ planId: plan.id, exerciseStates }))
-  }, [exerciseStates, plan.id])
+    // Snapshot the whole plan so an ongoing workout can be restored without
+    // any network call (the backend may be cold-booting or unreachable)
+    localStorage.setItem(WIP_KEY, JSON.stringify({
+      planId: plan.id,
+      plan: { id: plan.id, name: plan.name, icon: plan.icon, exercises: plan.exercises },
+      exerciseStates,
+      savedAt: Date.now(),
+    }))
+  }, [exerciseStates, plan])
 
   function updateDone(index: number, done: boolean) {
     const updated = [...exerciseStates]
