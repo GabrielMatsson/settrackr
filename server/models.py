@@ -23,6 +23,7 @@ class User(Base):
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     meals = relationship("Meal", back_populates="user", cascade="all, delete-orphan")
+    exercise_muscles = relationship("ExerciseMuscle", back_populates="user", cascade="all, delete-orphan")
 
 
 class Friendship(Base):
@@ -75,6 +76,18 @@ class Goal(Base):
     target_weight = Column(Float, nullable=False)
 
     user = relationship("User", back_populates="goals")
+
+
+class ExerciseMuscle(Base):
+    __tablename__ = "exercise_muscles"
+    __table_args__ = (UniqueConstraint("user_id", "name"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)      # exercise name as typed
+    muscles = Column(String, nullable=False)   # comma-separated canonical slugs
+
+    user = relationship("User", back_populates="exercise_muscles")
 
 
 class WorkoutLog(Base):

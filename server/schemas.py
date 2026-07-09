@@ -167,3 +167,13 @@ class LevelResponse(BaseModel):
     progress_pct: float
 
 
+class ExerciseMuscleCreate(BaseModel):
+    name: str
+    muscles: list[str]
+
+class ExerciseMuscleResponse(BaseModel):
+    id: int
+    name: str
+    muscles: list[str]
+
+

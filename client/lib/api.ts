@@ -286,6 +286,18 @@ export function getMyLevel() {
   return apiFetch("/users/me/level")
 }
 
+export function getExerciseMuscles() {
+  return apiFetch("/exercise-muscles/")
+}
+
+export function setExerciseMuscles(name: string, muscles: string[]) {
+  return apiFetch("/exercise-muscles/", { method: "PUT", body: JSON.stringify({ name, muscles }) })
+}
+
+export function deleteExerciseMuscle(id: number) {
+  return apiFetch(`/exercise-muscles/${id}`, { method: "DELETE" })
+}
+
 export function getFriendLevel(userId: number) {
   return apiFetch(`/users/${userId}/level`)
 }

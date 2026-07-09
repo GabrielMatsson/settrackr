@@ -4,6 +4,8 @@ import { motion } from "motion/react"
 import { fadeUp, fadeUpTransition } from "@/lib/motion"
 import { useStatistics } from "./components/StatisticsContext"
 import WorkoutOverview from "./components/WorkoutOverview"
+import WorkoutHeatmap from "./components/WorkoutHeatmap"
+import MuscleHeatmap from "./components/MuscleHeatmap"
 import MyGoals from "./components/MyGoals"
 import ProgressCharts from "./components/ProgressCharts"
 
@@ -12,6 +14,8 @@ export default function OverviewPage() {
 
   const sections = [
     <WorkoutOverview key="overview" logs={logs} />,
+    <WorkoutHeatmap key="heatmap" logs={logs} />,
+    <MuscleHeatmap key="muscles" logs={logs} />,
     <MyGoals key="goals" logs={logs} />,
     <ProgressCharts key="charts" logs={logs} />,
   ]
