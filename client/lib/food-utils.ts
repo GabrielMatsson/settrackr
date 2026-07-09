@@ -79,6 +79,14 @@ export function mealItemsToInputs(meal: Meal): FoodItemInput[] {
   }))
 }
 
+// One-tap cooking-fat quick-adds — you usually cook a meal in butter/oil that's
+// easy to forget. Default 10 g; grams are editable after adding.
+export const FAT_PRESETS: FoodItemInput[] = [
+  { name: "Smör", brand: null, barcode: null, grams: 10, kcal_100g: 717, protein_100g: 0.9, carbs_100g: 0.1, fat_100g: 81 },
+  { name: "Olivolja", brand: null, barcode: null, grams: 10, kcal_100g: 884, protein_100g: 0, carbs_100g: 0, fat_100g: 100 },
+  { name: "Rapsolja", brand: null, barcode: null, grams: 10, kcal_100g: 884, protein_100g: 0, carbs_100g: 0, fat_100g: 100 },
+]
+
 export function todayStr(): string {
   return new Date().toLocaleDateString("sv-SE")
 }

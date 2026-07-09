@@ -46,6 +46,39 @@ def get_meals_range(start: str, end: str, user=Depends(get_current_user), db: Se
     )
 
 
+@router.get("/items", response_model=list[schemas.FoodHistoryItem])
+def get_food_item_history(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    # Distinct foods the user has logged before (most recent first), so the
+    # meal builder can offer quick re-add via fuzzy search.
+    db_user = get_or_create_user(db, user)
+    rows = (
+        db.query(models.MealItem)
+        .join(models.Meal, models.MealItem.meal_id == models.Meal.id)
+        .filter(models.Meal.user_id == db_user.id)
+        .order_by(models.Meal.date.desc(), models.Meal.created_at.desc(), models.MealItem.id.desc())
+        .all()
+    )
+    seen: set[str] = set()
+    result = []
+    for r in rows:
+        key = r.name.strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append({
+            "name": r.name,
+            "brand": r.brand,
+            "grams": r.grams,
+            "kcal_100g": r.kcal_100g,
+            "protein_100g": r.protein_100g,
+            "carbs_100g": r.carbs_100g,
+            "fat_100g": r.fat_100g,
+        })
+        if len(result) >= 100:
+            break
+    return result
+
+
 @router.post("/", response_model=schemas.MealResponse)
 def create_meal(meal: schemas.MealCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)

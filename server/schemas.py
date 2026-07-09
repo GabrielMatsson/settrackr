@@ -148,6 +148,15 @@ class MealCreate(BaseModel):
     title: str
     items: list[MealItemCreate]
 
+class FoodHistoryItem(BaseModel):
+    name: str
+    brand: str | None = None
+    grams: float
+    kcal_100g: float
+    protein_100g: float
+    carbs_100g: float
+    fat_100g: float
+
 class MealResponse(BaseModel):
     id: int
     date: str

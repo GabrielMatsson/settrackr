@@ -329,6 +329,10 @@ export function getMeals(date: string) {
   return apiFetch(`/food/?date=${date}`)
 }
 
+export function getFoodHistory() {
+  return apiFetch("/food/items")
+}
+
 export function getMealsRange(start: string, end: string) {
   return apiFetch(`/food/range?start=${start}&end=${end}`)
 }

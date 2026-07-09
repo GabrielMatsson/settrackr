@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { motion } from "motion/react"
-import { ScanBarcode, Plus, X, Pencil } from "lucide-react"
+import { ScanBarcode, Plus, X, Pencil, History, Search } from "lucide-react"
+import Fuse from "fuse.js"
 import { layoutSpring } from "@/lib/motion"
 import PressableButton from "@/app/components/PressableButton"
-import { calcMacros, sumMacros, lookupBarcode, mealItemsToInputs, type Meal, type FoodItemInput, type OFFProduct } from "@/lib/food-utils"
+import { getFoodHistory } from "@/lib/api"
+import { calcMacros, sumMacros, lookupBarcode, mealItemsToInputs, FAT_PRESETS, type Meal, type FoodItemInput, type OFFProduct } from "@/lib/food-utils"
 import FoodEntryForm from "./FoodEntryForm"
 
 const BarcodeScanner = dynamic(() => import("./BarcodeScanner"), { ssr: false })
@@ -35,9 +37,25 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
   const [showScanner, setShowScanner] = useState(false)
   const [lookingUp, setLookingUp] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [history, setHistory] = useState<FoodItemInput[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [query, setQuery] = useState("")
+
+  useEffect(() => {
+    getFoodHistory()
+      .then((data) => setHistory((data as FoodItemInput[]).map((d) => ({ ...d, barcode: null }))))
+      .catch(() => {})
+  }, [])
+
+  const fuse = useMemo(() => new Fuse(history, { keys: ["name", "brand"], threshold: 0.4 }), [history])
+  const historyResults = query.trim() ? fuse.search(query).map((r) => r.item).slice(0, 20) : history.slice(0, 8)
 
   const totals = sumMacros(items)
   const valid = title.trim().length > 0 && items.length > 0
+
+  function addItem(item: FoodItemInput) {
+    setItems((prev) => [...prev, { ...item }])
+  }
 
   async function handleDetected(ean: string) {
     setShowScanner(false)
@@ -186,21 +204,92 @@ export default function MealBuilder({ initial, onSave, onCancel }: Props) {
         />
       ) : (
         !lookingUp && (
-          <div className="flex gap-2 flex-wrap">
-            <PressableButton
-              onClick={() => setShowScanner(true)}
-              className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
-            >
-              <ScanBarcode size={15} className="transition-transform duration-200 group-hover:scale-110" />
-              Skanna streckkod
-            </PressableButton>
-            <PressableButton
-              onClick={() => setItemForm({ mode: "manual", product: null, barcode: null, notice: null })}
-              className="group border border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
-            >
-              <Plus size={15} className="transition-transform duration-200 group-hover:rotate-90" />
-              Lägg till manuellt
-            </PressableButton>
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2 flex-wrap">
+              <PressableButton
+                onClick={() => setShowScanner(true)}
+                className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+              >
+                <ScanBarcode size={15} className="transition-transform duration-200 group-hover:scale-110" />
+                Skanna streckkod
+              </PressableButton>
+              <PressableButton
+                onClick={() => setItemForm({ mode: "manual", product: null, barcode: null, notice: null })}
+                className="group border border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+              >
+                <Plus size={15} className="transition-transform duration-200 group-hover:rotate-90" />
+                Lägg till manuellt
+              </PressableButton>
+              {history.length > 0 && (
+                <PressableButton
+                  onClick={() => setHistoryOpen((v) => !v)}
+                  className={`group border font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                    historyOpen
+                      ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                      : "border-emerald-500 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  }`}
+                >
+                  <History size={15} className="transition-transform duration-200 group-hover:scale-110" />
+                  Från historik
+                </PressableButton>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-gray-400 dark:text-gray-500">Snabbtillägg:</span>
+              {FAT_PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  onClick={() => addItem(p)}
+                  className="text-xs px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-white dark:bg-gray-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                >
+                  + {p.name} {p.grams} g
+                </button>
+              ))}
+            </div>
+
+            {historyOpen && history.length > 0 && (
+              <div className="border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-3 flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3">
+                  <Search size={14} className="text-gray-400 shrink-0" />
+                  <input
+                    autoFocus
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Sök i dina tidigare livsmedel…"
+                    className="bg-transparent text-gray-900 dark:text-white text-sm py-2 focus:outline-none w-full"
+                  />
+                </div>
+                <div className="max-h-56 overflow-y-auto flex flex-col">
+                  {historyResults.length === 0 ? (
+                    <p className="text-gray-400 dark:text-gray-500 text-sm py-3 text-center">Inga träffar</p>
+                  ) : (
+                    historyResults.map((r, i) => {
+                      const m = calcMacros(r)
+                      return (
+                        <button
+                          key={`${r.name}-${i}`}
+                          type="button"
+                          onClick={() => addItem(r)}
+                          className="flex items-center gap-3 py-2 px-2 text-left rounded-lg hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-800 dark:text-gray-200 truncate">
+                              {r.name}{r.brand ? ` · ${r.brand}` : ""}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {r.grams} g · {m.kcal} kcal · {m.protein} g protein
+                            </p>
+                          </div>
+                          <Plus size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )
       )}
