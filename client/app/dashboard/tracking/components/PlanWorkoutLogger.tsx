@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check } from "lucide-react"
+import { Check, X, Pencil } from "lucide-react"
 import DifficultyPicker from "./DifficultyPicker"
 import { getExerciseHistory } from "@/lib/api"
+import { getSetOptions, getRepOptions } from "./exerciseOptions"
 import type { WorkoutPlan, WorkoutLog, Difficulty } from "./types"
 
 const WIP_KEY = "settrackr_wip"
@@ -21,25 +22,61 @@ type ExerciseState = {
   done: boolean
   weight: number
   difficulty: Difficulty
+  sets: number
+  reps: number
+}
+
+type ExtraExercise = {
+  name: string
+  sets: number
+  reps: number
+  weight: number
+  difficulty: Difficulty
+  done: boolean
+}
+
+type WipSnapshot = {
+  planId?: number
+  plan?: { name?: string }
+  exerciseStates?: Partial<ExerciseState>[]
+  extraExercises?: ExtraExercise[]
+}
+
+function matchingWip(plan: WorkoutPlan): WipSnapshot | null {
+  try {
+    const raw = localStorage.getItem(WIP_KEY)
+    if (!raw) return null
+    const wip = JSON.parse(raw) as WipSnapshot
+    const sameId = wip.planId !== undefined && wip.planId === plan.id
+    const sameName = wip.plan?.name !== undefined && wip.plan.name === plan.name
+    if (sameId || sameName) return wip
+  } catch {}
+  return null
 }
 
 function getInitialStates(plan: WorkoutPlan): ExerciseState[] {
-  try {
-    const raw = localStorage.getItem(WIP_KEY)
-    if (raw) {
-      const wip = JSON.parse(raw)
-      const sameId = wip.planId !== undefined && wip.planId === plan.id
-      const sameName = wip.plan?.name !== undefined && wip.plan.name === plan.name
-      if ((sameId || sameName) && Array.isArray(wip.exerciseStates) && wip.exerciseStates.length === plan.exercises.length) {
-        return wip.exerciseStates
-      }
-    }
-  } catch {}
-  return plan.exercises.map(() => ({ done: false, weight: 0, difficulty: "medium" as Difficulty }))
+  const wip = matchingWip(plan)
+  if (wip && Array.isArray(wip.exerciseStates) && wip.exerciseStates.length === plan.exercises.length) {
+    return wip.exerciseStates.map((s, i) => ({
+      done: s.done ?? false,
+      weight: s.weight ?? 0,
+      difficulty: s.difficulty ?? "medium",
+      sets: s.sets ?? plan.exercises[i].sets,
+      reps: s.reps ?? plan.exercises[i].reps,
+    }))
+  }
+  return plan.exercises.map((ex) => ({ done: false, weight: 0, difficulty: "medium" as Difficulty, sets: ex.sets, reps: ex.reps }))
+}
+
+function getInitialExtras(plan: WorkoutPlan): ExtraExercise[] {
+  const wip = matchingWip(plan)
+  if (wip && Array.isArray(wip.extraExercises)) return wip.extraExercises
+  return []
 }
 
 export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverloadHints }: Props) {
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>(() => getInitialStates(plan))
+  const [extraExercises, setExtraExercises] = useState<ExtraExercise[]>(() => getInitialExtras(plan))
   const [hints, setHints] = useState<HintMap>({})
   const [showSaveWarning, setShowSaveWarning] = useState(false)
   const [skipped, setSkipped] = useState<Set<number>>(new Set())
@@ -59,9 +96,10 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
       planId: plan.id,
       plan: { id: plan.id, name: plan.name, icon: plan.icon, exercises: plan.exercises },
       exerciseStates,
+      extraExercises,
       savedAt: Date.now(),
     }))
-  }, [exerciseStates, plan])
+  }, [exerciseStates, extraExercises, plan])
 
   function updateDone(index: number, done: boolean) {
     const updated = [...exerciseStates]
@@ -72,6 +110,18 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   function updateWeight(index: number, weight: number) {
     const updated = [...exerciseStates]
     updated[index] = { ...updated[index], weight }
+    setExerciseStates(updated)
+  }
+
+  function updateSets(index: number, sets: number) {
+    const updated = [...exerciseStates]
+    updated[index] = { ...updated[index], sets }
+    setExerciseStates(updated)
+  }
+
+  function updateReps(index: number, reps: number) {
+    const updated = [...exerciseStates]
+    updated[index] = { ...updated[index], reps }
     setExerciseStates(updated)
   }
 
@@ -88,17 +138,74 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
     setSkipped(next)
   }
 
+  function addExtra() {
+    setExtraExercises([...extraExercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium", done: false }])
+  }
+
+  function removeExtra(index: number) {
+    const updated = [...extraExercises]
+    updated.splice(index, 1)
+    setExtraExercises(updated)
+  }
+
+  function updateExtraName(index: number, name: string) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], name }
+    setExtraExercises(updated)
+  }
+
+  function updateExtraSets(index: number, sets: number) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], sets }
+    setExtraExercises(updated)
+  }
+
+  function updateExtraReps(index: number, reps: number) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], reps }
+    setExtraExercises(updated)
+  }
+
+  function updateExtraWeight(index: number, weight: number) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], weight }
+    setExtraExercises(updated)
+  }
+
+  function updateExtraDifficulty(index: number, difficulty: Difficulty) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], difficulty }
+    setExtraExercises(updated)
+  }
+
+  function updateExtraDone(index: number, done: boolean) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], done }
+    setExtraExercises(updated)
+  }
+
   function doSave() {
     const exercises = []
     for (let i = 0; i < plan.exercises.length; i++) {
       if (skipped.has(i)) continue
       exercises.push({
         name: plan.exercises[i].name,
-        sets: plan.exercises[i].sets,
-        reps: plan.exercises[i].reps,
+        sets: exerciseStates[i].sets,
+        reps: exerciseStates[i].reps,
         weight: exerciseStates[i].weight,
         difficulty: exerciseStates[i].difficulty,
         done: exerciseStates[i].done,
+      })
+    }
+    for (const ex of extraExercises) {
+      if (!ex.name.trim()) continue
+      exercises.push({
+        name: ex.name.trim(),
+        sets: ex.sets,
+        reps: ex.reps,
+        weight: ex.weight,
+        difficulty: ex.difficulty,
+        done: ex.done,
       })
     }
     localStorage.removeItem(WIP_KEY)
@@ -155,7 +262,24 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
             }`}>
               {ex.name}
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{ex.sets} × {ex.reps} reps</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-0.5">
+              <select
+                value={state.sets}
+                onChange={(e) => updateSets(i, Number(e.target.value))}
+                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              >
+                {getSetOptions()}
+              </select>
+              <span>×</span>
+              <select
+                value={state.reps}
+                onChange={(e) => updateReps(i, Number(e.target.value))}
+                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              >
+                {getRepOptions()}
+              </select>
+              <Pencil size={10} className="shrink-0" />
+            </p>
             {showOverloadHints && hints[ex.name] && (
               <p className="text-xs text-orange-500 dark:text-orange-400 font-medium mt-0.5">
                 Senast: {hints[ex.name].last_weight} kg · Max: {hints[ex.name].max_weight} kg
@@ -192,11 +316,108 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
     )
   }
 
+  const extraRows = []
+  for (let i = 0; i < extraExercises.length; i++) {
+    const ex = extraExercises[i]
+    extraRows.push(
+      <div
+        key={`extra-${i}`}
+        className={`rounded-2xl border shadow-sm overflow-hidden transition-colors ${
+          ex.done
+            ? "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20"
+            : "border-indigo-100 dark:border-gray-700 bg-white dark:bg-gray-900"
+        }`}
+      >
+        <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+          <button
+            type="button"
+            onClick={() => updateExtraDone(i, !ex.done)}
+            className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${
+              ex.done ? "bg-green-500 border-green-500" : "border-indigo-300 dark:border-gray-500"
+            }`}
+          >
+            {ex.done && <Check size={11} className="text-white" strokeWidth={3} />}
+          </button>
+
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            <input
+              type="text"
+              value={ex.name}
+              onChange={(e) => updateExtraName(i, e.target.value)}
+              placeholder="Extra övning"
+              className="font-semibold text-sm bg-transparent border-0 border-b border-dashed border-gray-300 dark:border-gray-600 focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white px-0 py-0.5 w-full"
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-0.5">
+              <select
+                value={ex.sets}
+                onChange={(e) => updateExtraSets(i, Number(e.target.value))}
+                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              >
+                {getSetOptions()}
+              </select>
+              <span>×</span>
+              <select
+                value={ex.reps}
+                onChange={(e) => updateExtraReps(i, Number(e.target.value))}
+                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              >
+                {getRepOptions()}
+              </select>
+              <Pencil size={10} className="shrink-0" />
+            </p>
+          </div>
+
+          <div className="shrink-0 flex flex-col items-end gap-1">
+            <span className="text-xs text-gray-400 dark:text-gray-500">Vikt (kg)</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={ex.weight || ""}
+                onChange={(e) => updateExtraWeight(i, Number(e.target.value))}
+                placeholder="0"
+                className={`w-16 text-right text-base font-semibold rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                  ex.done
+                    ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
+                    : "bg-indigo-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                }`}
+              />
+              <span className="text-xs text-gray-400 dark:text-gray-500">kg</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => removeExtra(i)}
+            className="text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className={`px-4 py-3 flex items-center gap-3 border-t ${
+          ex.done ? "border-green-200 dark:border-green-800" : "border-indigo-100 dark:border-gray-800"
+        }`}>
+          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium shrink-0">Intensitet</span>
+          <DifficultyPicker value={ex.difficulty} onChange={(d) => updateExtraDifficulty(i, d)} />
+        </div>
+      </div>
+    )
+  }
+
   const undoneExercises = plan.exercises.filter((_, i) => !exerciseStates[i].done)
 
   return (
     <div className="flex flex-col gap-3">
       {rows}
+      {extraRows}
+
+      <button
+        type="button"
+        onClick={addExtra}
+        className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors self-start"
+      >
+        + Lägg till övning
+      </button>
 
       {showSaveWarning && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 flex flex-col gap-3">
