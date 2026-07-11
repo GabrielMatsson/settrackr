@@ -16,9 +16,12 @@ def calculate_level(logs) -> schemas.LevelResponse:
     return schemas.LevelResponse(**xp_to_level(xp))
 
 
-@router.get("/me", response_model=schemas.UserProfileResponse)
-def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    db_user = get_or_create_user(db, user)
+def _profile_dict(db_user) -> dict:
+    # Feature toggles default ON, so coerce NULL (freshly-added column) to True —
+    # never use `or True`, which would also flip an explicit False back to True.
+    def on(value):
+        return True if value is None else value
+
     return {
         "name": db_user.name,
         "email": db_user.email,
@@ -28,9 +31,18 @@ def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
         "show_gym_ghost": db_user.show_gym_ghost or False,
         "show_gym_mascot": db_user.show_gym_mascot or False,
         "show_food_mascot": db_user.show_food_mascot or False,
+        "show_training_coach": on(db_user.show_training_coach),
+        "show_nutrition_coach": on(db_user.show_nutrition_coach),
+        "show_food_tracking": on(db_user.show_food_tracking),
         "kcal_target": db_user.kcal_target or 2200,
         "protein_target": db_user.protein_target or 150,
     }
+
+
+@router.get("/me", response_model=schemas.UserProfileResponse)
+def get_me(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    return _profile_dict(db_user)
 
 
 @router.patch("/me", response_model=schemas.UserProfileResponse)
@@ -52,6 +64,12 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         db_user.show_gym_mascot = update.show_gym_mascot
     if update.show_food_mascot is not None:
         db_user.show_food_mascot = update.show_food_mascot
+    if update.show_training_coach is not None:
+        db_user.show_training_coach = update.show_training_coach
+    if update.show_nutrition_coach is not None:
+        db_user.show_nutrition_coach = update.show_nutrition_coach
+    if update.show_food_tracking is not None:
+        db_user.show_food_tracking = update.show_food_tracking
     if update.kcal_target is not None:
         if not 500 <= update.kcal_target <= 10000:
             raise HTTPException(status_code=400, detail="kcal_target must be between 500 and 10000")
@@ -62,18 +80,7 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         db_user.protein_target = update.protein_target
     db.commit()
     db.refresh(db_user)
-    return {
-        "name": db_user.name,
-        "email": db_user.email,
-        "weekly_goal": db_user.weekly_goal or 3,
-        "show_overload_hints": db_user.show_overload_hints or False,
-        "show_chicken_legs": db_user.show_chicken_legs or False,
-        "show_gym_ghost": db_user.show_gym_ghost or False,
-        "show_gym_mascot": db_user.show_gym_mascot or False,
-        "show_food_mascot": db_user.show_food_mascot or False,
-        "kcal_target": db_user.kcal_target or 2200,
-        "protein_target": db_user.protein_target or 150,
-    }
+    return _profile_dict(db_user)
 
 
 @router.get("/me/level", response_model=schemas.LevelResponse)

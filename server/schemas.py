@@ -74,6 +74,9 @@ class UserProfileResponse(BaseModel):
     show_gym_ghost: bool = False
     show_gym_mascot: bool = False
     show_food_mascot: bool = False
+    show_training_coach: bool = True
+    show_nutrition_coach: bool = True
+    show_food_tracking: bool = True
     kcal_target: int = 2200
     protein_target: int = 150
 
@@ -87,6 +90,9 @@ class UserProfileUpdate(BaseModel):
     show_gym_ghost: bool | None = None
     show_gym_mascot: bool | None = None
     show_food_mascot: bool | None = None
+    show_training_coach: bool | None = None
+    show_nutrition_coach: bool | None = None
+    show_food_tracking: bool | None = None
     kcal_target: int | None = None
     protein_target: int | None = None
 

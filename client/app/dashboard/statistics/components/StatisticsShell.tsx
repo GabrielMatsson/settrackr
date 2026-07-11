@@ -4,13 +4,16 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar } from "lucide-react"
-import { getLogs } from "@/lib/api"
+import { getLogs, getMe } from "@/lib/api"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
 
 const tabs = [
   { label: "Översikt", href: "/dashboard/statistics" },
+  { label: "Coach", href: "/dashboard/statistics/coach" },
   { label: "Historik", href: "/dashboard/statistics/history" },
 ]
+
+const COACH_HREF = "/dashboard/statistics/coach"
 
 export default function StatisticsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,12 +21,18 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<7 | 30 | 90>(30)
+  // Coach defaults on; hide its tab only once we learn it's off (no flash).
+  const [coachEnabled, setCoachEnabled] = useState(true)
 
   useEffect(() => {
     getLogs()
       .then((data) => { setLogs(data); setLoading(false) })
       .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
+    getMe().then((p) => setCoachEnabled(p.show_training_coach !== false)).catch(() => {})
   }, [])
+
+  const visibleTabs = tabs.filter((t) => coachEnabled || t.href !== COACH_HREF)
+  const coachDisabledHere = !coachEnabled && pathname.startsWith(COACH_HREF)
 
   function handleDelete(id: number) {
     setLogs((prev) => prev.filter((l) => l.id !== id))
@@ -40,7 +49,7 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
 
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex gap-1 flex-wrap">
-            {tabs.map(({ label, href }) => {
+            {visibleTabs.map(({ label, href }) => {
               const isActive = href === "/dashboard/statistics"
                 ? pathname === href
                 : pathname.startsWith(href)
@@ -77,7 +86,14 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
 
         {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
 
-        {children}
+        {coachDisabledHere ? (
+          <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-card p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Träningscoach är avstängd.</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Slå på den igen under Profil → Inställningar → Funktioner.</p>
+          </div>
+        ) : (
+          children
+        )}
       </div>
     </StatisticsContext.Provider>
   )

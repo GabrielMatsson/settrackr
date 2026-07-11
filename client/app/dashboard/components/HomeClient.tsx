@@ -76,6 +76,7 @@ type EasterEggProfile = {
   show_chicken_legs: boolean
   show_gym_ghost: boolean
   show_gym_mascot?: boolean
+  show_food_tracking?: boolean
   kcal_target?: number
   protein_target?: number
 }
@@ -205,7 +206,7 @@ export default function HomeClient({ name }: Props) {
         </div>
       )}
 
-      {(() => {
+      {profile?.show_food_tracking === false ? null : (() => {
         const foodTotals = sumMealsMacros(foodMeals)
         const kcalTarget = profile?.kcal_target ?? 2200
         const proteinTarget = profile?.protein_target ?? 150

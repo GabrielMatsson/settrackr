@@ -7,6 +7,7 @@ import { motion } from "motion/react"
 import { Bell, Dumbbell, X, Home, BarChart2, User, Apple } from "lucide-react"
 import { snappySpring } from "@/lib/motion"
 import { useNotifications } from "./NotificationProvider"
+import { getMe } from "@/lib/api"
 
 function NotifIcon() {
   return <Dumbbell size={14} className="text-green-400 shrink-0" />
@@ -30,17 +31,25 @@ export default function Navbar() {
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname.startsWith(href)
   const [mounted, setMounted] = useState(false)
+  // Food tracking defaults on; only hide the Kost link once we learn it's off,
+  // so the common (enabled) case never flashes.
+  const [foodEnabled, setFoodEnabled] = useState(true)
+  const visibleLinks = links.filter((l) => foodEnabled || l.href !== "/dashboard/foodtracking")
   const [showPanel, setShowPanel] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
 
+  useEffect(() => {
+    getMe().then((p) => setFoodEnabled(p.show_food_tracking !== false)).catch(() => {})
+  }, [])
+
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
       setShowPanel(false)
     }
-  }, [])
+  }, [setShowPanel])
 
   useEffect(() => {
     if (!showPanel) return
@@ -77,7 +86,7 @@ export default function Navbar() {
         </span>
 
         <div className="flex flex-col gap-1 flex-1">
-          {links.map(({ label, href, icon: Icon }) => (
+          {visibleLinks.map(({ label, href, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -142,7 +151,7 @@ export default function Navbar() {
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col justify-around" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-stretch justify-around">
-        {links.map(({ label, href, icon: Icon }) => (
+        {visibleLinks.map(({ label, href, icon: Icon }) => (
           <Link
             key={href}
             href={href}

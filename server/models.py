@@ -16,6 +16,11 @@ class User(Base):
     show_gym_ghost      = Column(Boolean, nullable=False, default=False, server_default="0")
     show_gym_mascot     = Column(Boolean, nullable=False, default=False, server_default="0")
     show_food_mascot    = Column(Boolean, nullable=False, default=False, server_default="0")
+    # Feature toggles — default ON (the user opts OUT). show_food_tracking gates
+    # the whole Kost section; the two coach flags gate each Coach tab.
+    show_training_coach  = Column(Boolean, nullable=False, default=True, server_default="1")
+    show_nutrition_coach = Column(Boolean, nullable=False, default=True, server_default="1")
+    show_food_tracking   = Column(Boolean, nullable=False, default=True, server_default="1")
     kcal_target = Column(Integer, nullable=True)
     protein_target = Column(Integer, nullable=True)
 

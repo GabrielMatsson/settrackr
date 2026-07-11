@@ -57,6 +57,9 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsGymGhost, setSettingsGymGhost] = useState(false)
   const [settingsGymMascot, setSettingsGymMascot] = useState(false)
   const [settingsFoodMascot, setSettingsFoodMascot] = useState(false)
+  const [settingsTrainingCoach, setSettingsTrainingCoach] = useState(true)
+  const [settingsNutritionCoach, setSettingsNutritionCoach] = useState(true)
+  const [settingsFoodTracking, setSettingsFoodTracking] = useState(true)
   const [settingsKcalTarget, setSettingsKcalTarget] = useState(2200)
   const [settingsProteinTarget, setSettingsProteinTarget] = useState(150)
   const { theme, setTheme } = useTheme()
@@ -79,6 +82,9 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsGymGhost(p.show_gym_ghost ?? false)
       setSettingsGymMascot(p.show_gym_mascot ?? false)
       setSettingsFoodMascot(p.show_food_mascot ?? false)
+      setSettingsTrainingCoach(p.show_training_coach ?? true)
+      setSettingsNutritionCoach(p.show_nutrition_coach ?? true)
+      setSettingsFoodTracking(p.show_food_tracking ?? true)
       setSettingsKcalTarget(p.kcal_target ?? 2200)
       setSettingsProteinTarget(p.protein_target ?? 150)
     }).catch(() => {})
@@ -97,7 +103,7 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, show_gym_mascot: settingsGymMascot, show_food_mascot: settingsFoodMascot, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
+      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, show_gym_mascot: settingsGymMascot, show_food_mascot: settingsFoodMascot, show_training_coach: settingsTrainingCoach, show_nutrition_coach: settingsNutritionCoach, show_food_tracking: settingsFoodTracking, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -668,6 +674,62 @@ export default function ProfileClient({ name, email, image }: Props) {
                   </label>
                 </div>
                 <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">7 dagar utan träning?</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Funktioner — feature toggles (default på) */}
+          <div className="flex flex-col gap-4 md:col-span-2 border-t border-gray-100 dark:border-gray-800 pt-6">
+            <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wide">Funktioner</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="training-coach"
+                    checked={settingsTrainingCoach}
+                    onChange={(e) => setSettingsTrainingCoach(e.target.checked)}
+                    className="w-4 h-4 accent-indigo-500 shrink-0"
+                  />
+                  <label htmlFor="training-coach" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                    Träningscoach
+                  </label>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Coach-fliken under Statistik med platåer, rekord och volym.</p>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="nutrition-coach"
+                    checked={settingsNutritionCoach}
+                    onChange={(e) => setSettingsNutritionCoach(e.target.checked)}
+                    disabled={!settingsFoodTracking}
+                    className="w-4 h-4 accent-indigo-500 shrink-0 disabled:opacity-40"
+                  />
+                  <label htmlFor="nutrition-coach" className={`text-sm font-medium ${settingsFoodTracking ? "text-gray-700 dark:text-gray-300 cursor-pointer" : "text-gray-400 dark:text-gray-600"}`}>
+                    Kostcoach
+                  </label>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Coach-fliken under Kost med protein- och kaloriinsikter.</p>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="food-tracking"
+                    checked={settingsFoodTracking}
+                    onChange={(e) => setSettingsFoodTracking(e.target.checked)}
+                    className="w-4 h-4 accent-indigo-500 shrink-0"
+                  />
+                  <label htmlFor="food-tracking" className="text-sm text-gray-700 dark:text-gray-300 font-medium cursor-pointer">
+                    Kostspårning
+                  </label>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Hela Kost-sektionen (dagbok, statistik och kostcoach).</p>
               </div>
             </div>
           </div>

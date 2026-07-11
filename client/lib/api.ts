@@ -187,6 +187,92 @@ export function deleteGoal(id: number) {
   return apiFetch(`/goals/${id}`, { method: "DELETE" })
 }
 
+// --- Coach (training insights) ---------------------------------------------
+
+export type VolumeSignal = "none" | "low" | "maintenance" | "optimal" | "high"
+
+export type CoachPlateau = {
+  exercise: string
+  days_since_pr: number
+  best_e1rm: number
+  last_weight: number
+  last_reps: number
+  last_difficulty: string
+  suggestion: string
+}
+
+export type CoachMuscleVolume = {
+  muscle: string
+  label: string
+  avg_sets_per_week: number
+  signal: VolumeSignal
+}
+
+export type CoachPR = {
+  exercise: string
+  date: string
+  weight: number
+  reps: number
+  e1rm: number
+  type: "weight" | "e1rm"
+  days_ago: number
+}
+
+export type CoachTrend = {
+  exercise: string
+  points: { date: string; e1rm: number }[]
+  current: number
+  best: number
+  sessions: number
+}
+
+export type CoachInsights = {
+  plateaus: CoachPlateau[]
+  muscle_volume: CoachMuscleVolume[]
+  prs: CoachPR[]
+  one_rm_trends: CoachTrend[]
+  weekly_summary: string
+  meta: { total_sessions: number; weeks_analysed: number; generated_at: string; has_data: boolean }
+}
+
+export function getCoachInsights(weeks = 8): Promise<CoachInsights> {
+  return apiFetch(`/insights/coach?weeks=${weeks}`) as Promise<CoachInsights>
+}
+
+// --- Nutrition coach (protein + calories only) -----------------------------
+
+export type ProteinSignal = "none" | "poor" | "low" | "good"
+export type KcalSignal = "none" | "good" | "slightly_over" | "over"
+
+export type NutritionInsights = {
+  protein: {
+    avg: number
+    target: number
+    avg_gap: number
+    pct_days_on_target: number
+    streak: number
+    signal: ProteinSignal
+    suggestion: string
+  }
+  calories: {
+    avg: number
+    target: number
+    avg_gap: number
+    days_over: number
+    logged_days: number
+    pct_days_at_or_under: number
+    signal: KcalSignal
+    suggestion: string
+  }
+  weekly_trend: { week: string; avg_kcal: number; avg_protein: number; logged_days: number }[]
+  weekly_summary: string
+  meta: { logged_days: number; weeks_analysed: number; generated_at: string; has_data: boolean }
+}
+
+export function getNutritionInsights(weeks = 8): Promise<NutritionInsights> {
+  return apiFetch(`/insights/nutrition?weeks=${weeks}`) as Promise<NutritionInsights>
+}
+
 export function getPlans() {
   return apiFetch("/plans/")
 }
@@ -278,7 +364,7 @@ export function getExerciseHistory(names: string[]) {
   return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; show_gym_mascot?: boolean; show_food_mascot?: boolean; kcal_target?: number; protein_target?: number }) {
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; show_gym_mascot?: boolean; show_food_mascot?: boolean; show_training_coach?: boolean; show_nutrition_coach?: boolean; show_food_tracking?: boolean; kcal_target?: number; protein_target?: number }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
 }
 
