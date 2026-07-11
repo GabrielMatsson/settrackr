@@ -23,7 +23,13 @@
       "PowerShell(.\\healthcheck.ps1*)",
       "PowerShell(Invoke-WebRequest -UseBasicParsing https://settrackr.onrender.com*)",
       "PowerShell(Invoke-WebRequest -UseBasicParsing https://settrackr.vercel.app*)",
-      "PowerShell(Invoke-RestMethod -Uri https://settrackr.onrender.com*)"
+      "PowerShell(Invoke-RestMethod -Uri https://settrackr.onrender.com*)",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__performance_start_trace",
+      "mcp__chrome-devtools__performance_stop_trace",
+      "mcp__chrome-devtools__take_snapshot"
     ]
   }
 }

@@ -30,3 +30,6 @@ dist/
 
 # Claude Code local settings (contains API keys - never commit)
 .claude/settings.local.json
+
+# Local scratch notes
+reflection-notes.md
