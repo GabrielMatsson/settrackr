@@ -1,12 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from sse_starlette.sse import EventSourceResponse
 from database import SessionLocal
 from crud import get_or_create_user
-from jose import jwt, JWTError
+from auth import decode_stream_token
 import models
 import asyncio
 import json
-import os
+import time
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -37,6 +37,10 @@ def _fetch_notifications(user_info: dict, since: datetime) -> tuple:
                 .filter(
                     models.WorkoutLog.user_id.in_(friend_ids),
                     models.WorkoutLog.created_at > since,
+                    # Upper bound at the `now` that becomes the next `since` —
+                    # otherwise a log created mid-query lands in two windows
+                    # and produces a duplicate notification.
+                    models.WorkoutLog.created_at <= now,
                 )
                 .all()
             )
@@ -54,19 +58,17 @@ def _fetch_notifications(user_info: dict, since: datetime) -> tuple:
 
 @router.get("/stream")
 async def stream_notifications(token: str = Query(...)):
-    SECRET_KEY = os.getenv("AUTH_SECRET")
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401)
-    except JWTError:
-        raise HTTPException(status_code=401)
-    user_info = {"email": email}
+    payload = decode_stream_token(token)
+    user_info = {"email": payload["sub"]}
+    token_exp = payload.get("exp")
 
     async def generator():
         since = datetime.now(timezone.utc).replace(tzinfo=None)
         while True:
+            # End the stream when the token it was opened with expires; the
+            # client's EventSource reconnects with a fresh one.
+            if token_exp and time.time() > token_exp:
+                return
             events, since = await asyncio.to_thread(_fetch_notifications, user_info, since)
             if events:
                 yield {"data": json.dumps(events)}

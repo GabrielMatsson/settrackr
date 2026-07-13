@@ -1,9 +1,14 @@
-from pydantic import BaseModel
+from typing import Literal
+from pydantic import BaseModel, Field
+
+# Generous sanity bounds on write payloads — wide enough to never reject real
+# training/food data, tight enough that garbage (negative sets, 1e9 kg) can't
+# corrupt XP, PRs and Coach insights.
 
 class ExerciseCreate(BaseModel):
     name: str
-    sets: int
-    reps: int
+    sets: int = Field(ge=0, le=1000)
+    reps: int = Field(ge=0, le=1000)
 
 class ExerciseResponse(ExerciseCreate):
     id: int
@@ -50,7 +55,7 @@ class PlanInvitationResponse(BaseModel):
 
 class GoalCreate(BaseModel):
     name: str
-    target_weight: float
+    target_weight: float = Field(ge=0, le=10000)
 
 class GoalResponse(GoalCreate):
     id: int
@@ -122,15 +127,19 @@ class FriendshipResponse(BaseModel):
 
 class ExerciseLogCreate(BaseModel):
     name: str
-    sets: int
-    reps: int
-    weight: float  # extra load in kg (on top of body weight when is_bodyweight)
-    difficulty: str
+    sets: int = Field(ge=0, le=1000)
+    reps: int = Field(ge=0, le=1000)
+    # extra load in kg (on top of body weight when is_bodyweight)
+    weight: float = Field(ge=0, le=10000)
+    difficulty: Literal["easy", "medium", "hard"]
     done: bool
     is_bodyweight: bool = False
 
 class ExerciseLogResponse(ExerciseLogCreate):
     id: int
+    # Reads are permissive: a legacy row with an off-convention difficulty
+    # should render, not 500 the whole GET.
+    difficulty: str
 
     model_config = {"from_attributes": True}
 
@@ -154,11 +163,11 @@ class MealItemCreate(BaseModel):
     name: str
     brand: str | None = None
     barcode: str | None = None
-    grams: float
-    kcal_100g: float
-    protein_100g: float
-    carbs_100g: float
-    fat_100g: float
+    grams: float = Field(ge=0, le=10000)
+    kcal_100g: float = Field(ge=0, le=10000)
+    protein_100g: float = Field(ge=0, le=10000)
+    carbs_100g: float = Field(ge=0, le=10000)
+    fat_100g: float = Field(ge=0, le=10000)
 
 class MealItemResponse(MealItemCreate):
     id: int
@@ -207,6 +216,10 @@ class LevelResponse(BaseModel):
     next_threshold: int | None
     next_title: str | None
     progress_pct: float
+
+
+class ReorderRequest(BaseModel):
+    ids: list[int]
 
 
 class ExerciseMuscleCreate(BaseModel):

@@ -2,26 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload, selectinload
 from sse_starlette.sse import EventSourceResponse
 from database import get_db, SessionLocal
-from auth import get_current_user
-from crud import get_or_create_user
-from jose import jwt, JWTError
+from auth import get_current_user, decode_stream_token
+from crud import get_or_create_user, get_accepted_friendship
 import models
 import schemas
 import asyncio
 import json
-import os
+import time
 
 router = APIRouter(prefix="/friends", tags=["friends"])
-
-
-def get_accepted_friendship(db: Session, user_id: int, friend_id: int):
-    return db.query(models.Friendship).filter(
-        models.Friendship.status == "accepted",
-        (
-            (models.Friendship.requester_id == user_id) & (models.Friendship.receiver_id == friend_id)
-            | (models.Friendship.requester_id == friend_id) & (models.Friendship.receiver_id == user_id)
-        )
-    ).first()
 
 
 def serialize_log(log: models.WorkoutLog) -> dict:
@@ -94,47 +83,6 @@ def get_friends(user=Depends(get_current_user), db: Session = Depends(get_db)):
         friend = f.receiver if f.requester_id == db_user.id else f.requester
         result.append({"id": f.id, "status": f.status, "friend": friend})
     return result
-
-
-def _fetch_friend_requests(user: dict) -> list:
-    db = SessionLocal()
-    try:
-        db_user = get_or_create_user(db, user)
-        pending = db.query(models.Friendship).filter(
-            models.Friendship.receiver_id == db_user.id,
-            models.Friendship.status == "pending"
-        ).all()
-        return [
-            {"id": f.id, "status": f.status, "friend": {"id": f.requester.id, "name": f.requester.name, "email": f.requester.email}}
-            for f in pending
-        ]
-    finally:
-        db.close()
-
-
-@router.get("/requests/stream")
-async def stream_friend_requests(token: str = Query(...)):
-    SECRET_KEY = os.getenv("AUTH_SECRET")
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401)
-    except JWTError:
-        raise HTTPException(status_code=401)
-    user = {"email": email}
-
-    async def generator():
-        last_sig = ""
-        while True:
-            data = await asyncio.to_thread(_fetch_friend_requests, user)
-            sig = str(len(data))
-            if sig != last_sig:
-                last_sig = sig
-                yield {"data": json.dumps(data)}
-            await asyncio.sleep(5)
-
-    return EventSourceResponse(generator())
 
 
 @router.put("/{friendship_id}/accept", response_model=schemas.FriendshipResponse)
@@ -264,20 +212,17 @@ def _fetch_friend_log_data(user: dict, friend_id: int) -> tuple:
 
 @router.get("/{friend_id}/stream")
 async def stream_friend_logs(friend_id: int, token: str = Query(...)):
-    SECRET_KEY = os.getenv("AUTH_SECRET")
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user = {"email": email}
+    payload = decode_stream_token(token)
+    user = {"email": payload["sub"]}
+    token_exp = payload.get("exp")
 
     async def generator():
         last_sig = ""
         while True:
+            # End the stream when the token it was opened with expires; the
+            # client's EventSource reconnects with a fresh one.
+            if token_exp and time.time() > token_exp:
+                return
             viewer_id, data = await asyncio.to_thread(_fetch_friend_log_data, user, friend_id)
             if viewer_id is None:
                 yield {"data": json.dumps({"error": "not friends"})}

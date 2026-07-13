@@ -52,9 +52,6 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE exercise_logs ADD COLUMN IF NOT EXISTS "
             "is_bodyweight BOOLEAN NOT NULL DEFAULT FALSE"
         ))
-        conn.execute(text("DROP TABLE IF EXISTS workout_reactions CASCADE"))
-        conn.execute(text("DROP TABLE IF EXISTS workout_comments CASCADE"))
-        conn.execute(text("DROP TABLE IF EXISTS food_logs CASCADE"))
         conn.commit()
     yield
 

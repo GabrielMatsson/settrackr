@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
 from database import get_db
 from auth import get_current_user
-from crud import get_or_create_user
+from crud import get_or_create_user, get_accepted_friendship
 from utils import calculate_xp, xp_to_level
 import schemas
 import models
@@ -106,14 +105,7 @@ def get_my_level(user=Depends(get_current_user), db: Session = Depends(get_db)):
 @router.get("/{user_id}/level", response_model=schemas.LevelResponse)
 def get_friend_level(user_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
     current_user = get_or_create_user(db, user)
-    friendship = db.query(models.Friendship).filter(
-        models.Friendship.status == "accepted",
-        or_(
-            and_(models.Friendship.requester_id == current_user.id, models.Friendship.receiver_id == user_id),
-            and_(models.Friendship.requester_id == user_id, models.Friendship.receiver_id == current_user.id),
-        )
-    ).first()
-    if not friendship:
+    if not get_accepted_friendship(db, current_user.id, user_id):
         raise HTTPException(status_code=403, detail="Not friends")
     logs = db.query(models.WorkoutLog).filter(models.WorkoutLog.user_id == user_id).all()
     return calculate_level(logs)

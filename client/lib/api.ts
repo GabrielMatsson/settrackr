@@ -12,7 +12,13 @@ async function getToken(): Promise<string> {
   pendingToken = (async () => {
     try {
       const res = await fetch("/api/auth/token")
+      if (!res.ok) throw new Error(`Token fetch failed: ${res.status}`)
       const data = await res.json()
+      // Never cache a missing token — a cached undefined would break every
+      // API call for the next 50 minutes ("Bearer undefined")
+      if (typeof data.token !== "string" || !data.token) {
+        throw new Error("Token fetch returned no token")
+      }
       cachedToken = { token: data.token, fetchedAt: Date.now() }
       return data.token as string
     } finally {

@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload, selectinload
-from sse_starlette.sse import EventSourceResponse
-from database import get_db, SessionLocal
+from database import get_db
 from auth import get_current_user
 from crud import get_or_create_user
-from jose import jwt, JWTError
 import models
 import schemas
-import asyncio
-import json
-import os
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -34,58 +29,6 @@ def get_logs(user=Depends(get_current_user), db: Session = Depends(get_db)):
         .all()
     )
     return logs
-
-
-def _fetch_log_data(user: dict) -> list:
-    db = SessionLocal()
-    try:
-        db_user = get_or_create_user(db, user)
-        logs = (
-            db.query(models.WorkoutLog)
-            .options(selectinload(models.WorkoutLog.exercises))
-            .filter(models.WorkoutLog.user_id == db_user.id)
-            .all()
-        )
-        return [
-            {
-                "id": log.id,
-                "plan_name": log.plan_name,
-                "icon": log.icon,
-                "date": log.date,
-                "exercises": [
-                    {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done, "is_bodyweight": e.is_bodyweight}
-                    for e in log.exercises
-                ],
-            }
-            for log in logs
-        ]
-    finally:
-        db.close()
-
-
-@router.get("/stream")
-async def stream_logs(token: str = Query(...)):
-    SECRET_KEY = os.getenv("AUTH_SECRET")
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401)
-    except JWTError:
-        raise HTTPException(status_code=401)
-    user = {"email": email}
-
-    async def generator():
-        last_sig = ""
-        while True:
-            data = await asyncio.to_thread(_fetch_log_data, user)
-            sig = "-".join(str(d["id"]) for d in data)
-            if sig != last_sig:
-                last_sig = sig
-                yield {"data": json.dumps(data)}
-            await asyncio.sleep(2)
-
-    return EventSourceResponse(generator())
 
 
 @router.get("/exercise-history")
@@ -154,6 +97,10 @@ def update_log(log_id: int, log: schemas.WorkoutLogCreate, user=Depends(get_curr
         raise HTTPException(status_code=404, detail="Log not found")
 
     db_log.plan_name = log.plan_name
+    # Only touch the icon when the client actually sent one — the edit UI
+    # omits it, and the schema default would otherwise reset it to "Dumbbell".
+    if "icon" in log.model_fields_set:
+        db_log.icon = log.icon
     db_log.date = log.date
     db.query(models.ExerciseLog).filter(models.ExerciseLog.log_id == log_id).delete()
 

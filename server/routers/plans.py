@@ -1,15 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
-from sse_starlette.sse import EventSourceResponse
-from database import get_db, SessionLocal
+from database import get_db
 from auth import get_current_user
-from crud import get_or_create_user
-from jose import jwt, JWTError
+from crud import get_or_create_user, get_accepted_friendship
 import models
 import schemas
-import asyncio
-import json
-import os
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
@@ -44,16 +39,6 @@ def serialize_plan(plan: models.WorkoutPlan) -> schemas.WorkoutPlanResponse:
     )
 
 
-def serialize_invitation(access: models.SharedPlanAccess) -> dict:
-    return {
-        "id": access.id,
-        "plan_id": access.plan.id,
-        "plan_name": access.plan.name,
-        "exercises": [{"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps} for e in access.plan.exercises],
-        "from_user": {"id": access.plan.user.id, "name": access.plan.user.name, "email": access.plan.user.email},
-    }
-
-
 @router.get("/invitations", response_model=list[schemas.PlanInvitationResponse])
 def get_plan_invitations(user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
@@ -79,53 +64,6 @@ def get_plan_invitations(user=Depends(get_current_user), db: Session = Depends(g
         )
         for a in accesses
     ]
-
-
-def _fetch_plan_invitations(user: dict) -> list:
-    db = SessionLocal()
-    try:
-        db_user = get_or_create_user(db, user)
-        accesses = (
-            db.query(models.SharedPlanAccess)
-            .options(
-                joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.exercises),
-                joinedload(models.SharedPlanAccess.plan).joinedload(models.WorkoutPlan.user),
-            )
-            .filter(
-                models.SharedPlanAccess.friend_id == db_user.id,
-                models.SharedPlanAccess.status == "pending",
-            )
-            .all()
-        )
-        return [serialize_invitation(a) for a in accesses]
-    finally:
-        db.close()
-
-
-@router.get("/invitations/stream")
-async def stream_plan_invitations(token: str = Query(...)):
-    SECRET_KEY = os.getenv("AUTH_SECRET")
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401)
-    except JWTError:
-        raise HTTPException(status_code=401)
-
-    user = {"email": email}
-
-    async def generator():
-        last_sig = ""
-        while True:
-            data = await asyncio.to_thread(_fetch_plan_invitations, user)
-            sig = str(len(data))
-            if sig != last_sig:
-                last_sig = sig
-                yield {"data": json.dumps(data)}
-            await asyncio.sleep(5)
-
-    return EventSourceResponse(generator())
 
 
 @router.put("/invitations/{access_id}/accept", response_model=schemas.SharedPlanResponse)
@@ -231,10 +169,9 @@ def get_plans(user=Depends(get_current_user), db: Session = Depends(get_db)):
 
 
 @router.put("/reorder")
-def reorder_plans(body: dict, user=Depends(get_current_user), db: Session = Depends(get_db)):
+def reorder_plans(body: schemas.ReorderRequest, user=Depends(get_current_user), db: Session = Depends(get_db)):
     db_user = get_or_create_user(db, user)
-    ids: list[int] = body.get("ids", [])
-    for i, plan_id in enumerate(ids):
+    for i, plan_id in enumerate(body.ids):
         db.query(models.WorkoutPlan).filter(
             models.WorkoutPlan.id == plan_id,
             models.WorkoutPlan.user_id == db_user.id,
@@ -295,14 +232,7 @@ def share_plan(plan_id: int, body: dict, user=Depends(get_current_user), db: Ses
     if not db_plan:
         raise HTTPException(status_code=404, detail="Plan hittades inte")
 
-    friendship = db.query(models.Friendship).filter(
-        models.Friendship.status == "accepted",
-        (
-            (models.Friendship.requester_id == db_user.id) & (models.Friendship.receiver_id == friend_id)
-            | (models.Friendship.requester_id == friend_id) & (models.Friendship.receiver_id == db_user.id)
-        )
-    ).first()
-    if not friendship:
+    if not get_accepted_friendship(db, db_user.id, friend_id):
         raise HTTPException(status_code=403, detail="Ni är inte vänner")
 
     existing = db.query(models.SharedPlanAccess).filter(
