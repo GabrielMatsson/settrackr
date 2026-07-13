@@ -4,14 +4,6 @@
 ### Background
 Gym web app where you can track your workouts with set and rep tracking. The user inputs each workout with name, weight, reps, sets. This get stored and you can view your progress on a statistics page.
 
-### Coach (training & nutrition insights)
-A "Coach" tab under both Statistik and Kost that turns your logged data into feedback. It's plain rule-based statistics computed in the backend — no external APIs or AI at runtime.
-
-- **Training coach**: plateau detection with a concrete suggestion, weekly training volume per muscle group, personal records, and an estimated-1RM trend (Epley/Brzycki). A short weekly summary in Swedish.
-- **Nutrition coach**: protein and calories tracked against your targets (calories as a ceiling / cut), with per-week trends, a "days on target" streak, and a weekly summary.
-
-**Technical**: a new FastAPI router (`server/routers/insights.py`) exposing `GET /insights/coach` and `GET /insights/nutrition`, a Python port of the exercise→muscle map (`server/muscle_map.py`), and new pages under `client/app/dashboard/statistics/coach` and `client/app/dashboard/foodtracking/coach` (charts via Recharts). Each coach — and the whole Kost section — can be turned off in Profil → Inställningar → Funktioner.
-
 ### Screenshots
 
 <table>
