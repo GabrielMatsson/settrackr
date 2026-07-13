@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { ThemeProvider } from "next-themes"
 import { MotionConfig } from "motion/react"
+import { SerwistProvider } from "@serwist/turbopack/react"
 import ColdStartBanner from "./components/ColdStartBanner"
 import { warmUp } from "@/lib/api"
 
@@ -15,11 +16,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <MotionConfig reducedMotion="user">
-        {children}
-        <ColdStartBanner />
-      </MotionConfig>
-    </ThemeProvider>
+    // Service worker registration (PWA/offline) — disabled in dev so a stale
+    // worker never fights hot reload
+    <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <MotionConfig reducedMotion="user">
+          {children}
+          <ColdStartBanner />
+        </MotionConfig>
+      </ThemeProvider>
+    </SerwistProvider>
   )
 }

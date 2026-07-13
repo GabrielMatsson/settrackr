@@ -13,7 +13,8 @@ import PlanCard from "./components/PlanCard"
 import SharedPlanCard from "./components/SharedPlanCard"
 import WorkoutLogger from "./components/WorkoutLogger"
 import type { Exercise, WorkoutPlan, WorkoutLog } from "./components/types"
-import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan, getMe, reorderPlans, getMyLevel, clearCache } from "@/lib/api"
+import { getPlans, createPlan, updatePlan, deletePlan as apiDeletePlan, createLog, getFriends, getSharedPlans, sharePlan, unsharePlan, leaveSharedPlan, getMe, reorderPlans, getMyLevel, clearCache, setExerciseMuscles } from "@/lib/api"
+import { musclesForExercise, type Muscle } from "@/lib/muscle-map"
 
 type LevelInfo = { xp: number; level: number; title: string; progress_pct: number; next_title: string | null; next_threshold: number | null }
 
@@ -153,6 +154,25 @@ export default function TrackingPage() {
   function addExercise() {
     const updated = exercises.concat([{ name: "", sets: 3, reps: 10 }])
     setExercises(updated)
+  }
+
+  function addExerciseFromLibrary(name: string, muscles: Muscle[]) {
+    // Fill the trailing empty row if there is one, otherwise append.
+    const updated = [...exercises]
+    const last = updated[updated.length - 1]
+    if (last && !last.name.trim()) {
+      updated[updated.length - 1] = { ...last, name }
+    } else {
+      updated.push({ name, sets: 3, reps: 10 })
+    }
+    setExercises(updated)
+
+    // The library knows the exercise's muscles — save an override so the
+    // heatmap and Coach map it correctly, but only when the app's own
+    // keyword rules don't already cover the name.
+    if (muscles.length > 0 && musclesForExercise(name).length === 0) {
+      setExerciseMuscles(name, muscles).catch(() => {})
+    }
   }
 
   function removeExercise(index: number) {
@@ -410,6 +430,7 @@ export default function TrackingPage() {
                 onPlanNameChange={setPlanName}
                 onPlanIconChange={setPlanIcon}
                 onAddExercise={addExercise}
+                onAddFromLibrary={addExerciseFromLibrary}
                 onRemoveExercise={removeExercise}
                 onUpdateName={updateExerciseName}
                 onUpdateSets={updateExerciseSets}

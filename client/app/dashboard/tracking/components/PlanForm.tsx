@@ -1,8 +1,11 @@
 "use client"
 
-import { useRef } from "react"
-import { GripVertical, X } from "lucide-react"
+import { useRef, useState } from "react"
+import { GripVertical, LibraryBig, X } from "lucide-react"
 import IconPicker from "./IconPicker"
+import ExercisePicker from "./ExercisePicker"
+import { allMuscles, type LibraryExercise } from "@/lib/exercise-db"
+import type { Muscle } from "@/lib/muscle-map"
 import type { Exercise } from "./types"
 
 type Props = {
@@ -13,6 +16,7 @@ type Props = {
   onPlanNameChange: (value: string) => void
   onPlanIconChange: (value: string) => void
   onAddExercise: () => void
+  onAddFromLibrary: (name: string, muscles: Muscle[]) => void
   onRemoveExercise: (index: number) => void
   onUpdateName: (index: number, value: string) => void
   onUpdateSets: (index: number, value: number) => void
@@ -46,6 +50,7 @@ export default function PlanForm({
   onPlanNameChange,
   onPlanIconChange,
   onAddExercise,
+  onAddFromLibrary,
   onRemoveExercise,
   onUpdateName,
   onUpdateSets,
@@ -55,6 +60,12 @@ export default function PlanForm({
   onCancel,
 }: Props) {
   const dragIndex = useRef<number | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  function handlePick(ex: LibraryExercise) {
+    onAddFromLibrary(ex.name, allMuscles(ex))
+    setPickerOpen(false)
+  }
 
   const exerciseRows = []
   for (let i = 0; i < exercises.length; i++) {
@@ -134,13 +145,26 @@ export default function PlanForm({
       <div className="flex flex-col gap-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">Övningar</p>
         {exerciseRows}
-        <button
-          onClick={onAddExercise}
-          className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors self-start"
-        >
-          + Lägg till övning
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onAddExercise}
+            className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+          >
+            + Lägg till övning
+          </button>
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors inline-flex items-center gap-1.5"
+          >
+            <LibraryBig size={14} />
+            Välj från bibliotek
+          </button>
+        </div>
       </div>
+
+      {pickerOpen && (
+        <ExercisePicker onSelect={handlePick} onClose={() => setPickerOpen(false)} />
+      )}
 
       <div className="flex gap-3 pt-2">
         <button
