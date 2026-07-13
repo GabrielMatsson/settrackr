@@ -8,17 +8,22 @@ import { getNutritionInsights, NutritionInsights } from "@/lib/api"
 import NutritionSummaryCard from "./components/NutritionSummaryCard"
 import TargetsCard from "./components/TargetsCard"
 import NutritionTrendCard from "./components/NutritionTrendCard"
+import SuggestedTargetCard from "./components/SuggestedTargetCard"
+
+const WEEKS = 8
 
 export default function NutritionCoachPage() {
   const [data, setData] = useState<NutritionInsights | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    getNutritionInsights(8)
+  function load() {
+    getNutritionInsights(WEEKS)
       .then((d) => { setData(d); setLoading(false) })
       .catch(() => { setError("Kunde inte hämta Coach-analysen"); setLoading(false) })
-  }, [])
+  }
+
+  useEffect(load, [])
 
   if (loading) {
     return <p className="text-gray-500 dark:text-gray-400 text-sm">Laddar Coach…</p>
@@ -42,6 +47,9 @@ export default function NutritionCoachPage() {
 
   const sections = [
     <NutritionSummaryCard key="summary" summary={data.weekly_summary} />,
+    ...(data.target_suggestion && data.target_suggestion.basis !== "none"
+      ? [<SuggestedTargetCard key="suggestion" suggestion={data.target_suggestion} weeks={WEEKS} onApplied={load} />]
+      : []),
     <TargetsCard key="targets" protein={data.protein} calories={data.calories} />,
     <NutritionTrendCard key="trend" trend={data.weekly_trend} kcalTarget={data.calories.target} proteinTarget={data.protein.target} weeks={data.meta.weeks_analysed} />,
   ]

@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { motion } from "motion/react"
 import { ChevronLeft, ChevronRight, Flame, Beef, Target, Utensils } from "lucide-react"
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts"
-import { getMealsRange, getMe } from "@/lib/api"
+import { getMealsRange, getMe, getWeightLogs, type WeightEntry } from "@/lib/api"
 import { todayStr, shiftDate, startOfWeek, weekDates, dailyTotals, weekSummary, type Meal } from "@/lib/food-utils"
 import AnimatedNumber from "@/app/components/AnimatedNumber"
 import { fadeUp, fadeUpTransition } from "@/lib/motion"
@@ -48,12 +48,18 @@ export default function FoodStats() {
   const [error, setError] = useState<string | null>(null)
   const [kcalTarget, setKcalTarget] = useState(2200)
   const [proteinTarget, setProteinTarget] = useState(150)
+  const [targetWeight, setTargetWeight] = useState<number | null>(null)
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([])
 
   useEffect(() => {
     getMe()
       .then((p) => {
         setKcalTarget(p.kcal_target ?? 2200)
         setProteinTarget(p.protein_target ?? 150)
+        setTargetWeight(p.target_weight ?? null)
+        if (p.show_weight_tracking !== false) {
+          getWeightLogs().then(setWeightEntries).catch(() => {})
+        }
       })
       .catch(() => {})
   }, [])
@@ -79,6 +85,21 @@ export default function FoodStats() {
     kcal: d.kcal,
     protein: d.protein,
   }))
+
+  // Weight trend spans all entries (not the selected week) — weight change is
+  // only meaningful over a longer window.
+  const weightData = [...weightEntries]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((e) => ({
+      date: new Date(e.date + "T12:00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "numeric" }),
+      kg: e.weight_kg,
+    }))
+  // Body weight moves in a narrow band — pad the domain around min/max
+  // (including the target line) instead of starting at 0.
+  const weightValues = weightData.map((d) => d.kg).concat(targetWeight != null ? [targetWeight] : [])
+  const weightDomain: [number, number] = weightValues.length
+    ? [Math.floor(Math.min(...weightValues)) - 1, Math.ceil(Math.max(...weightValues)) + 1]
+    : [0, 100]
 
   const tiles: Tile[] = [
     {
@@ -194,6 +215,38 @@ export default function FoodStats() {
             </ResponsiveContainer>
           </div>
         </>
+      )}
+
+      {weightData.length >= 2 && (
+        <div className="bg-white dark:bg-gray-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl shadow-card p-5 flex flex-col gap-4">
+          <p className="text-gray-900 dark:text-white font-semibold">Viktutveckling</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={weightData} margin={{ top: 12, right: 4, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="bodyWeightGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={KCAL_COLOR} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={KCAL_COLOR} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis domain={weightDomain} tick={{ fill: "#94a3b8", fontSize: 11 }} unit=" kg" axisLine={false} tickLine={false} width={52} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`]} />
+              {targetWeight != null && (
+                <ReferenceLine y={targetWeight} stroke={TARGET_COLOR} strokeDasharray="4 4" label={{ value: "Mål", fill: TARGET_COLOR, fontSize: 11, position: "insideTopRight" }} />
+              )}
+              <Area
+                type="monotone"
+                dataKey="kg"
+                stroke={KCAL_COLOR}
+                strokeWidth={2}
+                fill="url(#bodyWeightGradient)"
+                dot={false}
+                activeDot={{ r: 5, fill: KCAL_COLOR, stroke: "#fff", strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   )

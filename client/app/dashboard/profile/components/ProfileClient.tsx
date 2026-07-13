@@ -7,7 +7,8 @@ import { LogOut, Dumbbell, Calendar, Users, Info, Zap, Sun, Moon } from "lucide-
 import AnimatedNumber from "@/app/components/AnimatedNumber"
 import SaveButton from "@/app/components/SaveButton"
 import { gentleSpring, fadeUp, fadeUpTransition } from "@/lib/motion"
-import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel } from "@/lib/api"
+import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel, type GoalMode } from "@/lib/api"
+import { GOAL_MODE_LABELS } from "@/lib/weight-utils"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -62,6 +63,9 @@ export default function ProfileClient({ name, email, image }: Props) {
   const [settingsFoodTracking, setSettingsFoodTracking] = useState(true)
   const [settingsKcalTarget, setSettingsKcalTarget] = useState(2200)
   const [settingsProteinTarget, setSettingsProteinTarget] = useState(150)
+  const [settingsWeightTracking, setSettingsWeightTracking] = useState(true)
+  const [settingsTargetWeight, setSettingsTargetWeight] = useState<number | "">("")
+  const [settingsGoalMode, setSettingsGoalMode] = useState<GoalMode | null>(null)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [levelInfo, setLevelInfo] = useState<{ xp: number; level: number; title: string; next_threshold: number | null; next_title: string | null; progress_pct: number; current_threshold: number } | null>(null)
@@ -87,6 +91,9 @@ export default function ProfileClient({ name, email, image }: Props) {
       setSettingsFoodTracking(p.show_food_tracking ?? true)
       setSettingsKcalTarget(p.kcal_target ?? 2200)
       setSettingsProteinTarget(p.protein_target ?? 150)
+      setSettingsWeightTracking(p.show_weight_tracking ?? true)
+      setSettingsTargetWeight(p.target_weight ?? "")
+      setSettingsGoalMode(p.goal_mode ?? null)
     }).catch(() => {})
 
     getFriendRequests().then(setRequests).catch(() => {})
@@ -103,7 +110,24 @@ export default function ProfileClient({ name, email, image }: Props) {
   async function handleSaveSettings() {
     setSettingsSaving(true)
     try {
-      const updated = await updateMe({ name: settingsName || null, weekly_goal: settingsGoal, show_overload_hints: settingsOverloadHints, show_chicken_legs: settingsChickenLegs, show_gym_ghost: settingsGymGhost, show_gym_mascot: settingsGymMascot, show_food_mascot: settingsFoodMascot, show_training_coach: settingsTrainingCoach, show_nutrition_coach: settingsNutritionCoach, show_food_tracking: settingsFoodTracking, kcal_target: settingsKcalTarget, protein_target: settingsProteinTarget })
+      const updated = await updateMe({
+        name: settingsName || null,
+        weekly_goal: settingsGoal,
+        show_overload_hints: settingsOverloadHints,
+        show_chicken_legs: settingsChickenLegs,
+        show_gym_ghost: settingsGymGhost,
+        show_gym_mascot: settingsGymMascot,
+        show_food_mascot: settingsFoodMascot,
+        show_training_coach: settingsTrainingCoach,
+        show_nutrition_coach: settingsNutritionCoach,
+        show_food_tracking: settingsFoodTracking,
+        show_weight_tracking: settingsWeightTracking,
+        kcal_target: settingsKcalTarget,
+        protein_target: settingsProteinTarget,
+        // PATCH skips omitted fields, so an empty målvikt is simply left as-is
+        ...(settingsTargetWeight !== "" ? { target_weight: settingsTargetWeight } : {}),
+        ...(settingsGoalMode ? { goal_mode: settingsGoalMode } : {}),
+      })
       setProfile(updated)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
@@ -551,6 +575,45 @@ export default function ProfileClient({ name, email, image }: Props) {
               />
               <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Ditt dagliga proteinmål i kostspårningen.</p>
             </div>
+
+            {settingsWeightTracking && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Målvikt (kg)</label>
+                  <input
+                    type="number"
+                    min={20}
+                    max={400}
+                    step={0.5}
+                    value={settingsTargetWeight}
+                    onChange={(e) => setSettingsTargetWeight(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 w-24"
+                  />
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Kroppsvikten du siktar mot.</p>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Läge</label>
+                  <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden w-fit">
+                    {(["deff", "maintain", "bulk"] as GoalMode[]).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setSettingsGoalMode(m)}
+                        className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                          settingsGoalMode === m
+                            ? "bg-indigo-600 text-white"
+                            : "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                      >
+                        {GOAL_MODE_LABELS[m]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">Styr hur kaloricoachen bedömer ditt intag: deffa = underskott, bulka = överskott.</p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Visning + Maskotar & personlighet */}
@@ -730,6 +793,23 @@ export default function ProfileClient({ name, email, image }: Props) {
                   </label>
                 </div>
                 <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Hela Kost-sektionen (dagbok, statistik och kostcoach).</p>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="weight-tracking"
+                    checked={settingsWeightTracking}
+                    onChange={(e) => setSettingsWeightTracking(e.target.checked)}
+                    disabled={!settingsFoodTracking}
+                    className="w-4 h-4 accent-indigo-500 shrink-0 disabled:opacity-40"
+                  />
+                  <label htmlFor="weight-tracking" className={`text-sm font-medium ${settingsFoodTracking ? "text-gray-700 dark:text-gray-300 cursor-pointer" : "text-gray-400 dark:text-gray-600"}`}>
+                    Viktlogg
+                  </label>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-xs ml-7">Logga kroppsvikt i kostdagboken och få kaloriråd anpassade efter deff, maintain eller bulk.</p>
               </div>
             </div>
           </div>

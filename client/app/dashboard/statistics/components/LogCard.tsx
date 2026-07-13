@@ -10,9 +10,11 @@ type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: string
   done: boolean
+  is_bodyweight?: boolean
+  effective_weight?: number
 }
 
 type WorkoutLog = {
@@ -89,7 +91,18 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
 
   async function handleSave() {
     try {
-      const updated = await updateLog(log.id, { plan_name: planName, date, exercises })
+      // PUT recreates all exercise rows server-side — is_bodyweight must be
+      // sent along or every edit would silently reset the flag to false.
+      const payload = exercises.map((ex) => ({
+        name: ex.name,
+        sets: ex.sets,
+        reps: ex.reps,
+        weight: ex.weight,
+        difficulty: ex.difficulty,
+        done: ex.done,
+        is_bodyweight: ex.is_bodyweight ?? false,
+      }))
+      const updated = await updateLog(log.id, { plan_name: planName, date, exercises: payload })
       onUpdate(updated)
       setEditing(false)
       setError(null)
@@ -139,10 +152,10 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
                 onChange={(e) => updateExerciseField(i, "name", e.target.value)}
                 className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
               />
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-end">
                 {(["sets", "reps", "weight"] as const).map((field) => (
                   <label key={field} className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    {field === "sets" ? "Set" : field === "reps" ? "Reps" : "Vikt (kg)"}
+                    {field === "sets" ? "Set" : field === "reps" ? "Reps" : ex.is_bodyweight ? "Extra vikt (kg)" : "Vikt (kg)"}
                     <input
                       type="number"
                       value={ex[field] as number}
@@ -151,6 +164,15 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
                     />
                   </label>
                 ))}
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none pb-1.5">
+                  <input
+                    type="checkbox"
+                    checked={ex.is_bodyweight ?? false}
+                    onChange={(e) => updateExerciseField(i, "is_bodyweight", e.target.checked)}
+                    className="w-3.5 h-3.5 accent-indigo-500"
+                  />
+                  Kroppsvikt
+                </label>
               </div>
               <DifficultyPicker value={ex.difficulty} onChange={(v) => updateExerciseField(i, "difficulty", v)} />
             </div>
@@ -173,6 +195,12 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
         </div>
       </div>
     )
+  }
+
+  // "Kv" marks bodyweight sets; extra kg shown on top when present.
+  function weightLabel(ex: ExerciseLog): string {
+    if (!ex.is_bodyweight) return `${ex.weight} kg`
+    return ex.weight ? `Kv + ${ex.weight} kg` : "Kv"
   }
 
   const { day, month, year, weekday } = formatDate(log.date)
@@ -251,7 +279,7 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{ex.name}</span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {ex.sets} set × {ex.reps} reps · {ex.weight} kg · 1RM ~{estimate1RM(ex.weight, ex.reps)}
+                    {ex.sets} set × {ex.reps} reps · {weightLabel(ex)} · 1RM ~{estimate1RM(ex.effective_weight ?? ex.weight, ex.reps)}
                   </span>
                 </div>
                 <DifficultyBadge difficulty={ex.difficulty} />
@@ -275,8 +303,8 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
                   <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.sets}</td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.reps}</td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.weight} kg</td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.weight, ex.reps)}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{weightLabel(ex)}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.effective_weight ?? ex.weight, ex.reps)}</td>
                   <td className="px-5 py-3 text-right"><DifficultyBadge difficulty={ex.difficulty} /></td>
                 </tr>
               ))}

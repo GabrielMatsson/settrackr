@@ -21,14 +21,18 @@ class User(Base):
     show_training_coach  = Column(Boolean, nullable=False, default=True, server_default="1")
     show_nutrition_coach = Column(Boolean, nullable=False, default=True, server_default="1")
     show_food_tracking   = Column(Boolean, nullable=False, default=True, server_default="1")
+    show_weight_tracking = Column(Boolean, nullable=False, default=True, server_default="1")
     kcal_target = Column(Integer, nullable=True)
     protein_target = Column(Integer, nullable=True)
+    target_weight = Column(Float, nullable=True)  # body weight goal, kg
+    goal_mode = Column(String, nullable=True)     # "deff" | "maintain" | "bulk"
 
     plans = relationship("WorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("WorkoutLog", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     meals = relationship("Meal", back_populates="user", cascade="all, delete-orphan")
     exercise_muscles = relationship("ExerciseMuscle", back_populates="user", cascade="all, delete-orphan")
+    weight_logs = relationship("WeightLog", back_populates="user", cascade="all, delete-orphan")
 
 
 class Friendship(Base):
@@ -117,12 +121,25 @@ class ExerciseLog(Base):
     name = Column(String, nullable=False)
     sets = Column(Integer, nullable=False)
     reps = Column(Integer, nullable=False)
-    weight = Column(Float, nullable=False)
+    weight = Column(Float, nullable=False)  # extra load in kg (on top of body weight when is_bodyweight)
     difficulty = Column(String, nullable=False)
     done = Column(Boolean, nullable=False)
+    is_bodyweight = Column(Boolean, nullable=False, default=False, server_default="0")
 
     log = relationship("WorkoutLog", back_populates="exercises")
 
+
+
+class WeightLog(Base):
+    __tablename__ = "weight_logs"
+    __table_args__ = (UniqueConstraint("user_id", "date"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    date = Column(String, nullable=False)      # ISO "YYYY-MM-DD"
+    weight_kg = Column(Float, nullable=False)
+
+    user = relationship("User", back_populates="weight_logs")
 
 
 class Meal(Base):

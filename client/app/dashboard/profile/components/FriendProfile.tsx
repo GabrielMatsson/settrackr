@@ -13,9 +13,10 @@ type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: string
   done: boolean
+  is_bodyweight?: boolean
 }
 
 type WorkoutLog = {
@@ -118,7 +119,8 @@ function FriendLogRow({ log }: { log: WorkoutLog }) {
                   <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.sets}</td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.reps}</td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.weight} kg</td>
+                  {/* Friend body weight is never exposed — bodyweight sets show extra kg only */}
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.is_bodyweight ? (ex.weight ? `Kv + ${ex.weight} kg` : "Kv") : `${ex.weight} kg`}</td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.weight, ex.reps)}</td>
                   <td className="px-5 py-3 text-right"><DifficultyBadge difficulty={ex.difficulty} /></td>
                 </tr>

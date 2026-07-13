@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion, useMotionValue, useSpring } from "motion/react"
 import { Flame, Apple, ChevronRight } from "lucide-react"
-import { getLogs, getMe, getMyLevel, getMeals } from "@/lib/api"
+import { getLogs, getMe, getMyLevel, getMeals, getWeightLogs } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon, hasChickenLegs, isGymGhost } from "@/lib/workout-utils"
+import { makeBodyweightResolver, effectiveWeight } from "@/lib/weight-utils"
 import { sumMealsMacros, todayStr, type Meal } from "@/lib/food-utils"
 import WorkoutOverview from "../statistics/components/WorkoutOverview"
 import GymMascot from "./GymMascot"
@@ -22,9 +23,11 @@ type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: string
   done: boolean
+  is_bodyweight?: boolean
+  effective_weight?: number
 }
 
 type WorkoutLog = {
@@ -121,9 +124,15 @@ export default function HomeClient({ name }: Props) {
   const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1)
 
   useEffect(() => {
-    getLogs()
-      .then((data) => {
-        setLogs(data)
+    // Weight log turns bodyweight-flagged sets into effective load (body
+    // weight at the log's date + extra kg); without entries it's a no-op.
+    Promise.all([getLogs(), getWeightLogs().catch(() => [])])
+      .then(([data, weightEntries]) => {
+        const resolve = makeBodyweightResolver(weightEntries)
+        setLogs((data as WorkoutLog[]).map((log) => ({
+          ...log,
+          exercises: log.exercises.map((ex) => ({ ...ex, effective_weight: effectiveWeight(ex, log.date, resolve) })),
+        })))
         setLoading(false)
       })
       .catch(() => {
@@ -273,8 +282,8 @@ export default function HomeClient({ name }: Props) {
                         <td className="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</td>
                         <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.sets}</td>
                         <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.reps}</td>
-                        <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.weight} kg</td>
-                        <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.weight, ex.reps)}</td>
+                        <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{ex.is_bodyweight ? (ex.weight ? `Kv + ${ex.weight} kg` : "Kv") : `${ex.weight} kg`}</td>
+                        <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-400">{estimate1RM(ex.effective_weight ?? ex.weight, ex.reps)}</td>
                         <td className="px-5 py-3 text-right"><DifficultyBadge difficulty={ex.difficulty} /></td>
                       </tr>
                     ))}

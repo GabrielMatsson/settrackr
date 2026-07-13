@@ -215,6 +215,7 @@ export type CoachPR = {
   reps: number
   e1rm: number
   type: "weight" | "e1rm"
+  is_bodyweight?: boolean
   days_ago: number
 }
 
@@ -242,7 +243,23 @@ export function getCoachInsights(weeks = 8): Promise<CoachInsights> {
 // --- Nutrition coach (protein + calories only) -----------------------------
 
 export type ProteinSignal = "none" | "poor" | "low" | "good"
-export type KcalSignal = "none" | "good" | "slightly_over" | "over"
+export type KcalSignal = "none" | "good" | "slightly_over" | "over" | "well_under" | "slightly_under" | "under"
+export type GoalMode = "deff" | "maintain" | "bulk"
+export type GoalDirection = "surplus" | "deficit" | "maintain" | "none"
+
+export type TargetSuggestion = {
+  direction: GoalDirection
+  mode: GoalMode | null
+  current_weight: number | null
+  target_weight: number | null
+  weekly_change_kg: number | null
+  avg_kcal: number
+  current_target: number
+  basis: "trend" | "direction_only" | "none"
+  suggested_kcal: number | null
+  est_maintenance: number | null
+  reasoning: string
+}
 
 export type NutritionInsights = {
   protein: {
@@ -263,9 +280,12 @@ export type NutritionInsights = {
     pct_days_at_or_under: number
     signal: KcalSignal
     suggestion: string
+    direction: GoalDirection
+    mode: GoalMode | null
   }
   weekly_trend: { week: string; avg_kcal: number; avg_protein: number; logged_days: number }[]
   weekly_summary: string
+  target_suggestion: TargetSuggestion
   meta: { logged_days: number; weeks_analysed: number; generated_at: string; has_data: boolean }
 }
 
@@ -298,7 +318,7 @@ export function getLogs() {
   return apiFetch("/logs/")
 }
 
-export function updateLog(id: number, log: { plan_name: string; date: string; exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean }[] }) {
+export function updateLog(id: number, log: { plan_name: string; date: string; exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean; is_bodyweight?: boolean }[] }) {
   return apiFetch(`/logs/${id}`, { method: "PUT", body: JSON.stringify(log) })
 }
 
@@ -310,7 +330,7 @@ export function createLog(log: {
   plan_name: string
   icon?: string
   date: string
-  exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean }[]
+  exercises: { name: string; sets: number; reps: number; weight: number; difficulty: string; done: boolean; is_bodyweight?: boolean }[]
 }) {
   return apiFetch("/logs/", { method: "POST", body: JSON.stringify(log) })
 }
@@ -364,8 +384,24 @@ export function getExerciseHistory(names: string[]) {
   return apiFetch(`/logs/exercise-history?names=${encodeURIComponent(param)}`)
 }
 
-export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; show_gym_mascot?: boolean; show_food_mascot?: boolean; show_training_coach?: boolean; show_nutrition_coach?: boolean; show_food_tracking?: boolean; kcal_target?: number; protein_target?: number }) {
+export function updateMe(data: { name?: string | null; weekly_goal?: number; show_overload_hints?: boolean; show_chicken_legs?: boolean; show_gym_ghost?: boolean; show_gym_mascot?: boolean; show_food_mascot?: boolean; show_training_coach?: boolean; show_nutrition_coach?: boolean; show_food_tracking?: boolean; show_weight_tracking?: boolean; kcal_target?: number; protein_target?: number; target_weight?: number; goal_mode?: GoalMode }) {
   return apiFetch("/users/me", { method: "PATCH", body: JSON.stringify(data) })
+}
+
+// --- Body weight -------------------------------------------------------------
+
+export type WeightEntry = { id: number; date: string; weight_kg: number }
+
+export function getWeightLogs(): Promise<WeightEntry[]> {
+  return apiFetch("/weight/") as Promise<WeightEntry[]>
+}
+
+export function logWeight(entry: { date: string; weight_kg: number }): Promise<WeightEntry> {
+  return apiFetch("/weight/", { method: "POST", body: JSON.stringify(entry) }) as Promise<WeightEntry>
+}
+
+export function deleteWeightLog(id: number) {
+  return apiFetch(`/weight/${id}`, { method: "DELETE" })
 }
 
 export function getMyLevel() {

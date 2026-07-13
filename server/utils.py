@@ -9,6 +9,10 @@ LEVELS = [
 
 
 def calculate_xp(logs) -> int:
+    # Deliberately uses raw extra-kg, NOT bodyweight-adjusted effective load:
+    # XP is recomputed from scratch on every request, so factoring in body
+    # weight would retroactively rewrite historical XP whenever a weight entry
+    # is added — and "PR because I gained 2 kg body weight" isn't a progression.
     sorted_logs = sorted(logs, key=lambda log: log.date)
     prev_max: dict[str, float] = {}
     total_xp = 0

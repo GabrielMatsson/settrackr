@@ -2,7 +2,7 @@
 
 import { Beef, Flame, Target, Zap } from "lucide-react"
 import AnimatedNumber from "@/app/components/AnimatedNumber"
-import { NutritionInsights, ProteinSignal, KcalSignal } from "@/lib/api"
+import { NutritionInsights, ProteinSignal, KcalSignal, GoalDirection } from "@/lib/api"
 
 const PROTEIN_BADGE: Record<ProteinSignal, { label: string; cls: string }> = {
   good: { label: "I mål", cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20" },
@@ -15,7 +15,19 @@ const KCAL_BADGE: Record<KcalSignal, { label: string; cls: string }> = {
   good: { label: "Under mål", cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20" },
   slightly_over: { label: "Något över", cls: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 ring-amber-600/20" },
   over: { label: "Över mål", cls: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 ring-rose-600/20" },
+  slightly_under: { label: "Något under", cls: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 ring-amber-600/20" },
+  under: { label: "Under mål", cls: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 ring-rose-600/20" },
+  well_under: { label: "Långt under mål", cls: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 ring-rose-600/20" },
   none: { label: "Ingen data", cls: "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 ring-gray-500/20" },
+}
+
+// "good" reads differently per goal mode: on deff it means staying under the
+// ceiling; on bulk/maintain it means hitting the target.
+function kcalBadge(signal: KcalSignal, direction: GoalDirection) {
+  if (signal === "good" && (direction === "surplus" || direction === "maintain")) {
+    return { ...KCAL_BADGE.good, label: "I mål" }
+  }
+  return KCAL_BADGE[signal]
 }
 
 function Badge({ label, cls }: { label: string; cls: string }) {
@@ -66,7 +78,7 @@ export default function TargetsCard({ protein, calories }: Pick<NutritionInsight
             </div>
             <p className="text-gray-900 dark:text-white font-semibold">Kalorier</p>
           </div>
-          <Badge {...KCAL_BADGE[calories.signal]} />
+          <Badge {...kcalBadge(calories.signal, calories.direction)} />
         </div>
 
         <div className="flex items-baseline gap-2">

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar } from "lucide-react"
-import { getLogs, getMe } from "@/lib/api"
+import { getLogs, getMe, getWeightLogs } from "@/lib/api"
+import { makeBodyweightResolver, effectiveWeight } from "@/lib/weight-utils"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
 
 const tabs = [
@@ -15,6 +16,16 @@ const tabs = [
 
 const COACH_HREF = "/dashboard/statistics/coach"
 
+function decorateLogs(logs: WorkoutLog[], resolve: (d: string) => number | null): WorkoutLog[] {
+  return logs.map((log) => ({
+    ...log,
+    exercises: log.exercises.map((ex) => ({
+      ...ex,
+      effective_weight: effectiveWeight(ex, log.date, resolve),
+    })),
+  }))
+}
+
 export default function StatisticsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [logs, setLogs] = useState<WorkoutLog[]>([])
@@ -23,10 +34,21 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   const [period, setPeriod] = useState<7 | 30 | 90>(30)
   // Coach defaults on; hide its tab only once we learn it's off (no flash).
   const [coachEnabled, setCoachEnabled] = useState(true)
+  const [resolveBodyweight, setResolveBodyweight] = useState<(d: string) => number | null>(() => () => null)
 
   useEffect(() => {
-    getLogs()
-      .then((data) => { setLogs(data); setLoading(false) })
+    // Body weight entries turn bodyweight-flagged sets into effective load
+    // (body weight at the log's date + extra kg). Missing data => no-op resolver.
+    Promise.all([
+      getLogs(),
+      getWeightLogs().catch(() => []),
+    ])
+      .then(([logData, weightEntries]) => {
+        const resolve = makeBodyweightResolver(weightEntries)
+        setResolveBodyweight(() => resolve)
+        setLogs(decorateLogs(logData, resolve))
+        setLoading(false)
+      })
       .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
     getMe().then((p) => setCoachEnabled(p.show_training_coach !== false)).catch(() => {})
   }, [])
@@ -39,7 +61,8 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   }
 
   function handleUpdate(updated: WorkoutLog) {
-    setLogs((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))
+    const [decorated] = decorateLogs([updated], resolveBodyweight)
+    setLogs((prev) => prev.map((l) => (l.id === updated.id ? decorated : l)))
   }
 
   return (

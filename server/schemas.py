@@ -58,6 +58,16 @@ class GoalResponse(GoalCreate):
     model_config = {"from_attributes": True}
 
 
+class WeightLogCreate(BaseModel):
+    date: str
+    weight_kg: float
+
+class WeightLogResponse(WeightLogCreate):
+    id: int
+
+    model_config = {"from_attributes": True}
+
+
 class UserPublicResponse(BaseModel):
     id: int
     name: str | None
@@ -77,8 +87,11 @@ class UserProfileResponse(BaseModel):
     show_training_coach: bool = True
     show_nutrition_coach: bool = True
     show_food_tracking: bool = True
+    show_weight_tracking: bool = True
     kcal_target: int = 2200
     protein_target: int = 150
+    target_weight: float | None = None
+    goal_mode: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -93,8 +106,11 @@ class UserProfileUpdate(BaseModel):
     show_training_coach: bool | None = None
     show_nutrition_coach: bool | None = None
     show_food_tracking: bool | None = None
+    show_weight_tracking: bool | None = None
     kcal_target: int | None = None
     protein_target: int | None = None
+    target_weight: float | None = None
+    goal_mode: str | None = None
 
 class FriendshipResponse(BaseModel):
     id: int
@@ -108,9 +124,10 @@ class ExerciseLogCreate(BaseModel):
     name: str
     sets: int
     reps: int
-    weight: float
+    weight: float  # extra load in kg (on top of body weight when is_bodyweight)
     difficulty: str
     done: bool
+    is_bodyweight: bool = False
 
 class ExerciseLogResponse(ExerciseLogCreate):
     id: int

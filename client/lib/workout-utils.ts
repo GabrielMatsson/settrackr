@@ -13,8 +13,10 @@ export type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: string
+  is_bodyweight?: boolean
+  effective_weight?: number // body weight + extra kg, when weight data exists
 }
 
 export function getDifficulty(difficulty: string): { label: string; className: string } {
@@ -31,9 +33,9 @@ export function getOverallDifficulty(exercises: ExerciseLog[]) {
 }
 
 export function getTotalLyft(exercises: ExerciseLog[]): string {
-  const total = exercises.reduce((sum, e) => sum + e.sets * e.reps * e.weight, 0)
+  const total = exercises.reduce((sum, e) => sum + e.sets * e.reps * (e.effective_weight ?? e.weight), 0)
   if (total === 0) return "–"
-  return total.toLocaleString("sv-SE") + " kg"
+  return Math.round(total).toLocaleString("sv-SE") + " kg"
 }
 
 export function estimate1RM(weight: number, reps: number): string {

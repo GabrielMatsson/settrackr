@@ -12,6 +12,7 @@ type CustomExercise = {
   reps: number
   weight: number
   difficulty: Difficulty
+  isBodyweight: boolean
 }
 
 type Props = {
@@ -39,12 +40,12 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   const [planName, setPlanName] = useState("Anpassad träning")
   const [icon, setIcon] = useState("Dumbbell")
   const [exercises, setExercises] = useState<CustomExercise[]>([
-    { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium" },
+    { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium", isBodyweight: false },
   ])
   const [error, setError] = useState<string | null>(null)
 
   function addExercise() {
-    setExercises([...exercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium" }])
+    setExercises([...exercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium", isBodyweight: false }])
   }
 
   function removeExercise(index: number) {
@@ -83,6 +84,12 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
     setExercises(updated)
   }
 
+  function updateBodyweight(index: number, value: boolean) {
+    const updated = [...exercises]
+    updated[index] = { ...updated[index], isBodyweight: value }
+    setExercises(updated)
+  }
+
   function save() {
     if (!planName.trim()) {
       setError("Passet måste ha ett namn")
@@ -97,7 +104,8 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
     setError(null)
     const logs = []
     for (let i = 0; i < exercises.length; i++) {
-      logs.push({ ...exercises[i], done: true })
+      const { isBodyweight, ...rest } = exercises[i]
+      logs.push({ ...rest, is_bodyweight: isBodyweight, done: true })
     }
     onSave({
       id: Date.now(),
@@ -149,13 +157,22 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
             type="number"
             value={ex.weight || ""}
             onChange={(e) => updateWeight(i, Number(e.target.value))}
-            placeholder="kg"
+            placeholder={ex.isBodyweight ? "extra kg" : "kg"}
             className="w-16 bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
           />
           <DifficultyPicker
             value={ex.difficulty}
             onChange={(d) => updateDifficulty(i, d)}
           />
+          <label className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ex.isBodyweight}
+              onChange={(e) => updateBodyweight(i, e.target.checked)}
+              className="w-3.5 h-3.5 accent-indigo-500"
+            />
+            Kroppsvikt
+          </label>
         </div>
       </div>
     )

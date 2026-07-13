@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload, selectinload
 from sse_starlette.sse import EventSourceResponse
 from database import get_db, SessionLocal
@@ -52,7 +53,7 @@ def _fetch_log_data(user: dict) -> list:
                 "icon": log.icon,
                 "date": log.date,
                 "exercises": [
-                    {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done}
+                    {"id": e.id, "name": e.name, "sets": e.sets, "reps": e.reps, "weight": e.weight, "difficulty": e.difficulty, "done": e.done, "is_bodyweight": e.is_bodyweight}
                     for e in log.exercises
                 ],
             }
@@ -103,7 +104,7 @@ def get_exercise_history(
                 models.WorkoutLog.user_id == db_user.id,
                 models.ExerciseLog.name == name,
                 models.ExerciseLog.done,
-                models.ExerciseLog.weight > 0,
+                or_(models.ExerciseLog.weight > 0, models.ExerciseLog.is_bodyweight),
             )
             .order_by(models.WorkoutLog.date.desc())
             .all()
@@ -112,6 +113,7 @@ def get_exercise_history(
             result[name] = {
                 "last_weight": logs[0].weight,
                 "max_weight": max(log.weight for log in logs),
+                "is_bodyweight": bool(logs[0].is_bodyweight),
             }
     return result
 
@@ -133,6 +135,7 @@ def create_log(log: schemas.WorkoutLogCreate, user=Depends(get_current_user), db
             weight=ex.weight,
             difficulty=ex.difficulty,
             done=ex.done,
+            is_bodyweight=ex.is_bodyweight,
         ))
 
     db.commit()
@@ -163,6 +166,7 @@ def update_log(log_id: int, log: schemas.WorkoutLogCreate, user=Depends(get_curr
             weight=ex.weight,
             difficulty=ex.difficulty,
             done=ex.done,
+            is_bodyweight=ex.is_bodyweight,
         ))
 
     db.commit()

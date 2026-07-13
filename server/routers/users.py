@@ -34,8 +34,11 @@ def _profile_dict(db_user) -> dict:
         "show_training_coach": on(db_user.show_training_coach),
         "show_nutrition_coach": on(db_user.show_nutrition_coach),
         "show_food_tracking": on(db_user.show_food_tracking),
+        "show_weight_tracking": on(db_user.show_weight_tracking),
         "kcal_target": db_user.kcal_target or 2200,
         "protein_target": db_user.protein_target or 150,
+        "target_weight": db_user.target_weight,
+        "goal_mode": db_user.goal_mode,
     }
 
 
@@ -70,6 +73,16 @@ def update_me(update: schemas.UserProfileUpdate, user=Depends(get_current_user),
         db_user.show_nutrition_coach = update.show_nutrition_coach
     if update.show_food_tracking is not None:
         db_user.show_food_tracking = update.show_food_tracking
+    if update.show_weight_tracking is not None:
+        db_user.show_weight_tracking = update.show_weight_tracking
+    if update.target_weight is not None:
+        if not 20 <= update.target_weight <= 400:
+            raise HTTPException(status_code=400, detail="target_weight must be between 20 and 400")
+        db_user.target_weight = update.target_weight
+    if update.goal_mode is not None:
+        if update.goal_mode not in ("deff", "maintain", "bulk"):
+            raise HTTPException(status_code=400, detail="goal_mode must be deff, maintain or bulk")
+        db_user.goal_mode = update.goal_mode
     if update.kcal_target is not None:
         if not 500 <= update.kcal_target <= 10000:
             raise HTTPException(status_code=400, detail="kcal_target must be between 500 and 10000")

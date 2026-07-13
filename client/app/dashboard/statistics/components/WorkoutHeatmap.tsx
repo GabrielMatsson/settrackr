@@ -32,7 +32,7 @@ function buildCells(logs: WorkoutLog[]): { weeks: Cell[][]; monthLabels: string[
   const volumeByDay: Record<string, number> = {}
   const countByDay: Record<string, number> = {}
   for (const log of logs) {
-    const vol = log.exercises.reduce((s, e) => s + e.sets * e.reps * e.weight, 0)
+    const vol = log.exercises.reduce((s, e) => s + e.sets * e.reps * (e.effective_weight ?? e.weight), 0)
     volumeByDay[log.date] = (volumeByDay[log.date] ?? 0) + vol
     countByDay[log.date] = (countByDay[log.date] ?? 0) + 1
   }

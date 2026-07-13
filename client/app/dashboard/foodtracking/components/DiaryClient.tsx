@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
-import { getMeals, createMeal, updateMeal, deleteMeal, getMe } from "@/lib/api"
+import { getMeals, createMeal, updateMeal, deleteMeal, getMe, getWeightLogs, logWeight, deleteWeightLog, type GoalMode, type WeightEntry } from "@/lib/api"
 import { sumMealsMacros, mealItemsToInputs, todayStr, shiftDate, formatDateLabel, type Meal, type FoodItemInput } from "@/lib/food-utils"
+import { goalDirection, kcalRingColor } from "@/lib/weight-utils"
 import ProgressRing from "@/app/components/ProgressRing"
 import AnimatedNumber from "@/app/components/AnimatedNumber"
 import PressableButton from "@/app/components/PressableButton"
@@ -12,6 +13,7 @@ import { easeOut, fadeUp, fadeUpTransition } from "@/lib/motion"
 import MealBuilder from "./MealBuilder"
 import MealCard from "./MealCard"
 import KostMascot from "./KostMascot"
+import WeightCard from "./WeightCard"
 
 type BuilderState = null | { mode: "create" } | { mode: "edit"; meal: Meal }
 
@@ -24,6 +26,10 @@ export default function DiaryClient() {
   const [proteinTarget, setProteinTarget] = useState(150)
   const [showFoodMascot, setShowFoodMascot] = useState(false)
   const [builder, setBuilder] = useState<BuilderState>(null)
+  const [showWeightTracking, setShowWeightTracking] = useState(false)
+  const [goalMode, setGoalMode] = useState<GoalMode | null>(null)
+  const [targetWeight, setTargetWeight] = useState<number | null>(null)
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([])
 
   useEffect(() => {
     getMe()
@@ -31,6 +37,13 @@ export default function DiaryClient() {
         setKcalTarget(p.kcal_target ?? 2200)
         setProteinTarget(p.protein_target ?? 150)
         setShowFoodMascot(p.show_food_mascot ?? false)
+        setGoalMode(p.goal_mode ?? null)
+        setTargetWeight(p.target_weight ?? null)
+        const weightOn = p.show_weight_tracking !== false
+        setShowWeightTracking(weightOn)
+        if (weightOn) {
+          getWeightLogs().then(setWeightEntries).catch(() => {})
+        }
       })
       .catch(() => {})
   }, [])
@@ -49,6 +62,25 @@ export default function DiaryClient() {
 
   const totals = sumMealsMacros(meals)
   const isToday = date === todayStr()
+
+  // Ring color follows the goal mode (deff/maintain/bulk); without a mode the
+  // ring keeps the neutral Kost emerald.
+  const direction = goalDirection(goalMode)
+  const kcalPct = kcalTarget > 0 ? (totals.kcal / kcalTarget) * 100 : 0
+  const ringColor = direction === "none" ? "#10b981" : kcalRingColor(kcalPct, direction)
+
+  async function handleLogWeight(weightKg: number) {
+    const saved = await logWeight({ date, weight_kg: weightKg })
+    setWeightEntries((prev) => {
+      const rest = prev.filter((e) => e.date !== saved.date)
+      return [...rest, saved].sort((a, b) => b.date.localeCompare(a.date))
+    })
+  }
+
+  async function handleDeleteWeight(id: number) {
+    await deleteWeightLog(id)
+    setWeightEntries((prev) => prev.filter((e) => e.id !== id))
+  }
 
   async function handleSave(data: { title: string; items: FoodItemInput[] }) {
     try {
@@ -145,7 +177,7 @@ export default function DiaryClient() {
           target={kcalTarget}
           label="Kalorier"
           centerText={<><AnimatedNumber value={Math.round((totals.kcal / kcalTarget) * 100)} />%</>}
-          color="#10b981"
+          color={ringColor}
         />
         <ProgressRing
           value={totals.protein}
@@ -213,6 +245,17 @@ export default function DiaryClient() {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {showWeightTracking && (
+        <WeightCard
+          date={date}
+          entries={weightEntries}
+          mode={goalMode}
+          targetWeight={targetWeight}
+          onLog={handleLogWeight}
+          onDelete={handleDeleteWeight}
+        />
       )}
     </div>
 

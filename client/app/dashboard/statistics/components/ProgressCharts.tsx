@@ -10,6 +10,7 @@ import {
 type ExerciseLog = {
   name: string
   weight: number
+  effective_weight?: number // body weight + extra kg for bodyweight exercises
 }
 
 type WorkoutLog = {
@@ -50,8 +51,9 @@ function getWeightProgressionByDate(logs: WorkoutLog[], exerciseName: string): R
     for (let j = 0; j < log.exercises.length; j++) {
       const ex = log.exercises[j]
       if (ex.name.toLowerCase() === exerciseName.toLowerCase()) {
-        if (!byDate[log.date] || ex.weight > byDate[log.date]) {
-          byDate[log.date] = ex.weight
+        const w = ex.effective_weight ?? ex.weight
+        if (!byDate[log.date] || w > byDate[log.date]) {
+          byDate[log.date] = w
         }
       }
     }

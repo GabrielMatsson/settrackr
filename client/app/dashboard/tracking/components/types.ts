@@ -18,9 +18,10 @@ export type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: Difficulty
   done: boolean
+  is_bodyweight?: boolean
 }
 
 export type WorkoutLog = {

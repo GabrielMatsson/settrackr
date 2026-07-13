@@ -16,7 +16,7 @@ type Props = {
   showOverloadHints: boolean
 }
 
-type HintMap = Record<string, { last_weight: number; max_weight: number }>
+type HintMap = Record<string, { last_weight: number; max_weight: number; is_bodyweight?: boolean }>
 
 type ExerciseState = {
   done: boolean
@@ -24,6 +24,7 @@ type ExerciseState = {
   difficulty: Difficulty
   sets: number
   reps: number
+  isBodyweight: boolean
 }
 
 type ExtraExercise = {
@@ -33,6 +34,7 @@ type ExtraExercise = {
   weight: number
   difficulty: Difficulty
   done: boolean
+  isBodyweight?: boolean
 }
 
 type WipSnapshot = {
@@ -63,9 +65,10 @@ function getInitialStates(plan: WorkoutPlan): ExerciseState[] {
       difficulty: s.difficulty ?? "medium",
       sets: s.sets ?? plan.exercises[i].sets,
       reps: s.reps ?? plan.exercises[i].reps,
+      isBodyweight: s.isBodyweight ?? false, // old WIP snapshots lack the key
     }))
   }
-  return plan.exercises.map((ex) => ({ done: false, weight: 0, difficulty: "medium" as Difficulty, sets: ex.sets, reps: ex.reps }))
+  return plan.exercises.map((ex) => ({ done: false, weight: 0, difficulty: "medium" as Difficulty, sets: ex.sets, reps: ex.reps, isBodyweight: false }))
 }
 
 function getInitialExtras(plan: WorkoutPlan): ExtraExercise[] {
@@ -80,14 +83,30 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   const [hints, setHints] = useState<HintMap>({})
   const [showSaveWarning, setShowSaveWarning] = useState(false)
   const [skipped, setSkipped] = useState<Set<number>>(new Set())
+  const [wipRestored] = useState(() => matchingWip(plan) !== null)
 
+  // Always fetched (cheap cached GET): the history both powers the overload
+  // hints (display gated below) and pre-checks "Kroppsvikt" for exercises
+  // last logged as bodyweight.
   useEffect(() => {
-    if (!showOverloadHints) return
     const names = plan.exercises.map((e) => e.name)
     getExerciseHistory(names)
-      .then((data) => setHints(data as HintMap))
+      .then((data) => {
+        const map = data as HintMap
+        setHints(map)
+        if (wipRestored) return // never override a restored in-progress workout
+        setExerciseStates((prev) =>
+          prev.map((s, i) => {
+            const h = map[plan.exercises[i].name]
+            if (h?.is_bodyweight && !s.done && s.weight === 0 && !s.isBodyweight) {
+              return { ...s, isBodyweight: true }
+            }
+            return s
+          })
+        )
+      })
       .catch(() => {})
-  }, [showOverloadHints, plan.exercises])
+  }, [plan.exercises, wipRestored])
 
   useEffect(() => {
     // Snapshot the whole plan so an ongoing workout can be restored without
@@ -131,6 +150,12 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
     setExerciseStates(updated)
   }
 
+  function updateBodyweight(index: number, isBodyweight: boolean) {
+    const updated = [...exerciseStates]
+    updated[index] = { ...updated[index], isBodyweight }
+    setExerciseStates(updated)
+  }
+
   function toggleSkipped(index: number) {
     const next = new Set(skipped)
     if (next.has(index)) next.delete(index)
@@ -139,7 +164,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   }
 
   function addExtra() {
-    setExtraExercises([...extraExercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium", done: false }])
+    setExtraExercises([...extraExercises, { name: "", sets: 3, reps: 10, weight: 0, difficulty: "medium", done: false, isBodyweight: false }])
   }
 
   function removeExtra(index: number) {
@@ -184,6 +209,12 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
     setExtraExercises(updated)
   }
 
+  function updateExtraBodyweight(index: number, isBodyweight: boolean) {
+    const updated = [...extraExercises]
+    updated[index] = { ...updated[index], isBodyweight }
+    setExtraExercises(updated)
+  }
+
   function doSave() {
     const exercises = []
     for (let i = 0; i < plan.exercises.length; i++) {
@@ -195,6 +226,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
         weight: exerciseStates[i].weight,
         difficulty: exerciseStates[i].difficulty,
         done: exerciseStates[i].done,
+        is_bodyweight: exerciseStates[i].isBodyweight,
       })
     }
     for (const ex of extraExercises) {
@@ -206,6 +238,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
         weight: ex.weight,
         difficulty: ex.difficulty,
         done: ex.done,
+        is_bodyweight: ex.isBodyweight ?? false,
       })
     }
     localStorage.removeItem(WIP_KEY)
@@ -288,7 +321,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
           </div>
 
           <div className="shrink-0 flex flex-col items-end gap-1">
-            <span className="text-xs text-gray-400 dark:text-gray-500">Vikt (kg)</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">{state.isBodyweight ? "Extra vikt (kg)" : "Vikt (kg)"}</span>
             <div className="flex items-center gap-1">
               <input
                 type="number"
@@ -303,6 +336,15 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
               />
               <span className="text-xs text-gray-400 dark:text-gray-500">kg</span>
             </div>
+            <label className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={state.isBodyweight}
+                onChange={(e) => updateBodyweight(i, e.target.checked)}
+                className="w-3.5 h-3.5 accent-indigo-500"
+              />
+              Kroppsvikt
+            </label>
           </div>
         </div>
 
@@ -368,7 +410,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
           </div>
 
           <div className="shrink-0 flex flex-col items-end gap-1">
-            <span className="text-xs text-gray-400 dark:text-gray-500">Vikt (kg)</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">{ex.isBodyweight ? "Extra vikt (kg)" : "Vikt (kg)"}</span>
             <div className="flex items-center gap-1">
               <input
                 type="number"
@@ -383,6 +425,15 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
               />
               <span className="text-xs text-gray-400 dark:text-gray-500">kg</span>
             </div>
+            <label className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={ex.isBodyweight ?? false}
+                onChange={(e) => updateExtraBodyweight(i, e.target.checked)}
+                className="w-3.5 h-3.5 accent-indigo-500"
+              />
+              Kroppsvikt
+            </label>
           </div>
 
           <button

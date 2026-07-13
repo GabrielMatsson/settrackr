@@ -31,7 +31,7 @@ def serialize_log(log: models.WorkoutLog) -> dict:
         "icon": log.icon,
         "date": log.date,
         "exercises": [
-            {"id": ex.id, "name": ex.name, "sets": ex.sets, "reps": ex.reps, "weight": ex.weight, "difficulty": ex.difficulty, "done": ex.done}
+            {"id": ex.id, "name": ex.name, "sets": ex.sets, "reps": ex.reps, "weight": ex.weight, "difficulty": ex.difficulty, "done": ex.done, "is_bodyweight": ex.is_bodyweight}
             for ex in log.exercises
         ],
     }

@@ -103,7 +103,7 @@ export default function RecordsCard({ prs, trends }: { prs: CoachPR[]; trends: C
                   <span className="text-xs text-gray-400 dark:text-gray-500">{shortDate(p.date)}</span>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-gray-900 dark:text-white text-sm tabular-nums">{fmt(p.weight)} kg × {p.reps}</span>
+                  <span className="text-gray-900 dark:text-white text-sm tabular-nums">{p.is_bodyweight ? "Kv " : ""}{fmt(p.weight)} kg × {p.reps}</span>
                   <span className="block text-xs text-indigo-600 dark:text-indigo-400">
                     {p.type === "weight" ? "Ny maxvikt" : `Ber. 1RM ${fmt(p.e1rm)} kg`}
                   </span>

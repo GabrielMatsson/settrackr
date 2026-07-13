@@ -6,9 +6,13 @@ type ExerciseLog = {
   name: string
   sets: number
   reps: number
-  weight: number
+  weight: number // extra load in kg (on top of body weight when is_bodyweight)
   difficulty: string
   done: boolean
+  is_bodyweight?: boolean
+  // Body weight + extra kg, decorated in StatisticsShell from the weight log;
+  // absent (=> fall back to weight) for friend logs and users without weight data.
+  effective_weight?: number
 }
 
 export type WorkoutLog = {

@@ -10,6 +10,7 @@ import { getGoals, createGoal, deleteGoal } from "@/lib/api"
 type ExerciseLog = {
   name: string
   weight: number
+  effective_weight?: number // body weight + extra kg for bodyweight exercises
 }
 
 type WorkoutLog = {
@@ -57,8 +58,9 @@ function getBestLift(logs: WorkoutLog[], exerciseName: string): number {
   for (let i = 0; i < logs.length; i++) {
     for (let j = 0; j < logs[i].exercises.length; j++) {
       const ex = logs[i].exercises[j]
-      if (ex.name.toLowerCase() === exerciseName.toLowerCase() && ex.weight > best) {
-        best = ex.weight
+      const w = ex.effective_weight ?? ex.weight
+      if (ex.name.toLowerCase() === exerciseName.toLowerCase() && w > best) {
+        best = w
       }
     }
   }

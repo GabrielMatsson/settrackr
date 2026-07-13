@@ -11,6 +11,7 @@ type ExerciseLog = {
   weight: number
   difficulty: string
   done: boolean
+  effective_weight?: number // body weight + extra kg for bodyweight exercises
 }
 
 type WorkoutLog = {
@@ -38,10 +39,11 @@ function computeStats(logs: WorkoutLog[], fromStr: string, toStr: string, allTim
     workouts++
     for (let j = 0; j < log.exercises.length; j++) {
       const ex = log.exercises[j]
+      const w = ex.effective_weight ?? ex.weight
       totalSets += ex.sets
       totalReps += ex.sets * ex.reps
-      totalWeight += ex.sets * ex.reps * ex.weight
-      if (ex.weight > heaviestLift) heaviestLift = ex.weight
+      totalWeight += ex.sets * ex.reps * w
+      if (w > heaviestLift) heaviestLift = w
     }
   }
 
