@@ -189,6 +189,16 @@ class MealResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class FavoriteMealCreate(BaseModel):
+    title: str
+    items: list[MealItemCreate]
+
+class FavoriteMealResponse(BaseModel):
+    id: int
+    title: str
+    items: list[MealItemCreate]
+
+
 class LevelResponse(BaseModel):
     xp: int
     level: int

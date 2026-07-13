@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload, selectinload
 from database import get_db
@@ -7,6 +9,10 @@ import models
 import schemas
 
 router = APIRouter(prefix="/food", tags=["food"])
+
+
+def _serialize_favorite(fav: models.FavoriteMeal) -> dict:
+    return {"id": fav.id, "title": fav.title, "items": json.loads(fav.items_json)}
 
 
 def get_meal_with_items(db: Session, meal_id: int) -> models.Meal | None:
@@ -77,6 +83,45 @@ def get_food_item_history(user=Depends(get_current_user), db: Session = Depends(
         if len(result) >= 100:
             break
     return result
+
+
+@router.get("/favorites", response_model=list[schemas.FavoriteMealResponse])
+def get_favorite_meals(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    favorites = (
+        db.query(models.FavoriteMeal)
+        .filter(models.FavoriteMeal.user_id == db_user.id)
+        .order_by(models.FavoriteMeal.created_at.desc())
+        .all()
+    )
+    return [_serialize_favorite(f) for f in favorites]
+
+
+@router.post("/favorites", response_model=schemas.FavoriteMealResponse)
+def create_favorite_meal(fav: schemas.FavoriteMealCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    if not fav.items:
+        raise HTTPException(status_code=400, detail="En favorit måste innehålla minst ett livsmedel")
+    items_json = json.dumps([item.model_dump() for item in fav.items])
+    db_fav = models.FavoriteMeal(user_id=db_user.id, title=fav.title, items_json=items_json)
+    db.add(db_fav)
+    db.commit()
+    db.refresh(db_fav)
+    return _serialize_favorite(db_fav)
+
+
+@router.delete("/favorites/{favorite_id}")
+def delete_favorite_meal(favorite_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    db_user = get_or_create_user(db, user)
+    db_fav = db.query(models.FavoriteMeal).filter(
+        models.FavoriteMeal.id == favorite_id,
+        models.FavoriteMeal.user_id == db_user.id,
+    ).first()
+    if not db_fav:
+        raise HTTPException(status_code=404, detail="Favorite meal not found")
+    db.delete(db_fav)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/", response_model=schemas.MealResponse)

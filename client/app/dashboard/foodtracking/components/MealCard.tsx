@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { ChevronDown, ChevronLeft, ChevronRight, Pencil, Trash2, Copy, Coffee, Utensils, UtensilsCrossed, Cookie } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, Pencil, Trash2, Copy, Star, Coffee, Utensils, UtensilsCrossed, Cookie } from "lucide-react"
 import { accordionSpring } from "@/lib/motion"
 import { calcMacros, sumMacros, mealAccent, todayStr, type Meal, type MealAccentKey } from "@/lib/food-utils"
 
@@ -16,13 +16,15 @@ const ACCENTS: Record<MealAccentKey, { border: string; chip: string; icon: typeo
 type Props = {
   meal: Meal
   index: number
+  isFavorite: boolean
   onEdit: () => void
   onCopy: () => void
   onMove: (delta: number) => void
   onDelete: () => void
+  onToggleFavorite: () => void
 }
 
-export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete }: Props) {
+export default function MealCard({ meal, index, isFavorite, onEdit, onCopy, onMove, onDelete, onToggleFavorite }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const accent = ACCENTS[mealAccent(meal.title, index)]
@@ -40,7 +42,10 @@ export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete
           <Icon size={18} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">{meal.title}</p>
+          <p className="text-gray-900 dark:text-white font-semibold text-sm truncate flex items-center gap-1.5">
+            {meal.title}
+            {isFavorite && <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" aria-label="Favorit" />}
+          </p>
           <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">
             {meal.items.length} livsmedel · {totals.kcal} kcal · {totals.protein} g protein
           </p>
@@ -113,6 +118,17 @@ export default function MealCard({ meal, index, onEdit, onCopy, onMove, onDelete
                   <ChevronRight size={15} />
                 </button>
                 <span className="w-px h-4 bg-emerald-200/70 dark:bg-emerald-800 mx-1" />
+                <button
+                  onClick={onToggleFavorite}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    isFavorite
+                      ? "text-amber-400 hover:bg-amber-100/60 dark:hover:bg-amber-900/30"
+                      : "text-gray-400 hover:text-amber-400 hover:bg-amber-100/60 dark:hover:bg-amber-900/30"
+                  }`}
+                  aria-label={isFavorite ? "Ta bort från favoriter" : "Spara som favorit"}
+                >
+                  <Star size={15} className={isFavorite ? "fill-amber-400" : ""} />
+                </button>
                 <button
                   onClick={onCopy}
                   className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30 transition-colors"

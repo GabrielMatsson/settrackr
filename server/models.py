@@ -33,6 +33,7 @@ class User(Base):
     meals = relationship("Meal", back_populates="user", cascade="all, delete-orphan")
     exercise_muscles = relationship("ExerciseMuscle", back_populates="user", cascade="all, delete-orphan")
     weight_logs = relationship("WeightLog", back_populates="user", cascade="all, delete-orphan")
+    favorite_meals = relationship("FavoriteMeal", back_populates="user", cascade="all, delete-orphan")
 
 
 class Friendship(Base):
@@ -170,6 +171,20 @@ class MealItem(Base):
     fat_100g = Column(Float, nullable=False)
 
     meal = relationship("Meal", back_populates="items")
+
+
+class FavoriteMeal(Base):
+    __tablename__ = "favorite_meals"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    # JSON-serialized list of item dicts (name/brand/barcode/grams/*_100g) — a
+    # reusable snapshot, decoupled from any dated Meal so it survives deletion.
+    items_json = Column(String, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="favorite_meals")
 
 
 class SharedPlanAccess(Base):

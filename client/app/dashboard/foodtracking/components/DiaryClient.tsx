@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
-import { getMeals, createMeal, updateMeal, deleteMeal, getMe, getWeightLogs, logWeight, deleteWeightLog, type GoalMode, type WeightEntry } from "@/lib/api"
-import { sumMealsMacros, mealItemsToInputs, todayStr, shiftDate, formatDateLabel, type Meal, type FoodItemInput } from "@/lib/food-utils"
+import { ChevronLeft, ChevronRight, Plus, Star } from "lucide-react"
+import { getMeals, createMeal, updateMeal, deleteMeal, getMe, getWeightLogs, logWeight, deleteWeightLog, getFavoriteMeals, createFavoriteMeal, deleteFavoriteMeal, type GoalMode, type WeightEntry, type FavoriteMeal } from "@/lib/api"
+import { sumMealsMacros, mealItemsToInputs, mealSignature, todayStr, shiftDate, formatDateLabel, type Meal, type FoodItemInput } from "@/lib/food-utils"
 import { goalDirection, kcalRingColor } from "@/lib/weight-utils"
 import ProgressRing from "@/app/components/ProgressRing"
 import AnimatedNumber from "@/app/components/AnimatedNumber"
@@ -14,6 +14,7 @@ import MealBuilder from "./MealBuilder"
 import MealCard from "./MealCard"
 import KostMascot from "./KostMascot"
 import WeightCard from "./WeightCard"
+import FavoritesPanel from "./FavoritesPanel"
 
 type BuilderState = null | { mode: "create" } | { mode: "edit"; meal: Meal }
 
@@ -26,6 +27,8 @@ export default function DiaryClient() {
   const [proteinTarget, setProteinTarget] = useState(150)
   const [showFoodMascot, setShowFoodMascot] = useState(false)
   const [builder, setBuilder] = useState<BuilderState>(null)
+  const [favorites, setFavorites] = useState<FavoriteMeal[]>([])
+  const [showFavorites, setShowFavorites] = useState(false)
   const [showWeightTracking, setShowWeightTracking] = useState(false)
   const [goalMode, setGoalMode] = useState<GoalMode | null>(null)
   const [targetWeight, setTargetWeight] = useState<number | null>(null)
@@ -59,6 +62,17 @@ export default function DiaryClient() {
         setLoading(false)
       })
   }, [date])
+
+  useEffect(() => {
+    getFavoriteMeals().then(setFavorites).catch(() => {})
+  }, [])
+
+  // signature -> favorite id, so each meal card knows if it's already a favorite
+  const favoriteIdBySignature = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const f of favorites) map.set(mealSignature(f.title, f.items), f.id)
+    return map
+  }, [favorites])
 
   const totals = sumMealsMacros(meals)
   const isToday = date === todayStr()
@@ -125,6 +139,41 @@ export default function DiaryClient() {
     }
   }
 
+  async function handleToggleFavorite(meal: Meal) {
+    const sig = mealSignature(meal.title, meal.items)
+    const existingId = favoriteIdBySignature.get(sig)
+    try {
+      if (existingId !== undefined) {
+        await deleteFavoriteMeal(existingId)
+        setFavorites((prev) => prev.filter((f) => f.id !== existingId))
+      } else {
+        const created = await createFavoriteMeal({ title: meal.title, items: mealItemsToInputs(meal) })
+        setFavorites((prev) => [created as FavoriteMeal, ...prev])
+      }
+    } catch {
+      setError("Kunde inte uppdatera favoriter")
+    }
+  }
+
+  async function handleLogFavorite(fav: FavoriteMeal) {
+    try {
+      const created = await createMeal({ date, title: fav.title, items: fav.items })
+      setMeals((prev) => [...prev, created as Meal])
+      setShowFavorites(false)
+    } catch {
+      setError("Kunde inte logga favoriten")
+    }
+  }
+
+  async function handleDeleteFavorite(id: number) {
+    try {
+      await deleteFavoriteMeal(id)
+      setFavorites((prev) => prev.filter((f) => f.id !== id))
+    } catch {
+      setError("Kunde inte ta bort favoriten")
+    }
+  }
+
   return (
     <div className="lg:grid lg:grid-cols-[1fr_240px] lg:gap-5 lg:items-start">
     <div className="flex flex-col gap-5">
@@ -159,13 +208,28 @@ export default function DiaryClient() {
         </div>
 
         {!builder && (
-          <PressableButton
-            onClick={() => setBuilder({ mode: "create" })}
-            className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-md shadow-emerald-500/20"
-          >
-            <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" />
-            Ny måltid
-          </PressableButton>
+          <div className="flex items-center gap-2">
+            {favorites.length > 0 && (
+              <PressableButton
+                onClick={() => setShowFavorites((v) => !v)}
+                className={`group border font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                  showFavorites
+                    ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
+                    : "border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                }`}
+              >
+                <Star size={15} className={showFavorites ? "fill-amber-400" : "transition-transform duration-200 group-hover:scale-110"} />
+                Favoriter
+              </PressableButton>
+            )}
+            <PressableButton
+              onClick={() => setBuilder({ mode: "create" })}
+              className="group bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-md shadow-emerald-500/20"
+            >
+              <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" />
+              Ny måltid
+            </PressableButton>
+          </div>
         )}
       </div>
 
@@ -216,6 +280,23 @@ export default function DiaryClient() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showFavorites && !builder && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.22, ease: easeOut }}
+          >
+            <FavoritesPanel
+              favorites={favorites}
+              onLog={handleLogFavorite}
+              onDelete={handleDeleteFavorite}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {loading ? (
         <p className="text-gray-400 dark:text-gray-500 text-sm">Laddar…</p>
       ) : meals.length === 0 && !builder ? (
@@ -237,10 +318,12 @@ export default function DiaryClient() {
               <MealCard
                 meal={meal}
                 index={i}
+                isFavorite={favoriteIdBySignature.has(mealSignature(meal.title, meal.items))}
                 onEdit={() => setBuilder({ mode: "edit", meal })}
                 onCopy={() => handleCopy(meal)}
                 onMove={(delta) => handleMove(meal, delta)}
                 onDelete={() => handleDelete(meal.id)}
+                onToggleFavorite={() => handleToggleFavorite(meal)}
               />
             </motion.div>
           ))}

@@ -470,3 +470,21 @@ export function updateMeal(id: number, meal: { date: string; title: string; item
 export function deleteMeal(id: number) {
   return apiFetch(`/food/${id}`, { method: "DELETE" })
 }
+
+export type FavoriteMeal = {
+  id: number
+  title: string
+  items: MealItemPayload[]
+}
+
+export function getFavoriteMeals(): Promise<FavoriteMeal[]> {
+  return apiFetch("/food/favorites") as Promise<FavoriteMeal[]>
+}
+
+export function createFavoriteMeal(fav: { title: string; items: MealItemPayload[] }): Promise<FavoriteMeal> {
+  return apiFetch("/food/favorites", { method: "POST", body: JSON.stringify(fav) }) as Promise<FavoriteMeal>
+}
+
+export function deleteFavoriteMeal(id: number) {
+  return apiFetch(`/food/favorites/${id}`, { method: "DELETE" })
+}

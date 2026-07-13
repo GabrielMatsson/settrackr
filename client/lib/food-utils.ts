@@ -79,6 +79,20 @@ export function mealItemsToInputs(meal: Meal): FoodItemInput[] {
   }))
 }
 
+// Content signature of a meal (title + its items, order-independent). Used to
+// tell whether a logged meal matches a saved favorite, so the star can toggle.
+// Works on any item shape carrying the identifying fields (meal items or
+// favorite items alike).
+type SignatureItem = Pick<FoodItemInput, "name" | "brand" | "grams" | "kcal_100g" | "protein_100g" | "carbs_100g" | "fat_100g">
+
+export function mealSignature(title: string, items: SignatureItem[]): string {
+  const itemSig = items
+    .map((i) => `${i.name.trim().toLowerCase()}|${(i.brand ?? "").trim().toLowerCase()}|${i.grams}|${i.kcal_100g}|${i.protein_100g}|${i.carbs_100g}|${i.fat_100g}`)
+    .sort()
+    .join(";;")
+  return `${title.trim().toLowerCase()}::${itemSig}`
+}
+
 // One-tap cooking-fat quick-adds — you usually cook a meal in butter/oil that's
 // easy to forget. Default 10 g; grams are editable after adding.
 export const FAT_PRESETS: FoodItemInput[] = [
