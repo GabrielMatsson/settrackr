@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Fuse from "fuse.js"
 import { Search, X } from "lucide-react"
+import BottomSheet from "@/app/components/BottomSheet"
 import { MUSCLE_LABELS, type Muscle } from "@/lib/muscle-map"
 import {
   loadExerciseDb,
@@ -46,11 +47,7 @@ export default function ExercisePicker({ onSelect, onClose }: Props) {
   }, [db, fuse, query, muscleFilter])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg flex flex-col max-h-[85vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BottomSheet onClose={onClose} title="Övningsbibliotek" desktopClassName="max-w-lg">
         <div className="p-5 pb-3 flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -139,7 +136,6 @@ export default function ExercisePicker({ onSelect, onClose }: Props) {
             </button>
           ))}
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   )
 }

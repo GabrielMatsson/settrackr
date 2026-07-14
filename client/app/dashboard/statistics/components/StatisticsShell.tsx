@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react"
 import { getLogs, getMe, getWeightLogs } from "@/lib/api"
 import { makeBodyweightResolver, effectiveWeight } from "@/lib/weight-utils"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
+import SheetSelect from "@/app/components/SheetSelect"
 
 const tabs = [
   { label: "Översikt", href: "/dashboard/statistics" },
@@ -94,15 +95,17 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
           {pathname === "/dashboard/statistics" && (
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
               <Calendar size={14} className="text-gray-500 dark:text-gray-400 shrink-0" />
-              <select
+              <SheetSelect
                 value={period}
-                onChange={(e) => setPeriod(Number(e.target.value) as 7 | 30 | 90)}
-                className="bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
-              >
-                <option value={7}>Senaste 7 dagarna</option>
-                <option value={30}>Senaste 30 dagarna</option>
-                <option value={90}>Senaste 90 dagarna</option>
-              </select>
+                options={[
+                  { value: 7, label: "Senaste 7 dagarna" },
+                  { value: 30, label: "Senaste 30 dagarna" },
+                  { value: 90, label: "Senaste 90 dagarna" },
+                ]}
+                onChange={(v) => setPeriod(v as 7 | 30 | 90)}
+                ariaLabel="Tidsperiod"
+                triggerClassName="flex items-center gap-1 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+              />
             </div>
           )}
         </div>

@@ -4,6 +4,8 @@ import { useState } from "react"
 import { X } from "lucide-react"
 import DifficultyPicker from "./DifficultyPicker"
 import IconPicker from "./IconPicker"
+import SheetSelect from "@/app/components/SheetSelect"
+import { SET_OPTIONS, REP_OPTIONS } from "./exerciseOptions"
 import type { WorkoutLog, Difficulty } from "./types"
 
 type CustomExercise = {
@@ -20,21 +22,7 @@ type Props = {
   onCancel: () => void
 }
 
-function getSetOptions() {
-  const options = []
-  for (let i = 1; i <= 10; i++) {
-    options.push(<option key={i} value={i}>{i} set</option>)
-  }
-  return options
-}
-
-function getRepOptions() {
-  const options = []
-  for (let i = 1; i <= 30; i++) {
-    options.push(<option key={i} value={i}>{i} reps</option>)
-  }
-  return options
-}
+const BOXED_SELECT = "flex items-center justify-between gap-2 bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
 
 export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
   const [planName, setPlanName] = useState("Anpassad träning")
@@ -139,20 +127,20 @@ export default function CustomWorkoutLogger({ onSave, onCancel }: Props) {
           )}
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <select
+          <SheetSelect
             value={ex.sets}
-            onChange={(e) => updateSets(i, Number(e.target.value))}
-            className="bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            {getSetOptions()}
-          </select>
-          <select
+            options={SET_OPTIONS}
+            onChange={(v) => updateSets(i, v)}
+            ariaLabel="Antal set"
+            triggerClassName={BOXED_SELECT}
+          />
+          <SheetSelect
             value={ex.reps}
-            onChange={(e) => updateReps(i, Number(e.target.value))}
-            className="bg-white dark:bg-gray-800 border border-indigo-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            {getRepOptions()}
-          </select>
+            options={REP_OPTIONS}
+            onChange={(v) => updateReps(i, v)}
+            ariaLabel="Antal reps"
+            triggerClassName={BOXED_SELECT}
+          />
           <input
             type="number"
             value={ex.weight || ""}

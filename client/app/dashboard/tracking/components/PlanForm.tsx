@@ -7,6 +7,8 @@ import ExercisePicker from "./ExercisePicker"
 import { allMuscles, type LibraryExercise } from "@/lib/exercise-db"
 import type { Muscle } from "@/lib/muscle-map"
 import type { Exercise } from "./types"
+import SheetSelect from "@/app/components/SheetSelect"
+import { SET_OPTIONS, REP_OPTIONS } from "./exerciseOptions"
 
 type Props = {
   isEditing: boolean
@@ -26,21 +28,7 @@ type Props = {
   onCancel: () => void
 }
 
-function getSetOptions() {
-  const options = []
-  for (let i = 1; i <= 10; i++) {
-    options.push(<option key={i} value={i}>{i} set</option>)
-  }
-  return options
-}
-
-function getRepOptions() {
-  const options = []
-  for (let i = 1; i <= 30; i++) {
-    options.push(<option key={i} value={i}>{i} reps</option>)
-  }
-  return options
-}
+const BOXED_SELECT = "flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
 
 export default function PlanForm({
   isEditing,
@@ -101,20 +89,20 @@ export default function PlanForm({
           )}
         </div>
         <div className="flex gap-2 items-center flex-wrap pl-7">
-          <select
+          <SheetSelect
             value={ex.sets}
-            onChange={(e) => onUpdateSets(i, Number(e.target.value))}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            {getSetOptions()}
-          </select>
-          <select
+            options={SET_OPTIONS}
+            onChange={(v) => onUpdateSets(i, v)}
+            ariaLabel="Antal set"
+            triggerClassName={BOXED_SELECT}
+          />
+          <SheetSelect
             value={ex.reps}
-            onChange={(e) => onUpdateReps(i, Number(e.target.value))}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-          >
-            {getRepOptions()}
-          </select>
+            options={REP_OPTIONS}
+            onChange={(v) => onUpdateReps(i, v)}
+            ariaLabel="Antal reps"
+            triggerClassName={BOXED_SELECT}
+          />
         </div>
       </div>
     )

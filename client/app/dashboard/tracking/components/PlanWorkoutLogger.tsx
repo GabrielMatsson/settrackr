@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Check, X, Pencil } from "lucide-react"
 import DifficultyPicker from "./DifficultyPicker"
 import { getExerciseHistory } from "@/lib/api"
-import { getSetOptions, getRepOptions } from "./exerciseOptions"
+import { SET_OPTIONS, REP_OPTIONS } from "./exerciseOptions"
+import SheetSelect from "@/app/components/SheetSelect"
 import type { WorkoutPlan, WorkoutLog, Difficulty } from "./types"
 
 const WIP_KEY = "settrackr_wip"
@@ -296,21 +297,23 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
               {ex.name}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-0.5">
-              <select
+              <SheetSelect
                 value={state.sets}
-                onChange={(e) => updateSets(i, Number(e.target.value))}
-                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
-              >
-                {getSetOptions()}
-              </select>
+                options={SET_OPTIONS}
+                onChange={(v) => updateSets(i, v)}
+                ariaLabel="Antal set"
+                chevron={false}
+                triggerClassName="bg-transparent p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              />
               <span>×</span>
-              <select
+              <SheetSelect
                 value={state.reps}
-                onChange={(e) => updateReps(i, Number(e.target.value))}
-                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
-              >
-                {getRepOptions()}
-              </select>
+                options={REP_OPTIONS}
+                onChange={(v) => updateReps(i, v)}
+                ariaLabel="Antal reps"
+                chevron={false}
+                triggerClassName="bg-transparent p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              />
               <Pencil size={10} className="shrink-0" />
             </p>
             {showOverloadHints && hints[ex.name] && (
@@ -390,21 +393,23 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
               className="font-semibold text-sm bg-transparent border-0 border-b border-dashed border-gray-300 dark:border-gray-600 focus:outline-none focus:border-indigo-500 text-gray-900 dark:text-white px-0 py-0.5 w-full"
             />
             <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-0.5">
-              <select
+              <SheetSelect
                 value={ex.sets}
-                onChange={(e) => updateExtraSets(i, Number(e.target.value))}
-                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
-              >
-                {getSetOptions()}
-              </select>
+                options={SET_OPTIONS}
+                onChange={(v) => updateExtraSets(i, v)}
+                ariaLabel="Antal set"
+                chevron={false}
+                triggerClassName="bg-transparent p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              />
               <span>×</span>
-              <select
+              <SheetSelect
                 value={ex.reps}
-                onChange={(e) => updateExtraReps(i, Number(e.target.value))}
-                className="appearance-none bg-transparent border-0 p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
-              >
-                {getRepOptions()}
-              </select>
+                options={REP_OPTIONS}
+                onChange={(v) => updateExtraReps(i, v)}
+                ariaLabel="Antal reps"
+                chevron={false}
+                triggerClassName="bg-transparent p-0 text-xs text-gray-400 dark:text-gray-500 focus:outline-none cursor-pointer"
+              />
               <Pencil size={10} className="shrink-0" />
             </p>
           </div>

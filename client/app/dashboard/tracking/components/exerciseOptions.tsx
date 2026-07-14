@@ -1,15 +1,12 @@
-export function getSetOptions() {
-  const options = []
-  for (let i = 1; i <= 10; i++) {
-    options.push(<option key={i} value={i}>{i} set</option>)
-  }
-  return options
-}
+import type { SelectOption } from "@/app/components/SheetSelect"
 
-export function getRepOptions() {
-  const options = []
-  for (let i = 1; i <= 30; i++) {
-    options.push(<option key={i} value={i}>{i} reps</option>)
-  }
-  return options
-}
+// Shared option data for the sets/reps SheetSelects across the tracking flow.
+export const SET_OPTIONS: SelectOption<number>[] = Array.from(
+  { length: 10 },
+  (_, i) => ({ value: i + 1, label: `${i + 1} set` })
+)
+
+export const REP_OPTIONS: SelectOption<number>[] = Array.from(
+  { length: 30 },
+  (_, i) => ({ value: i + 1, label: `${i + 1} reps` })
+)

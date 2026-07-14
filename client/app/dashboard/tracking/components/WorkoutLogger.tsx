@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
 import PlanWorkoutLogger from "./PlanWorkoutLogger"
 import CustomWorkoutLogger from "./CustomWorkoutLogger"
+import SheetSelect from "@/app/components/SheetSelect"
 import type { WorkoutPlan, WorkoutLog } from "./types"
 
 type Props = {
@@ -16,14 +16,6 @@ type Props = {
 
 type Mode = "choose" | "plan" | "custom"
 
-function getPlanOptions(plans: WorkoutPlan[]) {
-  const options = []
-  for (let i = 0; i < plans.length; i++) {
-    options.push(<option key={plans[i].id ?? i} value={i}>{plans[i].name}</option>)
-  }
-  return options
-}
-
 export default function WorkoutLogger({ plans, onSave, onCancel, showOverloadHints, autoStart = false }: Props) {
   const [mode, setMode] = useState<Mode>(autoStart ? "plan" : "choose")
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(0)
@@ -33,16 +25,14 @@ export default function WorkoutLogger({ plans, onSave, onCancel, showOverloadHin
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-500 dark:text-gray-400">Välj träningsplan</label>
-          <div className="relative self-start">
-            <select
-              value={selectedPlanIndex}
-              onChange={(e) => setSelectedPlanIndex(Number(e.target.value))}
-              className="appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg pl-3.5 pr-10 py-2.5 text-sm cursor-pointer transition-colors hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:border-indigo-500"
-            >
-              {getPlanOptions(plans)}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
+          <SheetSelect
+            value={selectedPlanIndex}
+            options={plans.map((p, i) => ({ value: i, label: p.name }))}
+            onChange={(v) => setSelectedPlanIndex(v)}
+            ariaLabel="Välj träningsplan"
+            wrapperClassName="self-start"
+            triggerClassName="flex items-center justify-between gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3.5 py-2.5 text-sm cursor-pointer transition-colors hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:border-indigo-500"
+          />
         </div>
         <PlanWorkoutLogger
           key={selectedPlanIndex}

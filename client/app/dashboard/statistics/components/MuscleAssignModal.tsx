@@ -4,6 +4,7 @@ import { useState } from "react"
 import { X } from "lucide-react"
 import { setExerciseMuscles } from "@/lib/api"
 import { MUSCLE_GROUPS, MUSCLE_LABELS, type Muscle } from "@/lib/muscle-map"
+import BottomSheet from "@/app/components/BottomSheet"
 
 type Props = {
   name: string
@@ -37,11 +38,8 @@ export default function MuscleAssignModal({ name, initial, onClose, onSaved }: P
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-5 w-full max-w-md flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BottomSheet onClose={onClose} title={name}>
+      <div className="p-5 flex flex-col gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-gray-900 dark:text-white font-semibold truncate">{name}</p>
@@ -101,6 +99,6 @@ export default function MuscleAssignModal({ name, initial, onClose, onSaved }: P
           </button>
         </div>
       </div>
-    </div>
+    </BottomSheet>
   )
 }

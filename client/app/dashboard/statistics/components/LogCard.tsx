@@ -5,6 +5,7 @@ import { MoreHorizontal, ChevronDown } from "lucide-react"
 import { updateLog, deleteLog } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import DifficultyBadge from "@/app/components/DifficultyBadge"
+import BottomSheet from "@/app/components/BottomSheet"
 
 type ExerciseLog = {
   name: string
@@ -77,6 +78,9 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
   useEffect(() => {
     if (!menuOpen) return
     function handleClick(e: MouseEvent) {
+      // On mobile the menu is a vaul sheet portaled outside menuRef — ignore
+      // taps inside it (it closes itself via the overlay / drag).
+      if ((e.target as HTMLElement).closest("[data-vaul-drawer]")) return
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
     document.addEventListener("mousedown", handleClick)
@@ -248,20 +252,24 @@ export default function LogCard({ log, onDelete, onUpdate }: Props) {
             <MoreHorizontal size={16} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-20 min-w-[120px] py-1 overflow-hidden">
+            <BottomSheet
+              onClose={() => setMenuOpen(false)}
+              title="Åtgärder"
+              desktopAnchorClassName="absolute right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-20 min-w-[120px] py-1 overflow-hidden"
+            >
               <button
                 onClick={() => { setMenuOpen(false); setEditing(true) }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Redigera
               </button>
               <button
                 onClick={() => { setMenuOpen(false); handleDelete() }}
-                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 Ta bort
               </button>
-            </div>
+            </BottomSheet>
           )}
         </div>
 

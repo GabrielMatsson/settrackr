@@ -4,6 +4,7 @@ import { useState, createElement } from "react"
 import { ChevronDown, GripVertical } from "lucide-react"
 import PressableButton from "@/app/components/PressableButton"
 import { getWorkoutIcon } from "@/lib/workout-utils"
+import SheetSelect from "@/app/components/SheetSelect"
 import type { WorkoutPlan } from "./types"
 
 type Friend = { id: number; name: string | null; email: string }
@@ -102,16 +103,17 @@ export default function PlanCard({ plan, onEdit, onDelete, onLog, friends = [], 
               )}
               {sharable.length > 0 ? (
                 <div className="flex gap-2">
-                  <select
-                    value={selectedFriend}
-                    onChange={(e) => setSelectedFriend(e.target.value ? Number(e.target.value) : "")}
-                    className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="">Välj vän att dela med…</option>
-                    {sharable.map((f) => (
-                      <option key={f.id} value={f.id}>{f.name ?? f.email}</option>
-                    ))}
-                  </select>
+                  <SheetSelect
+                    value={selectedFriend === "" ? "" : String(selectedFriend)}
+                    options={[
+                      { value: "", label: "Välj vän att dela med…" },
+                      ...sharable.map((f) => ({ value: String(f.id), label: f.name ?? f.email })),
+                    ]}
+                    onChange={(v) => setSelectedFriend(v ? Number(v) : "")}
+                    ariaLabel="Välj vän att dela med"
+                    wrapperClassName="flex-1"
+                    triggerClassName="w-full flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                  />
                   <button
                     onClick={handleShare}
                     disabled={!selectedFriend}

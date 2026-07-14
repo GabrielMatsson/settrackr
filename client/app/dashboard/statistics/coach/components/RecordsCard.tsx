@@ -6,6 +6,7 @@ import {
 } from "recharts"
 import { Trophy } from "lucide-react"
 import { CoachPR, CoachTrend } from "@/lib/api"
+import SheetSelect from "@/app/components/SheetSelect"
 
 const tooltipStyle = {
   backgroundColor: "#111827",
@@ -43,15 +44,13 @@ export default function RecordsCard({ prs, trends }: { prs: CoachPR[]; trends: C
           <p className="text-sm text-gray-600 dark:text-gray-300">Beräknad 1RM över tid</p>
           {trends.length > 0 && (
             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
-              <select
+              <SheetSelect
                 value={effective?.exercise ?? ""}
-                onChange={(e) => setSelected(e.target.value)}
-                className="bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
-              >
-                {trends.map((t) => (
-                  <option key={t.exercise} value={t.exercise}>{t.exercise}</option>
-                ))}
-              </select>
+                options={trends.map((t) => ({ value: t.exercise, label: t.exercise }))}
+                onChange={(v) => setSelected(v)}
+                ariaLabel="Välj övning"
+                triggerClassName="flex items-center gap-1 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+              />
             </div>
           )}
         </div>

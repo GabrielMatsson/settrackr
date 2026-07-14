@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from "recharts"
+import SheetSelect from "@/app/components/SheetSelect"
 
 type ExerciseLog = {
   name: string
@@ -128,15 +129,13 @@ export default function ProgressCharts({ logs, friendLogs, friendName, hideBarCh
           {!noCard && <p className="text-gray-900 dark:text-white font-semibold">Viktutveckling</p>}
           {exerciseNames.length > 0 ? (
             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
-              <select
+              <SheetSelect
                 value={effectiveExercise}
-                onChange={(e) => setSelectedExercise(e.target.value)}
-                className="bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
-              >
-                {exerciseNames.map((name) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
+                options={exerciseNames.map((name) => ({ value: name, label: name }))}
+                onChange={(v) => setSelectedExercise(v)}
+                ariaLabel="Välj övning"
+                triggerClassName="flex items-center gap-1 bg-transparent text-gray-900 dark:text-white text-sm focus:outline-none"
+              />
             </div>
           ) : null}
         </div>
