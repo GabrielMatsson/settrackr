@@ -11,8 +11,10 @@ export type LibraryExercise = {
   level: "beginner" | "intermediate" | "expert"
   equipment: string | null
   category: string
+  mechanic: "compound" | "isolation" | null
   primary: Muscle[]
   secondary: Muscle[]
+  instructions: string[]
   image: string | null
 }
 
