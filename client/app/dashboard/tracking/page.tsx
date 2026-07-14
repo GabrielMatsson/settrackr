@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { toast } from "sonner"
 import Link from "next/link"
 import { X, Dumbbell, Users, Calendar, Trophy, Sparkles } from "lucide-react"
 import { motion, AnimatePresence, Reorder, useDragControls } from "motion/react"
@@ -130,9 +131,14 @@ export default function TrackingPage() {
   }, [])
 
   async function handleSharePlan(planId: number, friendId: number) {
-    await sharePlan(planId, friendId)
-    const updated = await getPlans()
-    setPlans(updated)
+    try {
+      await sharePlan(planId, friendId)
+      const updated = await getPlans()
+      setPlans(updated)
+      toast.success("Planen delad")
+    } catch {
+      toast.error("Kunde inte dela planen")
+    }
   }
 
   async function handleUnsharePlan(planId: number, friendId: number) {
@@ -146,8 +152,9 @@ export default function TrackingPage() {
       await leaveSharedPlan(planId)
       const remaining = sharedPlans.filter((p) => p.id !== planId)
       setSharedPlans(remaining)
+      toast.success("Du lämnade planen")
     } catch {
-      setError("Kunde inte ta bort delad plan")
+      toast.error("Kunde inte ta bort delad plan")
     }
   }
 

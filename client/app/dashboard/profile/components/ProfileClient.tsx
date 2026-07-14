@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useTheme } from "next-themes"
 import { motion } from "motion/react"
 import { LogOut, Dumbbell, Calendar, Users, Info, Zap, Sun, Moon } from "lucide-react"
@@ -9,6 +9,8 @@ import SaveButton from "@/app/components/SaveButton"
 import { gentleSpring, fadeUp, fadeUpTransition } from "@/lib/motion"
 import { getFriends, getFriendRequests, getPlanInvitations, acceptFriendRequest, deleteFriendship, acceptPlanInvitation, declinePlanInvitation, sendFriendRequest, getLogs, getMe, updateMe, getMyLevel, type GoalMode } from "@/lib/api"
 import { GOAL_MODE_LABELS } from "@/lib/weight-utils"
+import { usePageRefresh } from "@/app/dashboard/components/DashboardShell"
+import { applyThemeWithReveal } from "@/lib/theme-transition"
 import { handleSignOut } from "../actions"
 import FriendProfile from "./FriendProfile"
 
@@ -106,6 +108,18 @@ export default function ProfileClient({ name, email, image }: Props) {
 
     return () => clearInterval(poll)
   }, [])
+
+  // Pull down at the top to refetch the friend lists + invitations (mobile).
+  const refreshSocial = useCallback(
+    () =>
+      Promise.all([
+        getFriends().then(setFriends).catch(() => {}),
+        getFriendRequests().then(setRequests).catch(() => {}),
+        getPlanInvitations().then(setInvitations).catch(() => {}),
+      ]),
+    []
+  )
+  usePageRefresh(refreshSocial)
 
   async function handleSaveSettings() {
     setSettingsSaving(true)
@@ -628,7 +642,7 @@ export default function ProfileClient({ name, email, image }: Props) {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setTheme("light")}
+                      onClick={(e) => applyThemeWithReveal(e.clientX, e.clientY, () => setTheme("light"))}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         theme === "light"
                           ? "bg-indigo-600 text-white"
@@ -640,7 +654,7 @@ export default function ProfileClient({ name, email, image }: Props) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setTheme("dark")}
+                      onClick={(e) => applyThemeWithReveal(e.clientX, e.clientY, () => setTheme("dark"))}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         theme === "dark"
                           ? "bg-indigo-600 text-white"

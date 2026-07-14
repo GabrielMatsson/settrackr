@@ -6,6 +6,7 @@ import DifficultyPicker from "./DifficultyPicker"
 import { getExerciseHistory } from "@/lib/api"
 import { SET_OPTIONS, REP_OPTIONS } from "./exerciseOptions"
 import SheetSelect from "@/app/components/SheetSelect"
+import { haptic } from "@/lib/haptics"
 import type { WorkoutPlan, WorkoutLog, Difficulty } from "./types"
 
 const WIP_KEY = "settrackr_wip"
@@ -122,6 +123,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   }, [exerciseStates, extraExercises, plan])
 
   function updateDone(index: number, done: boolean) {
+    if (done) haptic()
     const updated = [...exerciseStates]
     updated[index] = { ...updated[index], done }
     setExerciseStates(updated)
@@ -205,6 +207,7 @@ export default function PlanWorkoutLogger({ plan, onSave, onCancel, showOverload
   }
 
   function updateExtraDone(index: number, done: boolean) {
+    if (done) haptic()
     const updated = [...extraExercises]
     updated[index] = { ...updated[index], done }
     setExtraExercises(updated)

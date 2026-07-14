@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar } from "lucide-react"
@@ -8,6 +8,7 @@ import { getLogs, getMe, getWeightLogs } from "@/lib/api"
 import { makeBodyweightResolver, effectiveWeight } from "@/lib/weight-utils"
 import { StatisticsContext, WorkoutLog } from "./StatisticsContext"
 import SheetSelect from "@/app/components/SheetSelect"
+import { usePageRefresh } from "@/app/dashboard/components/DashboardShell"
 
 const tabs = [
   { label: "Översikt", href: "/dashboard/statistics" },
@@ -37,10 +38,10 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
   const [coachEnabled, setCoachEnabled] = useState(true)
   const [resolveBodyweight, setResolveBodyweight] = useState<(d: string) => number | null>(() => () => null)
 
-  useEffect(() => {
-    // Body weight entries turn bodyweight-flagged sets into effective load
-    // (body weight at the log's date + extra kg). Missing data => no-op resolver.
-    Promise.all([
+  // Body weight entries turn bodyweight-flagged sets into effective load
+  // (body weight at the log's date + extra kg). Missing data => no-op resolver.
+  const loadData = useCallback(() => {
+    return Promise.all([
       getLogs(),
       getWeightLogs().catch(() => []),
     ])
@@ -51,8 +52,15 @@ export default function StatisticsShell({ children }: { children: React.ReactNod
         setLoading(false)
       })
       .catch(() => { setError("Kunde inte hämta träningshistorik"); setLoading(false) })
-    getMe().then((p) => setCoachEnabled(p.show_training_coach !== false)).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    loadData()
+    getMe().then((p) => setCoachEnabled(p.show_training_coach !== false)).catch(() => {})
+  }, [loadData])
+
+  // Pull down at the top of the list to refetch (mobile).
+  usePageRefresh(loadData)
 
   const visibleTabs = tabs.filter((t) => coachEnabled || t.href !== COACH_HREF)
   const coachDisabledHere = !coachEnabled && pathname.startsWith(COACH_HREF)

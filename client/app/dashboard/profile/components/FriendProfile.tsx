@@ -2,6 +2,7 @@
 
 import { useState, useEffect, createElement } from "react"
 import { ChevronDown } from "lucide-react"
+import { toast } from "sonner"
 import { getApiToken, getFriendPlans, copyFriendPlan, getFriendLevel } from "@/lib/api"
 import { getOverallDifficulty, getTotalLyft, estimate1RM, getWorkoutIcon } from "@/lib/workout-utils"
 import WorkoutOverview from "../../statistics/components/WorkoutOverview"
@@ -206,8 +207,9 @@ export default function FriendProfile({ friend, onBack }: Props) {
       await copyFriendPlan(friend.id, planId)
       setCopiedPlanId(planId)
       setTimeout(() => setCopiedPlanId(null), 2500)
+      toast.success("Planen kopierad till dina planer")
     } catch {
-      // ignore
+      toast.error("Kunde inte kopiera planen")
     }
   }
 

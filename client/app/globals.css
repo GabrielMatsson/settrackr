@@ -46,6 +46,58 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* --- Native-app feel on iOS (and touch devices generally) ------------------
+   These strip the browser "tells": the grey tap flash, the rubber-band
+   pull-to-refresh, accidental text selection while tapping chrome, and the
+   long-press callout menu. Data stays selectable — only interactive chrome is
+   locked — so you can still copy a weight or a log. */
+
+/* Kill the grey highlight on tap (Motion press feedback replaces it). */
+html {
+  -webkit-tap-highlight-color: transparent;
+  /* Don't let iOS bump up font sizes on rotate. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Stop scroll from chaining to the document — no browser pull-to-refresh, no
+   rubber-band bounce at the page edges (the #1 "this is a browser" tell). */
+html,
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Interactive chrome shouldn't be text-selectable or show the long-press
+   callout — that's what makes tapping a button feel like a native control. */
+button,
+a,
+label,
+summary,
+[role="button"],
+[role="option"],
+[role="tab"],
+[role="listbox"],
+nav {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* View Transitions: theme flip is a clip-path circular reveal (see
+   lib/theme-transition.ts), so suppress the browser's default root cross-fade
+   and let the new snapshot paint on top. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
+::view-transition-old(root) {
+  z-index: 0;
+}
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

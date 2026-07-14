@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Check, ChevronDown } from "lucide-react"
 import BottomSheet from "./BottomSheet"
+import { haptic } from "@/lib/haptics"
 
 export type SelectOption<T extends string | number> = { value: T; label: string }
 
@@ -61,6 +62,7 @@ export default function SheetSelect<T extends string | number>({
                 aria-selected={isSel}
                 ref={isSel ? selectedRef : undefined}
                 onClick={() => {
+                  haptic()
                   onChange(o.value)
                   setOpen(false)
                 }}
