@@ -6,6 +6,7 @@ import { useStatistics } from "./components/StatisticsContext"
 import WorkoutOverview from "./components/WorkoutOverview"
 import WorkoutHeatmap from "./components/WorkoutHeatmap"
 import MuscleHeatmap from "./components/MuscleHeatmap"
+import MuscleRadar from "./components/MuscleRadar"
 import MyGoals from "./components/MyGoals"
 import ProgressCharts from "./components/ProgressCharts"
 
@@ -16,6 +17,7 @@ export default function OverviewPage() {
     <WorkoutOverview key="overview" logs={logs} />,
     <WorkoutHeatmap key="heatmap" logs={logs} />,
     <MuscleHeatmap key="muscles" logs={logs} />,
+    <MuscleRadar key="radar" logs={logs} />,
     <MyGoals key="goals" logs={logs} />,
     <ProgressCharts key="charts" logs={logs} />,
   ]
